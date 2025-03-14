@@ -9,6 +9,7 @@ export default defineNuxtConfig({
       options: {},
     },
     public: {
+      BASE_URL: process.env.BASE_URL,
       stripe: {
         key: process.env.NUXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
         options: {},

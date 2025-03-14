@@ -12,35 +12,28 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 const route = useRoute()
 const eventId = Number(route.params.id)
 
-// Variables réactives pour l'événement et les produits
+// Récupération de l'événement
 const eventInfo = ref<any>(null)
-const eventError = ref(null)
 async function fetchEvent() {
   const { data, error } = await supabase
     .from('events')
     .select('*')
     .eq('id', eventId)
     .single()
-  if (error) {
-    eventError.value = error
-    throw error
-  }
+  if (error) throw error
   eventInfo.value = data
 }
 await fetchEvent()
 
+// Récupération des produits (tickets) liés à l'événement
 const productsData = ref<any[]>([])
-const productsError = ref(null)
 async function fetchProducts() {
   const { data, error } = await supabase
     .from('products')
     .select('*')
-    .eq('entity_type', 'event')
+    .eq('entity_type', 'event')  // entity_type "event" pour lier au eventId
     .eq('entity_id', eventId)
-  if (error) {
-    productsError.value = error
-    throw error
-  }
+  if (error) throw error
   productsData.value = data || []
 }
 await fetchProducts()
@@ -93,7 +86,7 @@ const handleBook = async () => {
     if (qty > 0) acc[id] = qty;
     return acc;
   }, {} as Record<string, number>);
-  
+
   // Préparer les line items pour Stripe (montant en centimes)
   const lineItems = sortedProducts.value
     .filter((p: any) => (quantities.value[p.id] || 0) > 0)
@@ -103,18 +96,28 @@ const handleBook = async () => {
       quantity: quantities.value[p.id],
     }));
 
+  // Ajout de logs pour suivre les données envoyées au checkout
+  console.log("Handle Book:");
+  console.log("Event ID:", eventId);
+  console.log("Order Summary:", orderSummary);
+  console.log("Line Items:", lineItems);
+  console.log("Total Order:", totalOrder.value);
+  console.log("Total Fees:", totalFees.value);
+  console.log("Grand Total:", grandTotal.value);
+  console.log("Promoter Stripe Account ID:", eventInfo.value.promoter_stripe_account_id);
+
   try {
     const response = await $fetch('/api/create-checkout-session', {
       method: 'POST',
       body: {
         eventId,
         lineItems,
-        // Ici, vous devez récupérer le stripe_account_id du promoteur associé à l'événement.
-        // Par exemple, si vous avez stocké cet ID dans l'événement ou dans un state global :
-        promoterStripeAccountId: eventInfo.value.promoter_stripe_account_id, // ou une autre source
+        // Utilisation de la valeur "promoter_stripe_account_id" depuis l'événement
+        promoterStripeAccountId: eventInfo.value.promoter_stripe_account_id,
         currency: sortedProducts.value[0]?.currency || 'EUR',
       },
     });
+    console.log("Checkout Session Response:", response);
     if (response.url) {
       window.location.href = response.url;
     }
@@ -170,8 +173,8 @@ const handleBook = async () => {
             </div>
           </div>
         </div>
-        <!-- Order Summary -->
-        <div v-if="selectedProducts.length > 0" class="orderSummary">
+        <!-- Order Summary affiché uniquement si des tickets sont ajoutés -->
+        <div class="orderSummary" v-if="selectedProducts.length > 0">
           <h2>Order Summary</h2>
           <div v-for="p in selectedProducts" :key="p.id" class="summaryRow">
             <span>{{ p.name }} x {{ quantities[p.id] }}</span>
