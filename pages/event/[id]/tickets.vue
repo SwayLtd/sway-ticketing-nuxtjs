@@ -1,9 +1,14 @@
-<!-- pages/event/[id]/tickets.vue -->
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { format } from 'date-fns'
 import { createClient } from '@supabase/supabase-js'
+
+// Paramètres globaux (à centraliser, puis éventuellement déplacer dans une config)
+const stripeCommissionRate = 0.015;  // 1,5%
+const stripeFixedFee = 0.25;          // 0,25 €
+const swayCommissionRate = 0.035;     // 3,5%
+const swayFixedFee = 0.50;            // 0,50 €
 
 // Récupération des variables d'environnement via useRuntimeConfig()
 const { public: { SUPABASE_URL, SUPABASE_ANON_KEY } } = useRuntimeConfig()
@@ -31,7 +36,7 @@ async function fetchProducts() {
   const { data, error } = await supabase
     .from('products')
     .select('*')
-    .eq('entity_type', 'event')  // entity_type "event" pour lier au eventId
+    .eq('entity_type', 'event')
     .eq('entity_id', eventId)
   if (error) throw error
   productsData.value = data || []
@@ -40,7 +45,7 @@ await fetchProducts()
 
 // Tri des produits par prix
 const sortedProducts = computed(() => {
-  return [...productsData.value].sort((a, b) => a.price - b.price)
+  return [...productsData.value].sort((a, b) => Number(a.price) - Number(b.price))
 })
 
 // Initialisation des quantités pour chaque produit
@@ -61,49 +66,87 @@ const selectedProducts = computed(() => {
   return sortedProducts.value.filter((p: any) => (quantities.value[p.id] || 0) > 0)
 })
 
-// Calculs des totaux
+// Calculs (en euros)
+// Total des tickets (T)
 const totalOrder = computed(() => {
   return sortedProducts.value.reduce((acc: number, p: any) => {
-    const qty = quantities.value[p.id] || 0
-    return acc + qty * p.price
+    const price = Number(p.price) || 0;
+    const qty = quantities.value[p.id] || 0;
+    return acc + qty * price;
   }, 0)
 })
-const feeTransaction = 0.50
-const commissionRate = 0.035
-const commissionFee = computed(() => totalOrder.value * commissionRate)
-const totalFees = computed(() => feeTransaction + commissionFee.value)
-const grandTotal = computed(() => totalOrder.value + totalFees.value)
+
+// Commission Sway annoncée (C) = T × swayCommissionRate + swayFixedFee
+const commission = computed(() => {
+  return totalOrder.value * swayCommissionRate + swayFixedFee;
+})
+
+// Calcul des frais Stripe sur la commission (S) = (C × stripeCommissionRate) + stripeFixedFee
+const stripeFee = computed(() => {
+  return commission.value * stripeCommissionRate + stripeFixedFee;
+})
+
+// La commission nette pour Sway (ce que vous percevrez) = Commission Sway - Stripe Fee
+const netCommission = computed(() => {
+  return commission.value - stripeFee.value;
+})
+
+// Le total facturé au client (A) = T + C
+const grandTotal = computed(() => {
+  return totalOrder.value + commission.value;
+})
+
+// Pour le Checkout, nous "fake" l'affichage en envoyant deux articles de frais distincts :
+// - Un article "Stripe Fees" pour montrer les frais Stripe (stripeFee)
+// - Un article "Fees" pour votre commission nette (netCommission)
+// On convertit ces valeurs en centimes.
+const stripeFeeCents = computed(() => Math.round(stripeFee.value * 100));
+const netCommissionCents = computed(() => Math.round(netCommission.value * 100));
 
 // Formatage de la date
 const formatDate = (dateStr: string) => {
   return format(new Date(dateStr), 'EEEE dd MMM yyyy, HH:mm')
 }
 
-// Fonction de réservation (à adapter)
+// Fonction de réservation (handleBook)
 const handleBook = async () => {
-  // Préparer la commande en fonction des quantités sélectionnées
-  const orderSummary = Object.entries(quantities.value).reduce((acc, [id, qty]) => {
-    if (qty > 0) acc[id] = qty;
-    return acc;
-  }, {} as Record<string, number>);
-
-  // Préparer les line items pour Stripe (montant en centimes)
-  const lineItems = sortedProducts.value
+  // Préparer les articles pour les tickets
+  const ticketLineItems = sortedProducts.value
     .filter((p: any) => (quantities.value[p.id] || 0) > 0)
     .map((p: any) => ({
       name: p.name,
-      amount: Math.round(p.price * 100), // conversion en centimes
+      amount: Math.round(Number(p.price) * 100), // conversion en centimes
       quantity: quantities.value[p.id],
     }));
 
-  // Ajout de logs pour suivre les données envoyées au checkout
+  // Article pour les Stripe Fees
+  const stripeFeeLineItem = {
+    name: "Stripe Fees",
+    amount: stripeFeeCents.value, // en centimes
+    quantity: 1,
+  };
+
+  // Article pour la commission nette (ce que Sway reçoit)
+  const feeLineItem = {
+    name: "Fees",
+    amount: netCommissionCents.value, // en centimes
+    quantity: 1,
+  };
+
+  // Concaténer les articles
+  const lineItems = ticketLineItems.concat([stripeFeeLineItem, feeLineItem]);
+
   console.log("Handle Book:");
   console.log("Event ID:", eventId);
-  console.log("Order Summary:", orderSummary);
-  console.log("Line Items:", lineItems);
-  console.log("Total Order:", totalOrder.value);
-  console.log("Total Fees:", totalFees.value);
-  console.log("Grand Total:", grandTotal.value);
+  console.log("Ticket Line Items:", ticketLineItems);
+  console.log("Stripe Fee Line Item:", stripeFeeLineItem);
+  console.log("Fee Line Item (net commission):", feeLineItem);
+  console.log("Line Items envoyés:", lineItems);
+  console.log("Total Order (T):", totalOrder.value);
+  console.log("Commission Sway annoncée (C):", commission.value);
+  console.log("Calculated Stripe Fee (S):", stripeFee.value);
+  console.log("Net Commission (C - S):", netCommission.value);
+  console.log("Grand Total (A = T + C):", grandTotal.value);
   console.log("Promoter Stripe Account ID:", eventInfo.value.promoter_stripe_account_id);
 
   try {
@@ -112,9 +155,10 @@ const handleBook = async () => {
       body: {
         eventId,
         lineItems,
-        // Utilisation de la valeur "promoter_stripe_account_id" depuis l'événement
         promoterStripeAccountId: eventInfo.value.promoter_stripe_account_id,
         currency: sortedProducts.value[0]?.currency || 'EUR',
+        // On envoie la commission nette (ce que Sway perçoit) en centimes
+        feeAmount: netCommissionCents.value,
       },
     });
     console.log("Checkout Session Response:", response);
@@ -132,7 +176,7 @@ const handleBook = async () => {
     <!-- En-tête de l'événement -->
     <div v-if="eventInfo" class="eventHeader">
       <div v-if="eventInfo.image_url" class="eventImage">
-        <img :src="eventInfo.image_url" :alt="eventInfo.title" >
+        <img :src="eventInfo.image_url" :alt="eventInfo.title">
       </div>
       <div class="eventInfo">
         <h1>{{ eventInfo.title }}</h1>
@@ -145,7 +189,7 @@ const handleBook = async () => {
       </div>
     </div>
 
-    <!-- Section Tickets et Order Summary regroupés dans un seul conteneur -->
+    <!-- Section Tickets et Order Summary -->
     <section class="ticketSection">
       <div class="ticketAndSummary">
         <!-- Liste des tickets -->
@@ -162,18 +206,14 @@ const handleBook = async () => {
                 <span class="ticketPrice">{{ p.price }} {{ p.currency }}</span>
               </div>
               <div class="quantityRow">
-                <button type="button" class="counterButton" @click="updateQuantity(p.id, -1)">
-                  –
-                </button>
+                <button type="button" class="counterButton" @click="updateQuantity(p.id, -1)">–</button>
                 <span class="quantityValue">{{ quantities[p.id] }}</span>
-                <button type="button" class="counterButton" @click="updateQuantity(p.id, 1)">
-                  +
-                </button>
+                <button type="button" class="counterButton" @click="updateQuantity(p.id, 1)">+</button>
               </div>
             </div>
           </div>
         </div>
-        <!-- Order Summary affiché uniquement si des tickets sont ajoutés -->
+        <!-- Order Summary (affiché si des tickets sont ajoutés) -->
         <div class="orderSummary" v-if="selectedProducts.length > 0">
           <h2>Order Summary</h2>
           <div v-for="p in selectedProducts" :key="p.id" class="summaryRow">
@@ -182,15 +222,13 @@ const handleBook = async () => {
           </div>
           <div class="summaryRow">
             <span>Fees</span>
-            <span>{{ totalFees.toFixed(2) }} {{ sortedProducts[0]?.currency || "" }}</span>
+            <span>{{ commission.toFixed(2) }} {{ sortedProducts[0]?.currency || "" }}</span>
           </div>
           <div class="summaryTotal">
             <strong>Total</strong>
             <strong>{{ grandTotal.toFixed(2) }} {{ sortedProducts[0]?.currency || "" }}</strong>
           </div>
-          <button type="button" class="bookButton" @click="handleBook">
-            BOOK
-          </button>
+          <button type="button" class="bookButton" @click="handleBook">BOOK</button>
         </div>
       </div>
     </section>
@@ -326,7 +364,7 @@ const handleBook = async () => {
 
 /* Order Summary */
 .orderSummary {
-  width: 40%; /* Ajustez en fonction de votre design */
+  width: 40%; /* Ajustez selon votre design */
   background-color: #1e1e1e;
   padding: 16px;
   border-radius: 8px;

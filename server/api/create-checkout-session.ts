@@ -8,15 +8,16 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 export default defineEventHandler(async (event) => {
     const body = await readBody(event);
-    const { eventId, lineItems, promoterStripeAccountId, currency } = body;
+    const { eventId, lineItems, promoterStripeAccountId, currency, feeAmount } = body;
 
-    // Logs pour débugger les données reçues
+    // Logs pour débuguer les données reçues
     console.log('Création de Checkout Session pour eventId:', eventId);
     console.log('Line Items:', lineItems);
     console.log('Promoter Stripe Account ID:', promoterStripeAccountId);
     console.log('Currency:', currency);
+    console.log('Fee Amount (centimes):', feeAmount);
 
-    if (!eventId || !lineItems || !promoterStripeAccountId || !currency) {
+    if (!eventId || !lineItems || !promoterStripeAccountId || !currency || feeAmount == null) {
         throw createError({ statusCode: 400, statusMessage: 'Missing parameters' });
     }
 
@@ -24,9 +25,7 @@ export default defineEventHandler(async (event) => {
     const config = useRuntimeConfig();
 
     // Calcul du montant total en centimes
-    const totalAmount = lineItems.reduce((acc: number, item: any) => {
-        return acc + item.amount * item.quantity;
-    }, 0);
+    const totalAmount = lineItems.reduce((acc: number, item: any) => acc + item.amount * item.quantity, 0);
 
     try {
         const session = await stripe.checkout.sessions.create({
@@ -41,7 +40,7 @@ export default defineEventHandler(async (event) => {
                 quantity: item.quantity,
             })),
             payment_intent_data: {
-                application_fee_amount: Math.round(totalAmount * 0.1), // Par exemple, 10% de commission pour Sway
+                application_fee_amount: feeAmount, // Utilise directement le montant des fees envoyé (en centimes)
                 transfer_data: {
                     destination: promoterStripeAccountId,
                 },
