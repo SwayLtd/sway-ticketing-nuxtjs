@@ -25,38 +25,34 @@
       <p v-if="message" :style="{ color: messageColor }">{{ message }}</p>
     </section>
 
-    <!-- Section d'affichage des infos Stripe -->
+    <!-- Section Liste des permissions pour les promoteurs -->
     <section>
-      <h2>Informations de votre compte Stripe Connect</h2>
-      <div v-if="stripeLoading">
-        <p>Chargement des informations Stripe…</p>
+      <h2>Vos permissions (Promoters)</h2>
+      <div v-if="permissionsLoading">
+        <p>Chargement de vos permissions…</p>
       </div>
-      <div v-else-if="stripeInfo">
-        <p><strong>Account ID:</strong> {{ stripeInfo.id }}</p>
-        <p v-if="stripeInfo.email"><strong>Email:</strong> {{ stripeInfo.email }}</p>
-        <p><strong>Pays:</strong> {{ stripeInfo.country }}</p>
-        <strong>Capacités:</strong>
-        <ul>
-          <li>Card Payments: {{ stripeInfo.capabilities?.card_payments }}</li>
-          <li>Transfers: {{ stripeInfo.capabilities?.transfers }}</li>
-        </ul>
-        <p><strong>Détails soumis:</strong> {{ stripeInfo.details_submitted ? 'Oui' : 'Non' }}</p>
-        <p><strong>Charges activées:</strong> {{ stripeInfo.charges_enabled ? 'Oui' : 'Non' }}</p>
-        <p><strong>Payouts activés:</strong> {{ stripeInfo.payouts_enabled ? 'Oui' : 'Non' }}</p>
+      <div v-else-if="permissions.length">
+        <table>
+          <thead>
+            <tr>
+              <th>Nom du promoteur</th>
+              <th>Niveau de permission</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="perm in permissions" :key="perm.entity_id">
+              <td>
+                <a href="#" @click.prevent="goToPromoter(perm.entity_id)">
+                  {{ perm.promoter_name }}
+                </a>
+              </td>
+              <td>{{ perm.permission_level }}</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
       <div v-else>
-        <p>Aucune information Stripe disponible.</p>
-      </div>
-    </section>
-
-    <!-- Section pour lier le compte Stripe Connect -->
-    <section v-if="!stripeAccountId">
-      <h2>Stripe Connect</h2>
-      <div>
-        <p>Vous n'avez pas encore lié votre compte Stripe Connect.</p>
-        <button :disabled="stripeLoading" @click="linkStripe">
-          {{ stripeLoading ? 'En cours…' : 'Lier mon compte Stripe Connect' }}
-        </button>
+        <p>Aucune permission trouvée.</p>
       </div>
     </section>
   </div>
@@ -64,56 +60,45 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useSupabaseClient, useSupabaseUser } from '#imports' // Auto-importés par @nuxtjs/supabase
+import { useSupabaseClient, useSupabaseUser } from '#imports'
+import { useRouter } from 'vue-router'
 
 const supabase = useSupabaseClient()
 const user = useSupabaseUser()
+const router = useRouter()
 
-// Variables pour la mise à jour du username
+// Variables pour le username
 const username = ref('')
 const loading = ref(false)
 const message = ref('')
 const messageColor = ref('green')
 
-// Variables pour Stripe
-const stripeLoading = ref(false)
-const stripeInfo = ref(null)
-const stripeAccountId = ref(null)
+// Variables pour les permissions (promoter uniquement)
+const permissions = ref([])
+const permissionsLoading = ref(false)
+// Pour obtenir l'ID interne de l'utilisateur (integer)
+const userIdInt = ref(null)
 
-// Récupération du profil utilisateur depuis la table "users"
 onMounted(async () => {
   if (!user.value?.id) return
 
+  // Récupération de l'utilisateur dans la table "users"
   const { data, error } = await supabase
     .from('users')
-    .select('username, stripe_account_id')
+    .select('id, username')
     .eq('supabase_id', user.value.id)
     .single()
 
   if (error) {
     console.error('Erreur lors de la récupération du profil:', error)
   } else if (data) {
+    userIdInt.value = data.id
     username.value = data.username || ''
-    stripeAccountId.value = data.stripe_account_id || null
-    if (stripeAccountId.value) {
-      await fetchStripeDetails(stripeAccountId.value)
-    }
+    await fetchPermissions()
   }
 })
 
-// Fonction pour récupérer les infos Stripe via l'endpoint existant
-async function fetchStripeDetails(accountId) {
-  try {
-    stripeLoading.value = true
-    stripeInfo.value = await $fetch(`/api/stripe/account?accountId=${accountId}`)
-  } catch (err) {
-    console.error('Erreur lors de la récupération des infos Stripe:', err)
-  } finally {
-    stripeLoading.value = false
-  }
-}
-
-// Fonction pour mettre à jour le username
+// Fonction pour mettre à jour le username dans la table "users"
 async function updateUsername() {
   if (!user.value?.id) return
   loading.value = true
@@ -135,24 +120,52 @@ async function updateUsername() {
   loading.value = false
 }
 
-// Fonction pour lier le compte Stripe Connect
-async function linkStripe() {
-  if (!user.value?.email) return
-  stripeLoading.value = true
+// Fonction pour récupérer les permissions de l'utilisateur pour les promoteurs
+async function fetchPermissions() {
+  if (!userIdInt.value) return
+  permissionsLoading.value = true
 
   try {
-    const response = await $fetch('/api/stripe/connect', {
-      method: 'POST',
-      body: { email: user.value.email }
-    })
-    if (response.url) {
-      window.location.href = response.url
+    // On filtre sur user_permissions avec entity_type "promoter"
+    const { data: perms, error } = await supabase
+      .from('user_permissions')
+      .select('*')
+      .eq('user_id', userIdInt.value)
+      .eq('entity_type', 'promoter')
+
+    if (error) {
+      console.error('Erreur lors de la récupération des permissions:', error)
+    } else if (perms) {
+      // Mapper les niveaux de permission
+      const permissionLevelMap = { 1: 'user', 2: 'manager', 3: 'admin' }
+      // Pour chaque permission, récupérer le nom du promoteur depuis la table "promoters"
+      for (const perm of perms) {
+        const { data: promoterData, error: promoterError } = await supabase
+          .from('promoters')
+          .select('name')
+          .eq('id', perm.entity_id)
+          .single()
+        if (promoterError) {
+          console.error('Erreur lors de la récupération du nom du promoter:', promoterError)
+          perm.promoter_name = 'Inconnu'
+        } else {
+          perm.promoter_name = promoterData.name
+        }
+        // Convertir le niveau de permission
+        perm.permission_level = permissionLevelMap[perm.permission_level] || perm.permission_level
+      }
+      permissions.value = perms
     }
   } catch (err) {
-    console.error('Erreur lors du lien avec Stripe Connect :', err)
+    console.error('Erreur lors de la récupération des permissions:', err)
   } finally {
-    stripeLoading.value = false
+    permissionsLoading.value = false
   }
+}
+
+// Fonction pour rediriger vers la page de détails d'un promoteur
+function goToPromoter(promoterId) {
+  router.push(`/admin/promoter/${promoterId}`)
 }
 </script>
 
@@ -188,5 +201,20 @@ button {
 button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+th, td {
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  text-align: left;
+}
+a {
+  cursor: pointer;
+  color: #6772e5;
+  text-decoration: underline;
 }
 </style>
