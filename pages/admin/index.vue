@@ -24,48 +24,18 @@
       </form>
       <p v-if="message" :style="{ color: messageColor }">{{ message }}</p>
     </section>
-
-    <!-- Section Liste des permissions pour les promoteurs -->
-    <section>
-      <h2>Vos permissions (Promoters)</h2>
-      <div v-if="permissionsLoading">
-        <p>Chargement de vos permissions…</p>
-      </div>
-      <div v-else-if="permissions.length">
-        <table>
-          <thead>
-            <tr>
-              <th>Nom du promoteur</th>
-              <th>Niveau de permission</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="perm in permissions" :key="perm.entity_id">
-              <td>
-                <a href="#" @click.prevent="goToPromoter(perm.entity_id)">
-                  {{ perm.promoter_name }}
-                </a>
-              </td>
-              <td>{{ perm.permission_level }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <div v-else>
-        <p>Aucune permission trouvée.</p>
-      </div>
-    </section>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useSupabaseClient, useSupabaseUser } from '#imports'
-import { useRouter } from 'vue-router'
+definePageMeta({
+  layout: 'admin'
+})
 
 const supabase = useSupabaseClient()
 const user = useSupabaseUser()
-const router = useRouter()
 
 // Variables pour le username
 const username = ref('')
@@ -73,9 +43,6 @@ const loading = ref(false)
 const message = ref('')
 const messageColor = ref('green')
 
-// Variables pour les permissions (promoter uniquement)
-const permissions = ref([])
-const permissionsLoading = ref(false)
 // Pour obtenir l'ID interne de l'utilisateur (integer)
 const userIdInt = ref(null)
 
@@ -94,7 +61,6 @@ onMounted(async () => {
   } else if (data) {
     userIdInt.value = data.id
     username.value = data.username || ''
-    await fetchPermissions()
   }
 })
 
@@ -118,54 +84,6 @@ async function updateUsername() {
     messageColor.value = 'green'
   }
   loading.value = false
-}
-
-// Fonction pour récupérer les permissions de l'utilisateur pour les promoteurs
-async function fetchPermissions() {
-  if (!userIdInt.value) return
-  permissionsLoading.value = true
-
-  try {
-    // On filtre sur user_permissions avec entity_type "promoter"
-    const { data: perms, error } = await supabase
-      .from('user_permissions')
-      .select('*')
-      .eq('user_id', userIdInt.value)
-      .eq('entity_type', 'promoter')
-
-    if (error) {
-      console.error('Erreur lors de la récupération des permissions:', error)
-    } else if (perms) {
-      // Mapper les niveaux de permission
-      const permissionLevelMap = { 1: 'user', 2: 'manager', 3: 'admin' }
-      // Pour chaque permission, récupérer le nom du promoteur depuis la table "promoters"
-      for (const perm of perms) {
-        const { data: promoterData, error: promoterError } = await supabase
-          .from('promoters')
-          .select('name')
-          .eq('id', perm.entity_id)
-          .single()
-        if (promoterError) {
-          console.error('Erreur lors de la récupération du nom du promoter:', promoterError)
-          perm.promoter_name = 'Inconnu'
-        } else {
-          perm.promoter_name = promoterData.name
-        }
-        // Convertir le niveau de permission
-        perm.permission_level = permissionLevelMap[perm.permission_level] || perm.permission_level
-      }
-      permissions.value = perms
-    }
-  } catch (err) {
-    console.error('Erreur lors de la récupération des permissions:', err)
-  } finally {
-    permissionsLoading.value = false
-  }
-}
-
-// Fonction pour rediriger vers la page de détails d'un promoteur
-function goToPromoter(promoterId) {
-  router.push(`/admin/promoter/${promoterId}`)
 }
 </script>
 

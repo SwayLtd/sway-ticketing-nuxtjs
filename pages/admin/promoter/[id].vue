@@ -53,6 +53,9 @@
   import { ref, onMounted } from 'vue'
   import { useRouter, useRoute } from 'vue-router'
   import { useSupabaseClient, useSupabaseUser } from '#imports'
+  definePageMeta({
+  layout: 'admin'
+})
   
   const supabase = useSupabaseClient()
   const user = useSupabaseUser()
