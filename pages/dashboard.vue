@@ -4,7 +4,7 @@
     <h1>Dashboard</h1>
     <p>Bienvenue, {{ user.email }}</p>
 
-    <!-- Section mise à jour du username -->
+    <!-- Section mise à jour du username (déjà en place) -->
     <section>
       <h2>Modifier votre username</h2>
       <form @submit.prevent="updateUsername">
@@ -12,11 +12,11 @@
           <label for="username">Username</label>
           <input
             id="username"
-            type="text"
             v-model="username"
+            type="text"
             placeholder="Entrez votre nouveau username"
             required
-          />
+          >
         </div>
         <button type="submit" :disabled="loading">
           {{ loading ? 'Mise à jour...' : 'Mettre à jour' }}
@@ -25,16 +25,39 @@
       <p v-if="message" :style="{ color: messageColor }">{{ message }}</p>
     </section>
 
-    <!-- Section pour lier le compte Stripe Connect -->
+    <!-- Section d'affichage des infos Stripe -->
     <section>
-      <h2>Stripe Connect</h2>
-      <div v-if="stripeAccountId">
-        <p>Votre compte Stripe Connect est lié : {{ stripeAccountId }}</p>
+      <h2>Informations de votre compte Stripe Connect</h2>
+      <div v-if="loadingStripe">
+        <p>Chargement des informations Stripe…</p>
+      </div>
+      <div v-else-if="stripeInfo">
+        <p><strong>Account ID:</strong> {{ stripeInfo.id }}</p>
+        <p v-if="stripeInfo.email"><strong>Email:</strong> {{ stripeInfo.email }}</p>
+        <p><strong>Pays:</strong> {{ stripeInfo.country }}</p>
+        <p>
+          <strong>Capacités:</strong>
+          <ul>
+            <li>Card Payments: {{ stripeInfo.capabilities?.card_payments }}</li>
+            <li>Transfers: {{ stripeInfo.capabilities?.transfers }}</li>
+          </ul>
+        </p>
+        <p><strong>Détails soumis:</strong> {{ stripeInfo.details_submitted ? 'Oui' : 'Non' }}</p>
+        <p><strong>Charges activées:</strong> {{ stripeInfo.charges_enabled ? 'Oui' : 'Non' }}</p>
+        <p><strong>Payouts activés:</strong> {{ stripeInfo.payouts_enabled ? 'Oui' : 'Non' }}</p>
       </div>
       <div v-else>
+        <p>Aucune information Stripe disponible.</p>
+      </div>
+    </section>
+
+    <!-- Section pour lier Stripe Connect si non lié -->
+    <section v-if="!stripeAccountId">
+      <h2>Stripe Connect</h2>
+      <div>
         <p>Vous n'avez pas encore lié votre compte Stripe Connect.</p>
-        <button @click="linkStripe" :disabled="stripeLoading">
-          {{ stripeLoading ? 'En cours...' : 'Lier mon compte Stripe Connect' }}
+        <button :disabled="stripeLoading" @click="linkStripe">
+          {{ stripeLoading ? 'En cours…' : 'Lier mon compte Stripe Connect' }}
         </button>
       </div>
     </section>
@@ -48,18 +71,18 @@ import { useSupabaseClient, useSupabaseUser } from '#imports' // Auto-importés 
 const supabase = useSupabaseClient()
 const user = useSupabaseUser()
 
-// Variables pour la mise à jour du username
+// Variables pour username
 const username = ref('')
 const loading = ref(false)
 const message = ref('')
 const messageColor = ref('green')
 
-// Variables pour le lien Stripe Connect
+// Variables pour Stripe
 const stripeLoading = ref(false)
+const stripeInfo = ref(null)
 const stripeAccountId = ref(null)
 
-// Au montage, on récupère les informations du profil dans la table "users"
-// en filtrant sur "supabase_id" qui contient l'UUID de l'utilisateur Supabase.
+// Récupération des infos du profil depuis la table "users"
 onMounted(async () => {
   if (!user.value?.id) return
 
@@ -74,10 +97,25 @@ onMounted(async () => {
   } else if (data) {
     username.value = data.username || ''
     stripeAccountId.value = data.stripe_account_id || null
+    if (stripeAccountId.value) {
+      await fetchStripeDetails(stripeAccountId.value)
+    }
   }
 })
 
-// Fonction pour mettre à jour le username dans la table "users"
+// Fonction pour récupérer les infos Stripe via l'endpoint existant
+async function fetchStripeDetails(accountId) {
+  try {
+    stripeLoading.value = true
+    stripeInfo.value = await $fetch(`/api/stripe/account?accountId=${accountId}`)
+  } catch (err) {
+    console.error('Erreur lors de la récupération des infos Stripe:', err)
+  } finally {
+    stripeLoading.value = false
+  }
+}
+
+// Fonction pour mettre à jour le username
 async function updateUsername() {
   if (!user.value?.id) return
   loading.value = true
@@ -85,7 +123,7 @@ async function updateUsername() {
 
   const { error } = await supabase
     .from('users')
-    .update({ username: username.value, email: user.value.email }) // on inclut email pour respecter la contrainte NOT NULL
+    .update({ username: username.value, email: user.value.email })
     .eq('supabase_id', user.value.id)
 
   if (error) {
@@ -99,19 +137,17 @@ async function updateUsername() {
   loading.value = false
 }
 
-// Fonction pour lier le compte Stripe Connect
+// Fonction pour lier Stripe Connect (démarre le processus d'onboarding)
 async function linkStripe() {
   if (!user.value?.email) return
   stripeLoading.value = true
 
   try {
-    // Appel de l'endpoint pour démarrer l'onboarding Stripe Connect
     const response = await $fetch('/api/stripe/connect', {
       method: 'POST',
       body: { email: user.value.email }
     })
     if (response.url) {
-      // Redirection vers le processus d'onboarding Stripe
       window.location.href = response.url
     }
   } catch (err) {
