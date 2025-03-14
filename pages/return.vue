@@ -30,7 +30,7 @@ function goBack() {
   if (promoterId.value) {
     router.push(`/admin/promoter/${promoterId.value}`)
   } else {
-    router.push('/dashboard')
+    router.push('/admin')
   }
 }
 

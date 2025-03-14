@@ -41,7 +41,7 @@ const signIn = async () => {
     errorMessage.value = error.message
   } else if (data.session) {
     console.log('Connexion réussie, session :', data.session)
-    router.push('/dashboard')
+    router.push('/admin')
   } else {
     console.warn('Aucune session retournée. Vérifiez vos identifiants.')
     errorMessage.value = "Aucune session retournée. Vérifiez vos identifiants."

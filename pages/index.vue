@@ -42,7 +42,7 @@ onMounted(async () => {
 })
 
 function goToDashboard() {
-  router.push('/dashboard')
+  router.push('/admin')
 }
 
 function goToLogin() {
