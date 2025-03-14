@@ -4,7 +4,7 @@
     <h1>Dashboard</h1>
     <p>Bienvenue, {{ user.email }}</p>
 
-    <!-- Section mise à jour du username (déjà en place) -->
+    <!-- Section mise à jour du username -->
     <section>
       <h2>Modifier votre username</h2>
       <form @submit.prevent="updateUsername">
@@ -28,20 +28,18 @@
     <!-- Section d'affichage des infos Stripe -->
     <section>
       <h2>Informations de votre compte Stripe Connect</h2>
-      <div v-if="loadingStripe">
+      <div v-if="stripeLoading">
         <p>Chargement des informations Stripe…</p>
       </div>
       <div v-else-if="stripeInfo">
         <p><strong>Account ID:</strong> {{ stripeInfo.id }}</p>
         <p v-if="stripeInfo.email"><strong>Email:</strong> {{ stripeInfo.email }}</p>
         <p><strong>Pays:</strong> {{ stripeInfo.country }}</p>
-        <p>
-          <strong>Capacités:</strong>
-          <ul>
-            <li>Card Payments: {{ stripeInfo.capabilities?.card_payments }}</li>
-            <li>Transfers: {{ stripeInfo.capabilities?.transfers }}</li>
-          </ul>
-        </p>
+        <strong>Capacités:</strong>
+        <ul>
+          <li>Card Payments: {{ stripeInfo.capabilities?.card_payments }}</li>
+          <li>Transfers: {{ stripeInfo.capabilities?.transfers }}</li>
+        </ul>
         <p><strong>Détails soumis:</strong> {{ stripeInfo.details_submitted ? 'Oui' : 'Non' }}</p>
         <p><strong>Charges activées:</strong> {{ stripeInfo.charges_enabled ? 'Oui' : 'Non' }}</p>
         <p><strong>Payouts activés:</strong> {{ stripeInfo.payouts_enabled ? 'Oui' : 'Non' }}</p>
@@ -51,7 +49,7 @@
       </div>
     </section>
 
-    <!-- Section pour lier Stripe Connect si non lié -->
+    <!-- Section pour lier le compte Stripe Connect -->
     <section v-if="!stripeAccountId">
       <h2>Stripe Connect</h2>
       <div>
@@ -71,7 +69,7 @@ import { useSupabaseClient, useSupabaseUser } from '#imports' // Auto-importés 
 const supabase = useSupabaseClient()
 const user = useSupabaseUser()
 
-// Variables pour username
+// Variables pour la mise à jour du username
 const username = ref('')
 const loading = ref(false)
 const message = ref('')
@@ -82,7 +80,7 @@ const stripeLoading = ref(false)
 const stripeInfo = ref(null)
 const stripeAccountId = ref(null)
 
-// Récupération des infos du profil depuis la table "users"
+// Récupération du profil utilisateur depuis la table "users"
 onMounted(async () => {
   if (!user.value?.id) return
 
@@ -137,7 +135,7 @@ async function updateUsername() {
   loading.value = false
 }
 
-// Fonction pour lier Stripe Connect (démarre le processus d'onboarding)
+// Fonction pour lier le compte Stripe Connect
 async function linkStripe() {
   if (!user.value?.email) return
   stripeLoading.value = true
