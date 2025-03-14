@@ -29,5 +29,17 @@ export default defineNuxtConfig({
     '@nuxt/test-utils',
     '@unlok-co/nuxt-stripe',
     '@nuxtjs/supabase'
-  ]
+  ],
+
+  // https://github.com/supabase/supabase/issues/16551
+  // Désactive la redirection automatique par Supabase
+  supabase: {
+    redirect: false,
+    // Si vous préférez personnaliser la redirection, vous pouvez utiliser redirectOptions :
+    // redirectOptions: {
+    //   login: '/login',
+    //   callback: '/confirm',
+    //   exclude: ['/', '/index']
+    // }
+  }
 });
