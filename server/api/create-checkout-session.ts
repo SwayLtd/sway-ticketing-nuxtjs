@@ -46,7 +46,7 @@ export default defineEventHandler(async (event) => {
                 buyer_email: buyerEmail,
                 user_id: userId ? userId.toString() : '',
             },
-            success_url: `${config.public.BASE_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
+            success_url: `${config.public.BASE_URL}/success?provider_order_id={CHECKOUT_SESSION_ID}`,
             cancel_url: `${config.public.BASE_URL}/cancel`,
         });
 
