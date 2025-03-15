@@ -7,16 +7,16 @@ export default defineEventHandler(async (event) => {
         apiVersion: '2022-11-15',
     });
 
-    // Récupération de la signature Stripe dans les headers
     const sig = event.node.req.headers['stripe-signature'];
-    // Lecture du corps brut de la requête pour la validation du webhook
     const body = await readRawBody(event);
 
     let stripeEvent;
-
     try {
-        // Construction de l'événement Stripe en vérifiant la signature
-        stripeEvent = stripe.webhooks.constructEvent(body, sig as string, process.env.STRIPE_WEBHOOK_SECRET!);
+        stripeEvent = stripe.webhooks.constructEvent(
+            body,
+            sig as string,
+            process.env.STRIPE_WEBHOOK_SECRET!
+        );
     } catch (err: any) {
         console.error('Erreur de validation du webhook :', err);
         throw createError({
@@ -25,45 +25,91 @@ export default defineEventHandler(async (event) => {
         });
     }
 
-    // Traitement des différents types d'événements Stripe
     switch (stripeEvent.type) {
         case 'checkout.session.completed': {
-            // Traiter l'événement de paiement réussi
             const session = stripeEvent.data.object as Stripe.Checkout.Session;
 
-            // Initialiser Supabase avec les clés de service (pour des opérations sécurisées)
             const supabase = createClient(
                 process.env.SUPABASE_URL!,
                 process.env.SUPABASE_SERVICE_ROLE_KEY!
             );
 
-            // Extraction des informations utiles depuis la session
             const { amount_total, currency, id: provider_order_id } = session;
-
-            // Récupérer les metadata pour entity_type et entity_id
+            const buyer_email = session.customer_details?.email || null;
             const metadata = session.metadata || {};
             const entity_type = metadata.entity_type || null;
             const entity_id = metadata.entity_id ? parseInt(metadata.entity_id, 10) : null;
+            const user_id = metadata.user_id ? parseInt(metadata.user_id, 10) : null;
 
-            // Création de l'order dans Supabase en incluant les colonnes entity_type et entity_id
-            const { error } = await supabase
+            const { data: orderData, error: orderError } = await supabase
                 .from('orders')
                 .insert([{
-                    total_amount: amount_total ? amount_total / 100 : 0, // conversion des centimes en unité monétaire
+                    total_amount: amount_total ? amount_total / 100 : 0,
                     currency: currency.toUpperCase(),
                     payment_provider: 'stripe',
                     provider_order_id,
-                    status: 'paid', // ou modifiez le statut selon votre logique métier
-                    entity_type,    // par exemple "event"
-                    entity_id,      // identifiant numérique de l'événement
-                }]);
+                    status: 'paid',
+                    entity_type,
+                    entity_id,
+                    buyer_email,
+                    user_id,
+                }])
+                .select();
 
-            if (error) {
-                console.error('Erreur lors de la création de la commande dans Supabase:', error);
-                throw createError({ statusCode: 500, statusMessage: error.message });
+            if (orderError || !orderData || orderData.length === 0) {
+                console.error('Erreur lors de la création de la commande dans Supabase:', orderError);
+                throw createError({ statusCode: 500, statusMessage: orderError?.message || 'Erreur lors de la création de la commande' });
             }
 
-            console.log('Commande créée avec succès dans Supabase.');
+            const orderId = orderData[0].id;
+            console.log('Commande créée avec succès dans Supabase, ID:', orderId);
+
+            try {
+                const lineItems = await stripe.checkout.sessions.listLineItems(session.id, {
+                    expand: ['data.price.product'],
+                    limit: 100,
+                });
+
+                const orderProducts = lineItems.data.map(item => {
+                    const product_id =
+                        item.price?.product && typeof item.price.product === 'object'
+                            ? item.price.product.metadata?.product_id
+                            : null;
+
+                    if (!product_id) {
+                        console.warn(`Aucun product_id trouvé pour le line item avec quantity ${item.quantity}.`);
+                    }
+
+                    const quantity = item.quantity;
+                    const price = item.price?.unit_amount ? item.price.unit_amount / 100 : null;
+                    return {
+                        order_id: orderId,
+                        product_id,
+                        quantity,
+                        price,
+                    };
+                });
+
+                // Filtrer en excluant tout item où product_id est null ou undefined
+                const validOrderProducts = orderProducts.filter(item => item.product_id != null);
+
+                if (validOrderProducts.length === 0) {
+                    console.warn("Aucun line item valide (avec product_id) n'a été trouvé. Aucune insertion dans order_products.");
+                } else {
+                    const { error: orderProductsError } = await supabase
+                        .from('order_products')
+                        .insert(validOrderProducts);
+
+                    if (orderProductsError) {
+                        console.error('Erreur lors de l\'insertion dans order_products:', orderProductsError);
+                        throw createError({ statusCode: 500, statusMessage: orderProductsError.message });
+                    }
+                    console.log('Line items insérés avec succès dans order_products.');
+                }
+            } catch (lineItemError: any) {
+                console.error('Erreur lors de la récupération des line items Stripe:', lineItemError);
+                throw createError({ statusCode: 500, statusMessage: lineItemError.message });
+            }
             break;
         }
         case 'account.updated': {
