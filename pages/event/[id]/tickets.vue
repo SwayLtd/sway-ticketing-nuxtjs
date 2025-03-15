@@ -4,9 +4,9 @@ import { useRoute } from 'vue-router'
 import { format } from 'date-fns'
 import { createClient } from '@supabase/supabase-js'
 
-// Paramètres globaux (à centraliser, puis éventuellement déplacer dans une config)
-const stripeCommissionRate = 0.015;  // 1,5%
-const stripeFixedFee = 0.25;          // 0,25 €
+// Paramètres globaux (vous pouvez les centraliser dans votre config)
+const stripeCommissionRate = 0.0;  // Exemple : 1,5% (vous pouvez le mettre à 0 pour désactiver)
+const stripeFixedFee = 0.00;          // Exemple : 0,25 € (mettre à 0 pour désactiver)
 const swayCommissionRate = 0.035;     // 3,5%
 const swayFixedFee = 0.50;            // 0,50 €
 
@@ -91,15 +91,12 @@ const netCommission = computed(() => {
   return commission.value - stripeFee.value;
 })
 
-// Le total facturé au client (A) = T + C
+// Grand total facturé au client (A) = T + C
 const grandTotal = computed(() => {
   return totalOrder.value + commission.value;
 })
 
-// Pour le Checkout, nous "fake" l'affichage en envoyant deux articles de frais distincts :
-// - Un article "Stripe Fees" pour montrer les frais Stripe (stripeFee)
-// - Un article "Fees" pour votre commission nette (netCommission)
-// On convertit ces valeurs en centimes.
+// Conversion en centimes
 const stripeFeeCents = computed(() => Math.round(stripeFee.value * 100));
 const netCommissionCents = computed(() => Math.round(netCommission.value * 100));
 
@@ -119,35 +116,24 @@ const handleBook = async () => {
       quantity: quantities.value[p.id],
     }));
 
-  // Article pour les Stripe Fees
-  const stripeFeeLineItem = {
-    name: "Stripe Fees",
-    amount: stripeFeeCents.value, // en centimes
-    quantity: 1,
-  };
-
-  // Article pour la commission nette (ce que Sway reçoit)
-  const feeLineItem = {
+  // Construire le tableau des articles à envoyer
+  const lineItems = [...ticketLineItems];
+  
+  // Si les frais Stripe (calculés) sont supérieurs à 0, on ajoute la ligne "Stripe Fees"
+  if (stripeFeeCents.value > 0) {
+    lineItems.push({
+      name: "Stripe Fees",
+      amount: stripeFeeCents.value, // en centimes
+      quantity: 1,
+    });
+  }
+  
+  // Toujours ajouter la ligne pour les frais Sway nets (commission nette)
+  lineItems.push({
     name: "Fees",
     amount: netCommissionCents.value, // en centimes
     quantity: 1,
-  };
-
-  // Concaténer les articles
-  const lineItems = ticketLineItems.concat([stripeFeeLineItem, feeLineItem]);
-
-  console.log("Handle Book:");
-  console.log("Event ID:", eventId);
-  console.log("Ticket Line Items:", ticketLineItems);
-  console.log("Stripe Fee Line Item:", stripeFeeLineItem);
-  console.log("Fee Line Item (net commission):", feeLineItem);
-  console.log("Line Items envoyés:", lineItems);
-  console.log("Total Order (T):", totalOrder.value);
-  console.log("Commission Sway annoncée (C):", commission.value);
-  console.log("Calculated Stripe Fee (S):", stripeFee.value);
-  console.log("Net Commission (C - S):", netCommission.value);
-  console.log("Grand Total (A = T + C):", grandTotal.value);
-  console.log("Promoter Stripe Account ID:", eventInfo.value.promoter_stripe_account_id);
+  });
 
   try {
     const response = await $fetch('/api/create-checkout-session', {
@@ -236,6 +222,12 @@ const handleBook = async () => {
 </template>
 
 <style scoped>
+:global(html, body) {
+  margin: 0;
+  padding: 0;
+  background-color: rgb(15, 13, 8);
+}
+
 .container {
   background-color: rgb(15, 13, 8);
   color: #fff;
@@ -263,6 +255,12 @@ const handleBook = async () => {
   border-radius: 12px;
   overflow: hidden;
 }
+.eventImage img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .eventInfo {
   flex: 1;
   display: flex;
@@ -364,7 +362,7 @@ const handleBook = async () => {
 
 /* Order Summary */
 .orderSummary {
-  width: 40%; /* Ajustez selon votre design */
+  width: 30%; /* Ajustez selon votre design */
   background-color: #1e1e1e;
   padding: 16px;
   border-radius: 8px;
@@ -429,7 +427,7 @@ const handleBook = async () => {
     gap: 12px;
   }
   .eventInfo {
-    text-align: center;
+    text-align: left;
   }
 }
 </style>

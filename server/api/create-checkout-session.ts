@@ -8,23 +8,15 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 export default defineEventHandler(async (event) => {
     const body = await readBody(event);
+    // On attend de recevoir feeAmount en centimes, calculé côté front-end comme la commission nette
     const { eventId, lineItems, promoterStripeAccountId, currency, feeAmount } = body;
-
-    // Logs pour débuguer les données reçues
-    console.log('Création de Checkout Session pour eventId:', eventId);
-    console.log('Line Items:', lineItems);
-    console.log('Promoter Stripe Account ID:', promoterStripeAccountId);
-    console.log('Currency:', currency);
-    console.log('Fee Amount (centimes):', feeAmount);
 
     if (!eventId || !lineItems || !promoterStripeAccountId || !currency || feeAmount == null) {
         throw createError({ statusCode: 400, statusMessage: 'Missing parameters' });
     }
 
-    // Utilisation de useRuntimeConfig() pour accéder à BASE_URL
     const config = useRuntimeConfig();
-
-    // Calcul du montant total en centimes
+    // Le totalAmount ici est uniquement pour information ; il n'est pas utilisé pour la commission
     const totalAmount = lineItems.reduce((acc: number, item: any) => acc + item.amount * item.quantity, 0);
 
     try {
@@ -35,12 +27,13 @@ export default defineEventHandler(async (event) => {
                 price_data: {
                     currency,
                     product_data: { name: item.name },
-                    unit_amount: item.amount, // montant en centimes
+                    unit_amount: item.amount, // en centimes
                 },
                 quantity: item.quantity,
             })),
             payment_intent_data: {
-                application_fee_amount: feeAmount, // Utilise directement le montant des fees envoyé (en centimes)
+                // On fixe application_fee_amount avec feeAmount, c'est-à-dire votre commission nette (en centimes)
+                application_fee_amount: feeAmount,
                 transfer_data: {
                     destination: promoterStripeAccountId,
                 },
@@ -49,7 +42,6 @@ export default defineEventHandler(async (event) => {
             cancel_url: `${config.public.BASE_URL}/cancel`,
         });
 
-        console.log('Session de Checkout créée avec succès:', session);
         return { url: session.url };
     } catch (error: any) {
         console.error('Erreur lors de la création de la session Stripe:', error);

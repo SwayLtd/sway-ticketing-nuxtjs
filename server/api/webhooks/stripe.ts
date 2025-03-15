@@ -1,7 +1,9 @@
+import { defineEventHandler, readRawBody, createError } from 'h3';
 import Stripe from 'stripe';
+import { createClient } from '@supabase/supabase-js';
 
 export default defineEventHandler(async (event) => {
-    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
         apiVersion: '2022-11-15',
     });
 
@@ -14,8 +16,8 @@ export default defineEventHandler(async (event) => {
 
     try {
         // Construction de l'événement Stripe en vérifiant la signature
-        stripeEvent = stripe.webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET);
-    } catch (err) {
+        stripeEvent = stripe.webhooks.constructEvent(body, sig as string, process.env.STRIPE_WEBHOOK_SECRET!);
+    } catch (err: any) {
         console.error('Erreur de validation du webhook :', err);
         throw createError({
             statusCode: 400,
@@ -25,6 +27,36 @@ export default defineEventHandler(async (event) => {
 
     // Traitement des différents types d'événements Stripe
     switch (stripeEvent.type) {
+        case 'checkout.session.completed': {
+            // Traiter l'événement de paiement réussi
+            const session = stripeEvent.data.object as Stripe.Checkout.Session;
+
+            // Initialiser Supabase avec les clés de service (pour des opérations sécurisées)
+            const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
+
+            // Extraction des informations utiles depuis la session
+            const { amount_total, currency, id: provider_order_id } = session;
+
+            // Création de l'order dans Supabase
+            const { error } = await supabase
+                .from('orders')
+                .insert([{
+                    total_amount: amount_total ? amount_total / 100 : 0, // conversion des centimes en unité monétaire
+                    currency: currency.toUpperCase(),
+                    payment_provider: 'stripe',
+                    provider_order_id,
+                    status: 'pending', // ou modifiez le statut selon votre logique métier
+                    // Vous pouvez ajouter ici d'autres champs si nécessaire
+                }]);
+
+            if (error) {
+                console.error('Erreur lors de la création de la commande dans Supabase:', error);
+                throw createError({ statusCode: 500, statusMessage: error.message });
+            }
+
+            console.log('Commande créée avec succès dans Supabase.');
+            break;
+        }
         case 'account.updated': {
             const account = stripeEvent.data.object;
             console.log('Compte mis à jour :', account);
