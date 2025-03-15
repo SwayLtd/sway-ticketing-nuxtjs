@@ -32,15 +32,20 @@ export default defineEventHandler(async (event) => {
                 quantity: item.quantity,
             })),
             payment_intent_data: {
-                // On fixe application_fee_amount avec feeAmount, c'est-à-dire votre commission nette (en centimes)
                 application_fee_amount: feeAmount,
                 transfer_data: {
                     destination: promoterStripeAccountId,
                 },
             },
+            // Ajout de metadata pour conserver l'entity_type et l'entity_id
+            metadata: {
+                entity_type: 'event',
+                entity_id: eventId.toString(),
+            },
             success_url: `${config.public.BASE_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
             cancel_url: `${config.public.BASE_URL}/cancel`,
         });
+
 
         return { url: session.url };
     } catch (error: any) {

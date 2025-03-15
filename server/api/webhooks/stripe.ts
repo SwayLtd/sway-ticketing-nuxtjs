@@ -32,12 +32,20 @@ export default defineEventHandler(async (event) => {
             const session = stripeEvent.data.object as Stripe.Checkout.Session;
 
             // Initialiser Supabase avec les clés de service (pour des opérations sécurisées)
-            const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
+            const supabase = createClient(
+                process.env.SUPABASE_URL!,
+                process.env.SUPABASE_SERVICE_ROLE_KEY!
+            );
 
             // Extraction des informations utiles depuis la session
             const { amount_total, currency, id: provider_order_id } = session;
 
-            // Création de l'order dans Supabase
+            // Récupérer les metadata pour entity_type et entity_id
+            const metadata = session.metadata || {};
+            const entity_type = metadata.entity_type || null;
+            const entity_id = metadata.entity_id ? parseInt(metadata.entity_id, 10) : null;
+
+            // Création de l'order dans Supabase en incluant les colonnes entity_type et entity_id
             const { error } = await supabase
                 .from('orders')
                 .insert([{
@@ -45,8 +53,9 @@ export default defineEventHandler(async (event) => {
                     currency: currency.toUpperCase(),
                     payment_provider: 'stripe',
                     provider_order_id,
-                    status: 'pending', // ou modifiez le statut selon votre logique métier
-                    // Vous pouvez ajouter ici d'autres champs si nécessaire
+                    status: 'paid', // ou modifiez le statut selon votre logique métier
+                    entity_type,    // par exemple "event"
+                    entity_id,      // identifiant numérique de l'événement
                 }]);
 
             if (error) {
