@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { ref, computed, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { format } from 'date-fns'
-import { createClient } from '@supabase/supabase-js'
+import { useSupabaseUser, useSupabaseClient } from '#imports' // Auto-importés par @nuxtjs/supabase
 
 // Paramètres globaux (à centraliser si besoin)
 const stripeCommissionRate = 0.0;  // Exemple : 1,5% (0 pour désactiver)
@@ -10,12 +10,42 @@ const stripeFixedFee = 0.00;         // Exemple : 0,25 €
 const swayCommissionRate = 0.035;    // 3,5%
 const swayFixedFee = 0.50;           // 0,50 €
 
-// Récupération des variables d'environnement via useRuntimeConfig()
-const { public: { SUPABASE_URL, SUPABASE_ANON_KEY, BASE_URL } } = useRuntimeConfig()
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+// Variables d'environnement
+const { public: { BASE_URL } } = useRuntimeConfig()
+const supabase = useSupabaseClient()
 
 const route = useRoute()
+const router = useRouter()
 const eventId = Number(route.params.id)
+
+// Gestion de l'utilisateur avec useSupabaseUser
+const user = useSupabaseUser()
+const isLoggedIn = computed(() => !!user.value)
+
+// Récupération du username depuis la table "users"
+const username = ref('')
+onMounted(async () => {
+  if (user.value && user.value.id) {
+    const { data, error } = await supabase
+      .from('users')
+      .select('username')
+      .eq('supabase_id', user.value.id)
+      .single()
+    if (error) {
+      console.error('Erreur lors de la récupération du username:', error)
+    } else if (data) {
+      username.value = data.username || ''
+    }
+  }
+})
+
+// Affichage : on affiche le username (s'il est chargé) sinon rien ne s'affiche
+const isUserLoaded = computed(() => {
+  return isLoggedIn.value ? username.value !== '' : true
+})
+const userDisplay = computed(() => {
+  return username.value || user.value?.email || ''
+})
 
 // Récupération de l'événement
 const eventInfo = ref<any>(null)
@@ -105,18 +135,7 @@ const formatDate = (dateStr: string) => {
   return format(new Date(dateStr), 'EEEE dd MMM yyyy, HH:mm')
 }
 
-// Gestion de la session Supabase
-const session = ref<any>(null)
-async function getSession() {
-  const { data: { session: s } } = await supabase.auth.getSession();
-  session.value = s;
-}
-await getSession()
-
-const isLoggedIn = computed(() => !!session.value)
-const connectedEmail = computed(() => session.value?.user?.email || '')
-
-// Gestion de l'email si non connecté
+// Gestion de l'email pour les utilisateurs non connectés
 const email = ref('')
 const emailError = ref('')
 
@@ -160,8 +179,8 @@ const handleBook = async () => {
   });
 
   // Détermination de l'email à utiliser (celui de la session ou celui saisi)
-  const buyerEmail = isLoggedIn.value ? connectedEmail.value : email.value;
-  const userId = isLoggedIn.value ? session.value.user.id : null;
+  const buyerEmail = isLoggedIn.value ? user.value.email : email.value;
+  const userId = isLoggedIn.value ? user.value.id : null;
 
   try {
     const response = await $fetch('/api/create-checkout-session', {
@@ -183,15 +202,26 @@ const handleBook = async () => {
   } catch (err) {
     console.error('Erreur lors de la création de la commande Stripe:', err);
   }
-};
+}
+
+// Fonction pour rediriger vers la page de login
+const goToLogin = () => {
+  router.push('/login')
+}
 </script>
 
 <template>
   <main class="container">
     <!-- Indicateur de session Supabase -->
     <div class="sessionIndicator">
-      <span v-if="isLoggedIn">Connecté en tant que : {{ connectedEmail }}</span>
-      <span v-else>Non connecté</span>
+      <template v-if="isLoggedIn">
+        <template v-if="isUserLoaded">
+          <span class="userDisplay">{{ userDisplay }}</span>
+        </template>
+      </template>
+      <template v-else>
+        <button class="loginButton" @click="goToLogin">Sign in</button>
+      </template>
     </div>
 
     <!-- En-tête de l'événement -->
@@ -252,7 +282,6 @@ const handleBook = async () => {
 
           <!-- Champ email si non connecté -->
           <div v-if="!isLoggedIn" class="emailInput">
-            <label for="email">Votre email</label>
             <input id="email" type="email" v-model="email" placeholder="exemple@mail.com" />
             <p v-if="emailError" class="error">{{ emailError }}</p>
           </div>
@@ -283,9 +312,33 @@ const handleBook = async () => {
 
 /* Indicateur de session */
 .sessionIndicator {
-  text-align: right;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
   font-size: 0.9rem;
   margin-bottom: 10px;
+}
+.userDisplay {
+  padding: 6px 12px;
+  background-color: #FFBC00;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: default;
+}
+
+/* Bouton login (identique au style du badge userDisplay) */
+.loginButton {
+  padding: 6px 12px;
+  background-color: #FFBC00;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+.loginButton:hover {
+  background-color: #b38402;
 }
 
 /* En-tête de l'événement */
@@ -310,7 +363,6 @@ const handleBook = async () => {
   height: 100%;
   object-fit: cover;
 }
-
 .eventInfo {
   flex: 1;
   display: flex;
