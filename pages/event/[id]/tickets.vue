@@ -4,14 +4,14 @@ import { useRoute } from 'vue-router'
 import { format } from 'date-fns'
 import { createClient } from '@supabase/supabase-js'
 
-// Paramètres globaux (vous pouvez les centraliser dans votre config)
-const stripeCommissionRate = 0.0;  // Exemple : 1,5% (vous pouvez le mettre à 0 pour désactiver)
-const stripeFixedFee = 0.00;          // Exemple : 0,25 € (mettre à 0 pour désactiver)
-const swayCommissionRate = 0.035;     // 3,5%
-const swayFixedFee = 0.50;            // 0,50 €
+// Paramètres globaux (à centraliser si besoin)
+const stripeCommissionRate = 0.0;  // Exemple : 1,5% (0 pour désactiver)
+const stripeFixedFee = 0.00;         // Exemple : 0,25 €
+const swayCommissionRate = 0.035;    // 3,5%
+const swayFixedFee = 0.50;           // 0,50 €
 
 // Récupération des variables d'environnement via useRuntimeConfig()
-const { public: { SUPABASE_URL, SUPABASE_ANON_KEY } } = useRuntimeConfig()
+const { public: { SUPABASE_URL, SUPABASE_ANON_KEY, BASE_URL } } = useRuntimeConfig()
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
 const route = useRoute()
@@ -105,15 +105,39 @@ const formatDate = (dateStr: string) => {
   return format(new Date(dateStr), 'EEEE dd MMM yyyy, HH:mm')
 }
 
+// Gestion de la session Supabase
+const session = ref<any>(null)
+async function getSession() {
+  const { data: { session: s } } = await supabase.auth.getSession();
+  session.value = s;
+}
+await getSession()
+
+const isLoggedIn = computed(() => !!session.value)
+const connectedEmail = computed(() => session.value?.user?.email || '')
+
+// Gestion de l'email si non connecté
+const email = ref('')
+const emailError = ref('')
+
 // Fonction de réservation (handleBook)
 const handleBook = async () => {
-  // Préparer les articles pour les tickets
+  // Si l'utilisateur n'est pas connecté, vérifier que le champ email est rempli
+  if (!isLoggedIn.value && !email.value) {
+    emailError.value = "L'adresse email est obligatoire pour réserver."
+    return;
+  } else {
+    emailError.value = "";
+  }
+
+  // Préparer les articles pour les tickets en incluant l'identifiant interne du produit
   const ticketLineItems = sortedProducts.value
     .filter((p: any) => (quantities.value[p.id] || 0) > 0)
     .map((p: any) => ({
       name: p.name,
       amount: Math.round(Number(p.price) * 100), // conversion en centimes
       quantity: quantities.value[p.id],
+      product_id: p.id // identifiant interne du produit
     }));
 
   // Construire le tableau des articles à envoyer
@@ -135,6 +159,10 @@ const handleBook = async () => {
     quantity: 1,
   });
 
+  // Détermination de l'email à utiliser (celui de la session ou celui saisi)
+  const buyerEmail = isLoggedIn.value ? connectedEmail.value : email.value;
+  const userId = isLoggedIn.value ? session.value.user.id : null;
+
   try {
     const response = await $fetch('/api/create-checkout-session', {
       method: 'POST',
@@ -143,8 +171,9 @@ const handleBook = async () => {
         lineItems,
         promoterStripeAccountId: eventInfo.value.promoter_stripe_account_id,
         currency: sortedProducts.value[0]?.currency || 'EUR',
-        // On envoie la commission nette (ce que Sway perçoit) en centimes
-        feeAmount: netCommissionCents.value,
+        feeAmount: netCommissionCents.value, // en centimes
+        buyerEmail,
+        userId,
       },
     });
     console.log("Checkout Session Response:", response);
@@ -159,6 +188,12 @@ const handleBook = async () => {
 
 <template>
   <main class="container">
+    <!-- Indicateur de session Supabase -->
+    <div class="sessionIndicator">
+      <span v-if="isLoggedIn">Connecté en tant que : {{ connectedEmail }}</span>
+      <span v-else>Non connecté</span>
+    </div>
+
     <!-- En-tête de l'événement -->
     <div v-if="eventInfo" class="eventHeader">
       <div v-if="eventInfo.image_url" class="eventImage">
@@ -214,6 +249,14 @@ const handleBook = async () => {
             <strong>Total</strong>
             <strong>{{ grandTotal.toFixed(2) }} {{ sortedProducts[0]?.currency || "" }}</strong>
           </div>
+
+          <!-- Champ email si non connecté -->
+          <div v-if="!isLoggedIn" class="emailInput">
+            <label for="email">Votre email</label>
+            <input id="email" type="email" v-model="email" placeholder="exemple@mail.com" />
+            <p v-if="emailError" class="error">{{ emailError }}</p>
+          </div>
+
           <button type="button" class="bookButton" @click="handleBook">BOOK</button>
         </div>
       </div>
@@ -236,6 +279,13 @@ const handleBook = async () => {
   padding: 16px;
   box-sizing: border-box;
   font-family: "Space Grotesk", sans-serif;
+}
+
+/* Indicateur de session */
+.sessionIndicator {
+  text-align: right;
+  font-size: 0.9rem;
+  margin-bottom: 10px;
 }
 
 /* En-tête de l'événement */
@@ -362,7 +412,7 @@ const handleBook = async () => {
 
 /* Order Summary */
 .orderSummary {
-  width: 30%; /* Ajustez selon votre design */
+  width: 30%;
   background-color: #1e1e1e;
   padding: 16px;
   border-radius: 8px;
@@ -409,6 +459,23 @@ const handleBook = async () => {
 }
 .bookButton:hover {
   background-color: #444;
+}
+.emailInput {
+  margin-bottom: 10px;
+}
+.emailInput label {
+  display: block;
+  margin-bottom: 4px;
+}
+.emailInput input {
+  width: 100%;
+  padding: 8px;
+  border-radius: 4px;
+  border: none;
+}
+.error {
+  color: red;
+  font-size: 0.8rem;
 }
 
 /* Responsive adjustments */

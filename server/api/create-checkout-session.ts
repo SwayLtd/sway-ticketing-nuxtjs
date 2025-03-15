@@ -1,4 +1,3 @@
-// server/api/create-checkout-session.ts
 import Stripe from 'stripe';
 import { defineEventHandler, readBody, createError } from 'h3';
 
@@ -9,14 +8,14 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 export default defineEventHandler(async (event) => {
     const body = await readBody(event);
     // On attend de recevoir feeAmount en centimes, calculé côté front-end comme la commission nette
-    const { eventId, lineItems, promoterStripeAccountId, currency, feeAmount } = body;
+    const { eventId, lineItems, promoterStripeAccountId, currency, feeAmount, buyerEmail, userId } = body;
 
-    if (!eventId || !lineItems || !promoterStripeAccountId || !currency || feeAmount == null) {
+    if (!eventId || !lineItems || !promoterStripeAccountId || !currency || feeAmount == null || !buyerEmail) {
         throw createError({ statusCode: 400, statusMessage: 'Missing parameters' });
     }
 
     const config = useRuntimeConfig();
-    // Le totalAmount ici est uniquement pour information ; il n'est pas utilisé pour la commission
+    // Calcul du montant total (pour information)
     const totalAmount = lineItems.reduce((acc: number, item: any) => acc + item.amount * item.quantity, 0);
 
     try {
@@ -26,7 +25,10 @@ export default defineEventHandler(async (event) => {
             line_items: lineItems.map((item: any) => ({
                 price_data: {
                     currency,
-                    product_data: { name: item.name },
+                    product_data: {
+                        name: item.name,
+                        metadata: item.product_id ? { product_id: item.product_id } : {}
+                    },
                     unit_amount: item.amount, // en centimes
                 },
                 quantity: item.quantity,
@@ -37,15 +39,16 @@ export default defineEventHandler(async (event) => {
                     destination: promoterStripeAccountId,
                 },
             },
-            // Ajout de metadata pour conserver l'entity_type et l'entity_id
+            // Ajout de metadata globale incluant les informations sur l'événement et l'utilisateur
             metadata: {
                 entity_type: 'event',
                 entity_id: eventId.toString(),
+                buyer_email: buyerEmail,
+                user_id: userId ? userId.toString() : '',
             },
             success_url: `${config.public.BASE_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
             cancel_url: `${config.public.BASE_URL}/cancel`,
         });
-
 
         return { url: session.url };
     } catch (error: any) {
