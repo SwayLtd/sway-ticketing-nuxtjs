@@ -85,10 +85,19 @@ sortedProducts.value.forEach((product: any) => {
 })
 const quantities = ref({ ...initialQuantities })
 
-// Fonction pour mettre à jour la quantité d'un produit
+// Fonction pour mettre à jour la quantité d'un produit en respectant max_per_order
 const updateQuantity = (productId: string, delta: number) => {
   const current = quantities.value[productId] || 0
-  quantities.value[productId] = Math.max(current + delta, 0)
+  // Récupérer le produit correspondant
+  const product = sortedProducts.value.find((p: any) => p.id === productId)
+  let newQuantity = current + delta
+  // Si max_per_order est défini et que le nouveau total dépasse la limite, le plafonner
+  if (product && product.max_per_order !== null && product.max_per_order !== undefined) {
+    if (newQuantity > product.max_per_order) {
+      newQuantity = product.max_per_order
+    }
+  }
+  quantities.value[productId] = Math.max(newQuantity, 0)
 }
 
 // Liste des produits sélectionnés (quantité > 0)
@@ -259,7 +268,15 @@ const goToLogin = () => {
               <div class="quantityRow">
                 <button type="button" class="counterButton" @click="updateQuantity(p.id, -1)">–</button>
                 <span class="quantityValue">{{ quantities[p.id] }}</span>
-                <button type="button" class="counterButton" @click="updateQuantity(p.id, 1)">+</button>
+                <!-- Désactiver le bouton plus si la limite est atteinte -->
+                <button
+                  type="button"
+                  class="counterButton"
+                  @click="updateQuantity(p.id, 1)"
+                  :disabled="p.max_per_order !== null && p.max_per_order !== undefined && quantities[p.id] >= p.max_per_order"
+                >
+                  +
+                </button>
               </div>
             </div>
           </div>
@@ -282,7 +299,7 @@ const goToLogin = () => {
 
           <!-- Champ email si non connecté -->
           <div v-if="!isLoggedIn" class="emailInput">
-            <input id="email" type="email" v-model="email" placeholder="exemple@mail.com" />
+            <input id="email" type="email" v-model="email" placeholder="example@mail.com" />
             <p v-if="emailError" class="error">{{ emailError }}</p>
           </div>
 
@@ -437,6 +454,10 @@ const goToLogin = () => {
   font-size: 0.8rem;
   color: #aaa;
 }
+.max-per-order {
+  font-size: 0.8rem;
+  color: #FFBC00;
+}
 .quantityRow {
   display: flex;
   align-items: center;
@@ -453,7 +474,11 @@ const goToLogin = () => {
   cursor: pointer;
   transition: background-color 0.3s ease;
 }
-.counterButton:hover {
+.counterButton:disabled {
+  background-color: #777;
+  cursor: not-allowed;
+}
+.counterButton:hover:not(:disabled) {
   background-color: #e0a700;
 }
 .quantityValue {
