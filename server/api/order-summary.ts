@@ -15,7 +15,7 @@ export default defineEventHandler(async (event) => {
         throw createError({ statusCode: 400, statusMessage: 'Missing or invalid provider_order_id' })
     }
 
-    // Récupérer la commande depuis la table "orders" à partir du provider_order_id
+    // Retrieve order from "orders" table using provider_order_id
     const { data: order, error: orderError } = await supabase
         .from('orders')
         .select('*')
@@ -26,57 +26,75 @@ export default defineEventHandler(async (event) => {
         throw createError({ statusCode: 404, statusMessage: 'Order not found' })
     }
 
-    // Récupérer les produits de la commande en joignant avec la table "products"
+    // Retrieve products for the order, joining with the "products" table
     const { data: orderProducts, error: opError } = await supabase
         .from('order_products')
         .select(`
-      id,
-      quantity,
-      price,
-      products (
-        name,
-        type
-      )
-    `)
+            id,
+            quantity,
+            price,
+            products (
+                name,
+                type
+            )
+        `)
         .eq('order_id', order.id)
 
     if (opError) {
         throw createError({ statusCode: 500, statusMessage: 'Error fetching order products' })
     }
 
-    // Construire le tableau des articles
+    // Build the items array
     const items = orderProducts.map((op: any) => {
         const product = op.products
         return {
             id: op.id,
             name: product?.name || 'Produit inconnu',
             quantity: op.quantity,
-            price: op.price, // en euros
+            price: op.price, // in euros
             type: product?.type || null,
         }
     })
 
-    // Calculer le total global : utiliser order.total si présent, sinon faire la somme des articles
+    // Compute global total (using order.total if available)
     let total = order.total
     if (total == null) {
         total = items.reduce((sum: number, item: any) => sum + item.quantity * item.price, 0)
     }
 
-    // Calculer le total des tickets uniquement
+    // Compute the total for tickets only
     const ticketTotal = items
         .filter(item => item.type === 'ticket')
         .reduce((sum: number, item: any) => sum + item.quantity * item.price, 0)
 
-    // Calcul des frais sur les tickets : 3,5 % du total + 0,50 €
+    // Compute ticket fees: 3.5% of ticket total + 0.50€
     const ticketFees = Number((ticketTotal * 0.035 + 0.5).toFixed(2))
 
-    // Vérifier si l'un des articles correspond à un ticket (type === 'ticket')
+    // Determine if there are any tickets in the order
     const hasTickets = items.some(item => item.type === 'ticket')
+
+    // Retrieve the customization token from tickets.
+    // Ensure that the token is not equal to order.id.
+    let customization_token = null
+    if (hasTickets) {
+        const { data: tokenData, error: tokenError } = await supabase
+            .from('tickets')
+            .select('customization_token')
+            .eq('order_id', order.id)
+            .neq('customization_token', order.id) // Ensure token is not equal to order.id
+            .limit(1)
+            .single()
+        if (!tokenError && tokenData) {
+            customization_token = tokenData.customization_token
+        }
+    }
 
     return {
         items,
         total,
         hasTickets,
-        ticketFees
+        ticketFees,
+        order_id: order.id,
+        customization_token
     }
 })
