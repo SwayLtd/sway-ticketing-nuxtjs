@@ -105,6 +105,25 @@ export default defineEventHandler(async (event) => {
                         throw createError({ statusCode: 500, statusMessage: orderProductsError.message });
                     }
                     console.log('Line items insérés avec succès dans order_products.');
+
+                    // Déclencher l'Edge Function pour générer les tickets
+                    const edgeFunctionUrl = 'https://gvuwtsdhgqefamzyfyjm.functions.supabase.co/generate-tickets';
+                    const edgePayload = { order_id: orderId };
+
+                    // Assurez-vous que le Content-Type est bien application/json
+                    const edgeResponse = await fetch(edgeFunctionUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(edgePayload),
+                    });
+
+                    if (!edgeResponse.ok) {
+                        const errorText = await edgeResponse.text();
+                        console.error("Erreur lors du déclenchement de generate-tickets:", errorText);
+                        throw createError({ statusCode: edgeResponse.status, statusMessage: errorText });
+                    } else {
+                        console.log("Edge Function generate-tickets déclenchée avec succès.");
+                    }
                 }
             } catch (lineItemError: any) {
                 console.error('Erreur lors de la récupération des line items Stripe:', lineItemError);
