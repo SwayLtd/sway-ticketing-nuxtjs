@@ -1,22 +1,44 @@
 <template>
   <div class="success-container">
+    <div class="icon-container">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="success-icon">
+        <path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clip-rule="evenodd" />
+      </svg>
+    </div>
     <h1>Payment Successful!</h1>
     <p>Your order has been successfully recorded.</p>
 
     <!-- Order Summary (retrieved using provider_order_id) -->
     <div v-if="orderLoaded" class="order-summary">
       <h2>Your Order Summary</h2>
-      <ul>
-        <li v-for="item in orderItems" :key="item.id">
-          <span class="item-name">{{ item.name }}</span> -
-          <span class="item-quantity">{{ item.quantity }} x {{ item.price }} €</span>
-        </li>
-        <li v-if="ticketFees !== null" class="ticket-fees">
-          <span class="item-name">Ticket Fees</span> -
-          <span class="item-quantity">{{ ticketFees }} €</span>
-        </li>
-      </ul>
-      <p class="order-total"><strong>Total:</strong> {{ orderTotal }} €</p>
+      <table class="order-table">
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Quantity</th>
+            <th>Price</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="item in orderItems" :key="item.id">
+            <td>{{ item.name }}</td>
+            <td class="text-center">{{ item.quantity }}</td>
+            <td class="text-right">€{{ item.price.toFixed(2) }}</td>
+            <td class="text-right">€{{ (item.quantity * item.price).toFixed(2) }}</td>
+          </tr>
+          <tr v-if="ticketFees !== null" class="ticket-fees-row">
+            <td colspan="3" class="text-right">Ticket Fees</td>
+            <td class="text-right">€{{ ticketFees }}</td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="3" class="text-right order-total-label"><strong>Total</strong></td>
+            <td class="text-right order-total-value"><strong>€{{ orderTotal }}</strong></td>
+          </tr>
+        </tfoot>
+      </table>
     </div>
     <div v-else>
       <p>Loading order summary...</p>
@@ -93,109 +115,154 @@ const customizeLink = computed(() => {
 
 <style scoped>
 .success-container {
-  max-width: 600px;
-  margin: 2rem auto;
-  padding: 1.5rem;
+  max-width: 700px;
+  margin: 3rem auto;
+  padding: 2rem;
   text-align: center;
-  font-family: sans-serif;
-  background-color: #f9f9f9;
-  border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  font-family: 'Inter', sans-serif; /* Modern sans-serif font */
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e0e0e0;
+}
+
+.icon-container {
+  margin-bottom: 1rem;
+}
+
+.success-icon {
+  width: 80px;
+  height: 80px;
+  color: #4CAF50; /* Green for success */
 }
 
 .success-container h1 {
-  color: #4caf50;
-  margin-bottom: 0.5rem;
+  color: #2c3e50; /* Darker, more professional text color */
+  font-size: 2rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
 }
 
 .success-container p {
   font-size: 1.1rem;
-  color: #333;
+  color: #555;
+  line-height: 1.6;
 }
 
 .order-summary {
-  margin: 1.5rem 0;
+  margin: 2rem 0;
   text-align: left;
-  padding: 1rem;
-  background-color: #fff;
-  border-radius: 6px;
-  border: 1px solid #ddd;
+  padding: 1.5rem;
+  background-color: #f9fafb; /* Lighter background for summary */
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
 }
 
 .order-summary h2 {
   margin-top: 0;
-  font-size: 1.3rem;
+  font-size: 1.5rem;
+  color: #1f2937; /* Darker heading for summary */
+  margin-bottom: 1rem;
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 0.5rem;
+}
+
+.order-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+.order-table th,
+.order-table td {
+  padding: 12px 15px; /* Increased padding */
+  font-size: 0.95rem; /* Slightly adjusted font size */
   color: #333;
+  border-bottom: 1px solid #e0e0e0; /* Lighter border */
 }
 
-.order-summary ul {
-  list-style: none;
-  padding: 0;
-  margin: 0.5rem 0;
+.order-table th {
+  background-color: #f3f4f6; /* Light grey for header */
+  font-weight: 600; /* Bolder header text */
+  text-align: left;
+  color: #374151;
 }
 
-.order-summary li {
-  padding: 0.5rem 0;
-  border-bottom: 1px solid #eee;
+.order-table td.text-center {
+  text-align: center;
 }
 
-.order-summary li:last-child {
+.order-table td.text-right {
+  text-align: right;
+}
+
+.order-table tbody tr:last-child td {
   border-bottom: none;
 }
 
-.item-name {
+.ticket-fees-row td {
+  font-style: italic;
+  color: #555;
+}
+
+.order-table tfoot td {
+  padding-top: 1rem;
+  border-top: 2px solid #d1d5db; /* Stronger border for footer */
   font-weight: bold;
 }
 
-.item-quantity {
-  color: #666;
-}
-
-.order-total {
-  font-size: 1.2rem;
-  text-align: right;
-  margin-top: 1rem;
-  font-weight: bold;
-}
-
-.ticket-fees {
+.order-total-label {
   font-size: 1.1rem;
-  color: #333;
+  color: #1f2937;
 }
+
+.order-total-value {
+  font-size: 1.2rem;
+  color: #FEBF1E; /* Sway brand color for total */
+}
+
 
 .customize-section {
-  margin: 1rem 0;
+  margin: 2rem 0;
 }
 
 .customize-button {
   display: inline-block;
-  padding: 0.75rem 1.5rem;
-  background-color: #6772e5;
+  padding: 0.85rem 1.8rem;
+  background-color: #FEBF1E; /* Sway brand color */
   color: #fff;
   border: none;
-  border-radius: 4px;
-  font-size: 1rem;
+  border-radius: 6px;
+  font-size: 1.05rem;
+  font-weight: 500;
   text-decoration: none;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: background-color 0.2s ease-in-out, transform 0.1s ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .customize-button:hover {
-  background-color: #5469d4;
+  background-color: #eaa900; /* Darker shade of Sway brand color */
+  transform: translateY(-1px);
+}
+
+.customize-button:active {
+  transform: translateY(0px);
 }
 
 .back-home {
   display: inline-block;
   margin-top: 1.5rem;
-  padding: 0.5rem 1rem;
-  background-color: #4caf50;
+  padding: 0.6rem 1.2rem;
+  background-color: #555; /* Neutral dark grey */
   color: #fff;
   text-decoration: none;
-  border-radius: 4px;
-  transition: background-color 0.3s ease;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  transition: background-color 0.2s ease-in-out;
 }
 
 .back-home:hover {
-  background-color: #43a047;
+  background-color: #333; /* Darker grey on hover */
 }
 </style>
