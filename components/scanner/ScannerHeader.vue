@@ -61,23 +61,9 @@
                         <div class="text-sm text-blue-600">{{ successRate }}%</div>
                     </div>
                 </div>
-            </div>
-
-            <!-- Paramètres (collapsible) -->
+            </div>            <!-- Paramètres (collapsible) -->
             <div v-if="showSettings" class="border-t border-gray-200 pt-4 pb-4">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center space-x-4">
-                        <label class="flex items-center">
-                            <input v-model="settings.soundEnabled" type="checkbox"
-                                class="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
-                            <span class="ml-2 text-sm text-gray-700">Sons activés</span>
-                        </label>
-                        <label class="flex items-center">
-                            <input v-model="settings.vibrationEnabled" type="checkbox"
-                                class="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
-                            <span class="ml-2 text-sm text-gray-700">Vibrations</span>
-                        </label>
-                    </div>
+                <div class="flex items-center justify-end">
                     <button @click="logout" class="text-sm text-red-600 hover:text-red-800 font-medium">
                         Déconnexion
                     </button>
@@ -110,11 +96,6 @@ const props = defineProps({
 const showStats = ref(false)
 const showSettings = ref(false)
 const currentTime = ref(new Date())
-
-const settings = ref({
-    soundEnabled: true,
-    vibrationEnabled: true
-})
 
 // Computed
 const sessionDuration = computed(() => {

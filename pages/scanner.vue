@@ -10,19 +10,21 @@
 
             <!-- Statut de connexion -->
             <ConnectionStatus :is-online="isOnline" :is-syncing="isSyncing" :offline-queue-count="offlineQueue.length"
-                :last-sync-time="lastSyncTime" />
-
-            <!-- Queue des scans offline -->
+                :last-sync-time="lastSyncTime" />            <!-- Queue des scans offline -->
             <OfflineQueue v-if="offlineQueue.length > 0" :queue-items="offlineQueue" :can-sync="isOnline"
                 :is-syncing="isSyncing" @sync-now="syncOfflineScans" @remove-item="removeFromOfflineQueue" />
+            
             <!-- Scanner QR -->
             <div class="max-w-2xl mx-auto p-4">
                 <QRScanner @qr-scanned="wrappedHandleQRScan" @clear-result="clearScanResult" :is-scanning="isScanning"
                     :scan-result="scanResult" :event-id="currentEvent?.id" :scanner-id="currentScanner?.id"
-                    :is-online="isOnline" />
-
-                <!-- Statistiques en temps réel -->
+                    :is-online="isOnline" />                <!-- Statistiques en temps réel -->
                 <ScannerStats :stats="scannerStats" />
+                
+                <!-- Préférences utilisateur -->
+                <div class="mt-6">
+                    <ScannerPreferences :vibration-enabled="vibrationEnabled" @toggle-vibration="toggleVibration" />
+                </div>
             </div>
 
             <!-- Plus de popup ScanResult -->
@@ -31,8 +33,9 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { useScanner } from '~/composables/useScanner'
+import { useScannerSound } from '~/composables/useScannerSound'
 
 // Import des composants
 import ScannerAuth from '~/components/scanner/ScannerAuth.vue'
@@ -41,6 +44,7 @@ import ConnectionStatus from '~/components/scanner/ConnectionStatus.vue'
 import OfflineQueue from '~/components/scanner/OfflineQueue.vue'
 import QRScanner from '~/components/scanner/QRScanner.vue'
 import ScannerStats from '~/components/scanner/ScannerStats.vue'
+import ScannerPreferences from '~/components/scanner/ScannerPreferences.vue'
 import ScanResult from '~/components/scanner/ScanResult.vue'
 
 // Composable principal
@@ -64,11 +68,95 @@ const {
     downloadEventData
 } = useScanner()
 
-// Wrapper pour les logs
+// Composable pour le feedback sonore
+const {
+    soundEnabled,
+    initAudioContext,
+    loadSoundPreferences,
+    playScanSound
+} = useScannerSound()
+
+// Préférences utilisateur
+const vibrationEnabled = ref(true)
+
+// Charger les préférences depuis localStorage
+onMounted(() => {
+    if (process.client) {
+        const savedVibration = localStorage.getItem('scanner-vibration-enabled')
+        if (savedVibration !== null) {
+            vibrationEnabled.value = JSON.parse(savedVibration)
+        }
+        
+        // Initialiser le contexte audio et charger les préférences sonores
+        initAudioContext()
+        loadSoundPreferences()
+    }
+})
+
+// Sauvegarder les préférences
+const toggleVibration = () => {
+    vibrationEnabled.value = !vibrationEnabled.value
+    if (process.client) {
+        localStorage.setItem('scanner-vibration-enabled', JSON.stringify(vibrationEnabled.value))
+    }
+}
+
+// Wrapper pour les logs, vibrations et sons
 const wrappedHandleQRScan = (qrData) => {
     console.log('Page scanner: QR scanné:', qrData)
+    
+    // Déclencher feedback pour la détection du QR
+    triggerScanVibration('detection')
+    playScanSound('detection')
+    
     handleQRScan(qrData)
 }
+
+// Fonction pour gérer les vibrations selon le contexte
+const triggerScanVibration = (type) => {
+    if (!process.client || !('vibrate' in navigator) || !vibrationEnabled.value) return
+    
+    try {
+        switch (type) {
+            case 'detection':
+                // Vibration courte pour la détection du QR
+                navigator.vibrate(100)
+                break
+            case 'success':
+                // Double vibration pour succès
+                navigator.vibrate([100, 50, 100])
+                break
+            case 'warning':
+                // Vibration longue pour avertissement (ticket déjà scanné)
+                navigator.vibrate([200, 100, 200])
+                break
+            case 'error':
+                // Triple vibration courte pour erreur
+                navigator.vibrate([100, 50, 100, 50, 100])
+                break
+            default:
+                navigator.vibrate(100)
+        }
+    } catch (error) {
+        console.log('Vibration non supportée:', error)
+    }
+}
+
+// Watcher pour déclencher vibration et son selon le résultat
+watch(() => scanResult.value, (newResult) => {
+    if (!newResult) return
+    
+    if (newResult.valid) {
+        triggerScanVibration('success')
+        playScanSound('success')
+    } else if (newResult.errorCode === 'ALREADY_SCANNED') {
+        triggerScanVibration('warning')
+        playScanSound('warning')
+    } else {
+        triggerScanVibration('error')
+        playScanSound('error')
+    }
+}, { immediate: false })
 
 // Gestion PWA et cache offline
 onMounted(() => {
