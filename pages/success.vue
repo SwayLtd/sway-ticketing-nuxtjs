@@ -55,7 +55,9 @@ const customizationToken = ref(""); // To be retrieved from the API
 async function fetchOrderSummary() {
   try {
     if (providerOrderId && typeof providerOrderId === 'string') {
-      const data = await $fetch(`/api/order-summary?provider_order_id=${providerOrderId}`); orderItems.value = data.items || [];
+      const data: any = await $fetch(`/api/order-summary?provider_order_id=${providerOrderId}`);
+
+      orderItems.value = data.items || [];
       // Calculate grand total: products total + fees
       const productsTotal = Number(data.total) || 0;
       const fees = Number(data.ticketFees) || 0;

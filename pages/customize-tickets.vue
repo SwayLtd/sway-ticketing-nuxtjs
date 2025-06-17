@@ -1,54 +1,75 @@
 <template>
-    <div class="customize-container">
-        <h1>Customize Your Tickets</h1>
-        <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
-        <div v-if="loading">
-            <p>Loading tickets...</p>
-        </div>
-        <div v-else>
-            <div v-for="ticket in tickets" :key="ticket.id" class="ticket-card">
-                <div class="ticket-header" @click="toggleForm(ticket)">
-                    <h2>
-                        {{ ticket.products?.name || 'Unknown Product' }}
-                        <span v-if="ticket.displayNumber"> ({{ ticket.displayNumber }})</span>
-                    </h2>
-                    <button class="toggle-button">
-                        {{ ticket.showForm ? '▲' : '▼' }}
-                    </button>
-                </div>
-                <div v-if="ticket.showForm" class="ticket-form">
-                    <form @submit.prevent="updateTicket(ticket)">
-                        <div class="form-group">
-                            <label for="firstName">First Name:</label>
-                            <input v-model="customizationInputs[ticket.id].firstName" id="firstName" type="text"
-                                :disabled="ticket.customization_data !== null"
-                                :class="{ disabled: ticket.customization_data !== null }" required />
-                        </div>
-                        <div class="form-group">
-                            <label for="lastName">Last Name:</label>
-                            <input v-model="customizationInputs[ticket.id].lastName" id="lastName" type="text"
-                                :disabled="ticket.customization_data !== null"
-                                :class="{ disabled: ticket.customization_data !== null }" required />
-                        </div>
-                        <div class="form-group">
-                            <label for="email">Email:</label>
-                            <input v-model="customizationInputs[ticket.id].email" id="email" type="email"
-                                :disabled="ticket.customization_data !== null"
-                                :class="{ disabled: ticket.customization_data !== null }" required />
-                        </div>
-                        <button v-if="ticket.customization_data === null" type="submit">
-                            Save Customization
-                        </button>
-                    </form>
-                </div>
+    <ClientOnly>
+        <div class="customize-container">
+            <h1>Customize Your Tickets</h1>
+            <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
+            <div v-if="loading">
+                <p>Loading tickets...</p>
             </div>
-            <p v-if="successMessage" class="success">{{ successMessage }}</p>
+            <div v-else>
+                <div v-for="ticket in tickets" :key="ticket.id" class="ticket-card">
+                    <div class="ticket-header" @click="toggleForm(ticket)">
+                        <h2>
+                            {{ ticket.products?.name || 'Unknown Product' }}
+                            <span v-if="ticket.displayNumber"> ({{ ticket.displayNumber }})</span>
+                        </h2>
+                        <button class="toggle-button">
+                            {{ ticket.showForm ? '▲' : '▼' }}
+                        </button>
+                    </div>
+                    <div v-if="ticket.showForm" class="ticket-form">
+                        <form @submit.prevent="updateTicket(ticket)">
+                            <div class="form-group">
+                                <label for="firstName">First Name:</label>
+                                <input v-model="customizationInputs[ticket.id].firstName" id="firstName" type="text"
+                                    :disabled="ticket.customization_data !== null"
+                                    :class="{ disabled: ticket.customization_data !== null }" required />
+                            </div>
+                            <div class="form-group">
+                                <label for="lastName">Last Name:</label>
+                                <input v-model="customizationInputs[ticket.id].lastName" id="lastName" type="text"
+                                    :disabled="ticket.customization_data !== null"
+                                    :class="{ disabled: ticket.customization_data !== null }" required />
+                            </div>
+                            <div class="form-group">
+                                <label for="email">Email:</label>
+                                <input v-model="customizationInputs[ticket.id].email" id="email" type="email"
+                                    :disabled="ticket.customization_data !== null"
+                                    :class="{ disabled: ticket.customization_data !== null }" required />
+                            </div>
+                            <button v-if="ticket.customization_data === null" type="submit">
+                                Save Customization
+                            </button>
+                        </form>
+                        <button v-if="ticket.customization_data !== null" @click="downloadTicket(ticket)"
+                            class="download-button">
+                            Download My Ticket
+                        </button>
+                        <button v-if="ticket.customization_data !== null" @click="resendTicketEmail(ticket)"
+                            class="resend-email-button">
+                            Resend Ticket Email
+                        </button>
+                    </div>
+                </div>
+                <p v-if="successMessage" class="success">{{ successMessage }}</p>
+            </div>
+            <button class="back-button" @click="goBack">Back to Home</button>
         </div>
-        <button class="back-button" @click="goBack">Back to Home</button>
-    </div>
+        <template #fallback>
+            <div class="customize-container">
+                <h1>Customize Your Tickets</h1>
+                <p>Loading...</p>
+            </div>
+        </template>
+    </ClientOnly>
 </template>
 
 <script setup lang="ts">
+// Désactiver SSR pour cette page pour éviter les problèmes avec jsPDF
+definePageMeta({
+    ssr: false
+})
+
 import { ref, reactive, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useSupabaseClient } from '#imports'
@@ -141,22 +162,100 @@ async function updateTicket(ticket: any) {
     }
 
     // Update ticket's customization_data without modifying customization_token
-    const { error } = await supabase
+    const updateData = { customization_data: customizationData };
+    const { error } = await (supabase as any)
         .from("tickets")
-        .update({ customization_data: customizationData })
+        .update(updateData)
         .eq("id", ticket.id)
 
     if (error) {
         alert("Error updating ticket: " + error.message)
     } else {
-        successMessage.value = `Ticket updated successfully.`
         // Update the local ticket object to reflect that it's now customized
         ticket.customization_data = customizationData
+
+        // Automatically send personalized ticket email
+        try {
+            const response = await fetch('/api/ticket-personalization-email', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ ticket_id: ticket.id })
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Failed to send personalized ticket email:', errorText);
+                successMessage.value = `Ticket updated successfully, but failed to send email notification.`;
+            } else {
+                successMessage.value = `Ticket updated successfully and personalized ticket email sent!`;
+            }
+        } catch (emailError) {
+            console.error('Error sending personalized ticket email:', emailError);
+            successMessage.value = `Ticket updated successfully, but failed to send email notification.`;
+        }
     }
 }
 
 function goBack() {
     router.push('/')
+}
+
+// New function to generate and download PDF ticket with stylized design
+async function downloadTicket(ticket: any) {
+    try {
+        // Call the new API endpoint for stylized ticket download
+        const response = await fetch('/api/download-ticket', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ ticket_id: ticket.id })
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to generate ticket PDF');
+        }
+
+        // Get the PDF blob
+        const pdfBlob = await response.blob();
+
+        // Create download link
+        const downloadUrl = URL.createObjectURL(pdfBlob);
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.download = `ticket_${ticket.id}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(downloadUrl);
+
+    } catch (error) {
+        console.error('Error downloading ticket:', error);
+        alert('Error downloading ticket. Please try again.');
+    }
+}
+
+// New function to resend ticket personalization email
+async function resendTicketEmail(ticket: any) {
+    try {
+        const response = await fetch('/api/ticket-personalization-email', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ ticket_id: ticket.id })
+        });
+        if (!response.ok) {
+            const errorText = await response.text();
+            alert('Failed to resend email: ' + errorText);
+        } else {
+            alert('Personalized ticket email resent successfully.');
+        }
+    } catch (error) {
+        alert('Error resending email: ' + error);
+    }
 }
 </script>
 

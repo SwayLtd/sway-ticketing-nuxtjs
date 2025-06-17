@@ -2,13 +2,30 @@ import { defineEventHandler, readRawBody, createError } from 'h3';
 import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
 
+// Make sure the path is correct and the file exists; adjust the path if needed
+import { sendOrderSummaryEmail } from '../../utils/email';
+
 export default defineEventHandler(async (event) => {
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
         apiVersion: '2025-02-24.acacia',
-    });
-
-    const sig = event.node.req.headers['stripe-signature'];
+    }); const sig = event.node.req.headers['stripe-signature'];
     const body = await readRawBody(event);
+
+    if (!body) {
+        console.error('Corps de la requête manquant');
+        throw createError({
+            statusCode: 400,
+            statusMessage: 'Corps de la requête manquant',
+        });
+    }
+
+    if (!sig) {
+        console.error('Header stripe-signature manquant');
+        throw createError({
+            statusCode: 400,
+            statusMessage: 'Header stripe-signature manquant',
+        });
+    }
 
     let stripeEvent;
     try {
@@ -50,8 +67,6 @@ export default defineEventHandler(async (event) => {
                 const { data: orderData, error: orderError } = await supabase
                     .from('orders')
                     .insert([{
-                        total_amount: amount_total ? amount_total / 100 : 0,
-                        currency: currency.toUpperCase(),
                         payment_provider: 'stripe',
                         provider_order_id,
                         status: 'paid',
@@ -142,6 +157,32 @@ export default defineEventHandler(async (event) => {
                             throw createError({ statusCode: edgeResponse.status, statusMessage: errorText });
                         } else {
                             console.log("Edge Function generate-tickets déclenchée avec succès.");
+
+                            // Récupérer le token de personnalisation depuis la table tickets
+                            const { data: tokenData, error: tokenError } = await supabase
+                                .from('tickets')
+                                .select('customization_token')
+                                .eq('order_id', orderId)
+                                .limit(1)
+                                .single();
+
+                            if (tokenError || !tokenData) {
+                                console.warn('Impossible de récupérer le token de personnalisation pour la commande', orderId);
+                            } else {
+                                const customizationToken = tokenData.customization_token;
+                                const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
+                                const customizationLink = `${baseUrl}/customize-tickets?order_id=${orderId}&token=${customizationToken}`;                                // Envoyer l'email récapitulatif à l'acheteur
+                                if (buyer_email) {
+                                    try {
+                                        await sendOrderSummaryEmail(buyer_email, orderId, customizationLink, [], entity_type || undefined, entity_id || undefined);
+                                        console.log('Email récapitulatif envoyé à', buyer_email);
+                                    } catch (emailError) {
+                                        console.error('Erreur lors de l\'envoi de l\'email récapitulatif:', emailError);
+                                    }
+                                } else {
+                                    console.warn('Email de l\'acheteur manquant, impossible d\'envoyer l\'email récapitulatif');
+                                }
+                            }
                         }
                     }
                 } catch (lineItemError: any) {

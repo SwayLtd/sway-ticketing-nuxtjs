@@ -20,14 +20,23 @@
     "@nuxt/ui": "^3.0.0",
     "@nuxtjs/supabase": "^1.5.0",
     "@stripe/stripe-js": "^5.10.0",
+    "@types/pdfkit": "^0.14.0",
     "@unhead/vue": "^2.0.0-rc.8",
     "@unlok-co/nuxt-stripe": "^4.0.2",
     "date-fns": "^4.1.0",
     "eslint": "^9.22.0",
+    "jspdf": "^3.0.1",
+    "nodemailer": "^7.0.3",
     "nuxt": "^3.16.0",
+    "pdfkit": "^0.17.1",
+    "qrcode": "^1.5.4",
     "stripe": "^17.7.0",
     "typescript": "^5.8.2",
     "vue": "^3.5.13",
     "vue-router": "^4.5.0"
+  },
+  "devDependencies": {
+    "@types/nodemailer": "^6.4.17",
+    "@types/qrcode": "^1.5.5"
   }
 }

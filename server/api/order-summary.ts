@@ -69,20 +69,17 @@ export default defineEventHandler(async (event) => {
     const total = productsTotal
 
     // Determine if there are any tickets in the order
-    const hasTickets = items.some(item => item.type === 'ticket')
-
-    // Retrieve the customization token from tickets.
-    // Ensure that the token is not equal to order.id.
+    const hasTickets = items.some(item => item.type === 'ticket')    // Retrieve the customization token from tickets.
     let customization_token = null
     if (hasTickets) {
         const { data: tokenData, error: tokenError } = await supabase
             .from('tickets')
             .select('customization_token')
             .eq('order_id', order.id)
-            .neq('customization_token', order.id) // Ensure token is not equal to order.id
+            .not('customization_token', 'is', null) // Ensure token is not null
             .limit(1)
             .single()
-        if (!tokenError && tokenData) {
+        if (!tokenError && tokenData && tokenData.customization_token) {
             customization_token = tokenData.customization_token
         }
     } return {

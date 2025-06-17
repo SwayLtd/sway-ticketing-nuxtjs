@@ -153,6 +153,8 @@ Dans la propriété `price_data.product_data`, ajoutez une metadata avec votre i
    * Ici, `ORDER_ID` est l’identifiant de la commande, et `CUSTOMIZATION_TOKEN` est le token commun (initial) pour tous les tickets de l'ordre.  
    * Sur la page success du paiement, si l’ordre contient des tickets, affichez un bouton « Personnaliser mes tickets » renvoyant à ce lien.
 
+   > **Note importante :** Après personnalisation d’un ticket, un email avec le ticket PDF est envoyé à l’utilisateur. Dans cet email, un nouveau `customization_token` devrait être généré individuellement pour chaque ticket personnalisé afin que seule la personne à qui est dédié ce ticket puisse le personnaliser à nouveau. Cette fonctionnalité de régénération de token individuel **N’EST PAS ENCORE IMPLÉMENTÉE** et nécessite une mise à jour future.
+
 ---
 
 ## **6\. Page de personnalisation des tickets** *[(commit f67fdf9b45ba68445df70a1298a1a27d89a92a31)*](https://github.com/SwayLtd/sway-ticketing-nuxtjs/commit/f67fdf9b45ba68445df70a1298a1a27d89a92a31)
