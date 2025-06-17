@@ -140,14 +140,14 @@ Dans la propriété `price_data.product_data`, ajoutez une metadata avec votre i
 
 ---
 
-## **5\. Email récapitulatif et page Success**
+## **5\. Email récapitulatif et page Success** *([commit ccdf5d40f05f71b077a7e5ed86e8704baf9074dd](https://github.com/SwayLtd/sway-ticketing-nuxtjs/commit/ccdf5d40f05f71b077a7e5ed86e8704baf9074dd))*
 
-1. **Nouvelle page “success” avec un résumé de la commande** *([commit e9616056fceaca33f08edd0440f9beef083d0a29](https://github.com/SwayLtd/sway-ticketing-nuxtjs/commit/e9616056fceaca33f08edd0440f9beef083d0a29))*  
-2. **Email récapitulatif**
+### **5.2 Email récapitulatif** *([commit ccdf5d40f05f71b077a7e5ed86e8704baf9074dd](https://github.com/SwayLtd/sway-ticketing-nuxtjs/commit/ccdf5d40f05f71b077a7e5ed86e8704baf9074dd))*
 
    * Après la création de la commande et l’insertion dans **order\_products**, envoyez un email à l’acheteur.  
    * L’email contiendra un récapitulatif de la commande et, si des tickets sont achetés (vérifié en rejoignant **order\_products** avec **products** sur le champ `type`), inclura un lien de personnalisation.  
-3. **Lien de personnalisation**  
+
+### **5.3 Lien de personnalisation** *([commit ccdf5d40f05f71b077a7e5ed86e8704baf9074dd](https://github.com/SwayLtd/sway-ticketing-nuxtjs/commit/ccdf5d40f05f71b077a7e5ed86e8704baf9074dd))*
    * Le lien proposé pourrait ressembler à :  
      <https://votredomaine.com/customize-tickets?order\_id=ORDER\_ID\&token=CUSTOMIZATION\_TOKEN>  
    * Ici, `ORDER_ID` est l’identifiant de la commande, et `CUSTOMIZATION_TOKEN` est le token commun (initial) pour tous les tickets de l'ordre.  
