@@ -30,7 +30,7 @@ onMounted(async () => {
       .from('users')
       .select('username')
       .eq('supabase_id', user.value.id)
-      .single()
+      .single<{ username: string }>()
     if (error) {
       console.error('Erreur lors de la récupération du username:', error)
     } else if (data) {
@@ -170,26 +170,28 @@ const handleBook = async () => {
 
   // Construire le tableau des articles à envoyer
   const lineItems = [...ticketLineItems];
-  
+
   // Si les frais Stripe (calculés) sont supérieurs à 0, on ajoute la ligne "Stripe Fees"
   if (stripeFeeCents.value > 0) {
     lineItems.push({
       name: "Stripe Fees",
       amount: stripeFeeCents.value, // en centimes
       quantity: 1,
+      product_id: "stripe_fees" // or a suitable identifier for fees
     });
   }
-  
+
   // Toujours ajouter la ligne pour les frais Sway nets (commission nette)
   lineItems.push({
     name: "Fees",
     amount: netCommissionCents.value, // en centimes
     quantity: 1,
+    product_id: "sway_fees" // or another suitable identifier for Sway fees
   });
 
   // Détermination de l'email à utiliser (celui de la session ou celui saisi)
-  const buyerEmail = isLoggedIn.value ? user.value.email : email.value;
-  const userId = isLoggedIn.value ? user.value.id : null;
+  const buyerEmail = isLoggedIn.value ? user.value?.email ?? '' : email.value;
+  const userId = isLoggedIn.value ? user.value?.id : null;
 
   try {
     const response = await $fetch('/api/create-checkout-session', {
@@ -269,12 +271,8 @@ const goToLogin = () => {
                 <button type="button" class="counterButton" @click="updateQuantity(p.id, -1)">–</button>
                 <span class="quantityValue">{{ quantities[p.id] }}</span>
                 <!-- Désactiver le bouton plus si la limite est atteinte -->
-                <button
-                  type="button"
-                  class="counterButton"
-                  @click="updateQuantity(p.id, 1)"
-                  :disabled="p.max_per_order !== null && p.max_per_order !== undefined && quantities[p.id] >= p.max_per_order"
-                >
+                <button type="button" class="counterButton" @click="updateQuantity(p.id, 1)"
+                  :disabled="p.max_per_order !== null && p.max_per_order !== undefined && quantities[p.id] >= p.max_per_order">
                   +
                 </button>
               </div>
@@ -335,6 +333,7 @@ const goToLogin = () => {
   font-size: 0.9rem;
   margin-bottom: 10px;
 }
+
 .userDisplay {
   padding: 6px 12px;
   background-color: #FFBC00;
@@ -354,6 +353,7 @@ const goToLogin = () => {
   cursor: pointer;
   transition: background-color 0.3s ease;
 }
+
 .loginButton:hover {
   background-color: #b38402;
 }
@@ -366,6 +366,7 @@ const goToLogin = () => {
   margin-bottom: 20px;
   flex-shrink: 0;
 }
+
 .eventImage {
   position: relative;
   width: 100%;
@@ -375,11 +376,13 @@ const goToLogin = () => {
   border-radius: 12px;
   overflow: hidden;
 }
+
 .eventImage img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
+
 .eventInfo {
   flex: 1;
   display: flex;
@@ -388,10 +391,12 @@ const goToLogin = () => {
   gap: 8px;
   font-size: 1rem;
 }
+
 .eventInfo h1 {
   margin: 0;
   font-size: 2rem;
 }
+
 .eventInfo p {
   margin: 0;
   font-size: 1.2rem;
@@ -406,6 +411,7 @@ const goToLogin = () => {
   gap: 16px;
   overflow: hidden;
 }
+
 .ticketAndSummary {
   display: flex;
   flex-direction: row;
@@ -413,6 +419,7 @@ const goToLogin = () => {
   width: 100%;
   overflow: hidden;
 }
+
 .ticketsList {
   width: 60%;
   background-color: #1e1e1e;
@@ -423,10 +430,12 @@ const goToLogin = () => {
   flex-direction: column;
   gap: 16px;
 }
+
 .ticketsList h2 {
   margin: 0 0 10px 16px;
   font-size: 1.25rem;
 }
+
 .ticketRow {
   display: flex;
   flex-direction: row;
@@ -437,32 +446,39 @@ const goToLogin = () => {
   border-radius: 4px;
   gap: 5px;
 }
+
 .ticketDetails {
   display: flex;
   flex-direction: column;
   gap: 3px;
 }
+
 .ticketName {
   font-size: 0.9rem;
   font-weight: 500;
 }
+
 .ticketDescription {
   font-size: 0.8rem;
   color: #888;
 }
+
 .ticketPrice {
   font-size: 0.8rem;
   color: #aaa;
 }
+
 .max-per-order {
   font-size: 0.8rem;
   color: #FFBC00;
 }
+
 .quantityRow {
   display: flex;
   align-items: center;
   gap: 5px;
 }
+
 .counterButton {
   background-color: #ffbc00;
   border: none;
@@ -474,13 +490,16 @@ const goToLogin = () => {
   cursor: pointer;
   transition: background-color 0.3s ease;
 }
+
 .counterButton:disabled {
   background-color: #777;
   cursor: not-allowed;
 }
+
 .counterButton:hover:not(:disabled) {
   background-color: #e0a700;
 }
+
 .quantityValue {
   font-size: 0.9rem;
   min-width: 20px;
@@ -498,10 +517,12 @@ const goToLogin = () => {
   flex-direction: column;
   gap: 16px;
 }
+
 .orderSummary h2 {
   margin: 0 0 10px 16px;
   font-size: 1.25rem;
 }
+
 .summaryRow {
   display: flex;
   justify-content: space-between;
@@ -510,6 +531,7 @@ const goToLogin = () => {
   padding: 2px 0;
   gap: 5px;
 }
+
 .summaryTotal {
   display: flex;
   justify-content: space-between;
@@ -519,6 +541,7 @@ const goToLogin = () => {
   border-top: 1px solid #333;
   gap: 5px;
 }
+
 .bookButton {
   background-color: rgb(15, 13, 8);
   color: #fff;
@@ -534,22 +557,27 @@ const goToLogin = () => {
   margin-top: 16px;
   text-transform: uppercase;
 }
+
 .bookButton:hover {
   background-color: #444;
 }
+
 .emailInput {
   margin-bottom: 10px;
 }
+
 .emailInput label {
   display: block;
   margin-bottom: 4px;
 }
+
 .emailInput input {
   width: 100%;
   padding: 8px;
   border-radius: 4px;
   border: none;
 }
+
 .error {
   color: red;
   font-size: 0.8rem;
@@ -560,16 +588,19 @@ const goToLogin = () => {
   .ticketAndSummary {
     flex-direction: column;
   }
+
   .ticketsList,
   .orderSummary {
     width: 100%;
     box-sizing: border-box;
   }
+
   .eventHeader {
     flex-direction: column;
     align-items: center;
     gap: 12px;
   }
+
   .eventInfo {
     text-align: left;
   }

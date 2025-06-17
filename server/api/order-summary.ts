@@ -54,13 +54,8 @@ export default defineEventHandler(async (event) => {
             price: op.price, // in euros
             type: product?.type || null,
         }
-    })
-
-    // Compute global total (using order.total if available)
-    let total = order.total
-    if (total == null) {
-        total = items.reduce((sum: number, item: any) => sum + item.quantity * item.price, 0)
-    }
+    })    // Compute the total for products only (excluding fees)
+    const productsTotal = items.reduce((sum: number, item: any) => sum + item.quantity * item.price, 0)
 
     // Compute the total for tickets only
     const ticketTotal = items
@@ -69,6 +64,9 @@ export default defineEventHandler(async (event) => {
 
     // Compute ticket fees: 3.5% of ticket total + 0.50€
     const ticketFees = Number((ticketTotal * 0.035 + 0.5).toFixed(2))
+
+    // The total should be products total only (fees are calculated separately)
+    const total = productsTotal
 
     // Determine if there are any tickets in the order
     const hasTickets = items.some(item => item.type === 'ticket')
@@ -87,11 +85,10 @@ export default defineEventHandler(async (event) => {
         if (!tokenError && tokenData) {
             customization_token = tokenData.customization_token
         }
-    }
-
-    return {
+    } return {
         items,
         total,
+        grandTotal: Number((total + ticketFees).toFixed(2)),
         hasTickets,
         ticketFees,
         order_id: order.id,

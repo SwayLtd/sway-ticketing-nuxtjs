@@ -2,7 +2,7 @@ import Stripe from 'stripe';
 import { defineEventHandler, readBody, createError } from 'h3';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-    apiVersion: '2022-11-15',
+    apiVersion: '2025-02-24.acacia',
 });
 
 export default defineEventHandler(async (event) => {
@@ -10,7 +10,25 @@ export default defineEventHandler(async (event) => {
     // On attend de recevoir feeAmount en centimes, calculé côté front-end comme la commission nette
     const { eventId, lineItems, promoterStripeAccountId, currency, feeAmount, buyerEmail, userId } = body;
 
+    // Debug logs pour identifier les paramètres manquants
+    console.log('API Debug - Paramètres reçus:');
+    console.log('eventId:', eventId);
+    console.log('lineItems:', lineItems);
+    console.log('promoterStripeAccountId:', promoterStripeAccountId);
+    console.log('currency:', currency);
+    console.log('feeAmount:', feeAmount);
+    console.log('buyerEmail:', buyerEmail);
+    console.log('userId:', userId);
+    console.log('Body complet:', body);
+
     if (!eventId || !lineItems || !promoterStripeAccountId || !currency || feeAmount == null || !buyerEmail) {
+        console.error('Paramètres manquants détectés:');
+        console.error('eventId manquant:', !eventId);
+        console.error('lineItems manquant:', !lineItems);
+        console.error('promoterStripeAccountId manquant:', !promoterStripeAccountId);
+        console.error('currency manquant:', !currency);
+        console.error('feeAmount manquant:', feeAmount == null);
+        console.error('buyerEmail manquant:', !buyerEmail);
         throw createError({ statusCode: 400, statusMessage: 'Missing parameters' });
     }
 
