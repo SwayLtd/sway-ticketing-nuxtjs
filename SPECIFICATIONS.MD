@@ -144,14 +144,15 @@ Dans la propriété `price_data.product_data`, ajoutez une metadata avec votre i
 
 ### **5.2 Email récapitulatif** *([commit ccdf5d40f05f71b077a7e5ed86e8704baf9074dd](https://github.com/SwayLtd/sway-ticketing-nuxtjs/commit/ccdf5d40f05f71b077a7e5ed86e8704baf9074dd))*
 
-   * Après la création de la commande et l’insertion dans **order\_products**, envoyez un email à l’acheteur.  
-   * L’email contiendra un récapitulatif de la commande et, si des tickets sont achetés (vérifié en rejoignant **order\_products** avec **products** sur le champ `type`), inclura un lien de personnalisation.  
+* Après la création de la commande et l’insertion dans **order\_products**, envoyez un email à l’acheteur.  
+* L’email contiendra un récapitulatif de la commande et, si des tickets sont achetés (vérifié en rejoignant **order\_products** avec **products** sur le champ `type`), inclura un lien de personnalisation.  
 
 ### **5.3 Lien de personnalisation** *([commit ccdf5d40f05f71b077a7e5ed86e8704baf9074dd](https://github.com/SwayLtd/sway-ticketing-nuxtjs/commit/ccdf5d40f05f71b077a7e5ed86e8704baf9074dd))*
-   * Le lien proposé pourrait ressembler à :  
+
+* Le lien proposé pourrait ressembler à :  
      <https://votredomaine.com/customize-tickets?order\_id=ORDER\_ID\&token=CUSTOMIZATION\_TOKEN>  
-   * Ici, `ORDER_ID` est l’identifiant de la commande, et `CUSTOMIZATION_TOKEN` est le token commun (initial) pour tous les tickets de l'ordre.  
-   * Sur la page success du paiement, si l’ordre contient des tickets, affichez un bouton « Personnaliser mes tickets » renvoyant à ce lien.
+* Ici, `ORDER_ID` est l’identifiant de la commande, et `CUSTOMIZATION_TOKEN` est le token commun (initial) pour tous les tickets de l'ordre.  
+* Sur la page success du paiement, si l’ordre contient des tickets, affichez un bouton « Personnaliser mes tickets » renvoyant à ce lien.
 
    > **Note importante :** Après personnalisation d’un ticket, un email avec le ticket PDF est envoyé à l’utilisateur. Dans cet email, un nouveau `customization_token` devrait être généré individuellement pour chaque ticket personnalisé afin que seule la personne à qui est dédié ce ticket puisse le personnaliser à nouveau. Cette fonctionnalité de régénération de token individuel **N’EST PAS ENCORE IMPLÉMENTÉE** et nécessite une mise à jour future.
 

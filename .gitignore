@@ -23,3 +23,5 @@ logs
 .env.*
 !.env.example
 .vscode/
+server.crt
+server.key

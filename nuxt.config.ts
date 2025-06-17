@@ -21,6 +21,7 @@ export default defineNuxtConfig({
   },
 
   modules: [
+    '@nuxtjs/tailwindcss',
     '@nuxt/content',
     '@nuxt/eslint',
     '@nuxt/scripts',
@@ -43,5 +44,19 @@ export default defineNuxtConfig({
     //   callback: '/confirm',
     //   exclude: ['/', '/index']
     // }
-  }
+  },
+
+  // Configuration HTTPS pour le développement (requis pour la caméra sur mobile)
+  devServer: {
+    https: {
+      key: './server.key',
+      cert: './server.crt'
+    }
+  },
+
+  vite: {
+    server: {
+      https: true
+    }
+  },
 });
