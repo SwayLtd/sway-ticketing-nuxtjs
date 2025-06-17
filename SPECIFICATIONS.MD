@@ -175,7 +175,7 @@ Dans la propriété `price_data.product_data`, ajoutez une metadata avec votre i
 
 ---
 
-## **7\. Système de Scanners et Synchronisation Offline**
+## **7\. Système de Scanners et Synchronisation Offline** *([commit 94045334e8ae14da98bd8d91734c053a90f1efdc](https://github.com/SwayLtd/sway-ticketing-nuxtjs/commit/94045334e8ae14da98bd8d91734c053a90f1efdc))*
 
 ### **1\. Accès à l’Interface de Scanning**
 
@@ -239,7 +239,7 @@ Dans la propriété `price_data.product_data`, ajoutez une metadata avec votre i
 
 ---
 
-## **8\. Système de Scanners et Synchronisation Offline**
+## **8\. Système de Scanners et Synchronisation Offline** *([commit 94045334e8ae14da98bd8d91734c053a90f1efdc](https://github.com/SwayLtd/sway-ticketing-nuxtjs/commit/94045334e8ae14da98bd8d91734c053a90f1efdc))*
 
 ### **1\. Accès et Authentification**
 
