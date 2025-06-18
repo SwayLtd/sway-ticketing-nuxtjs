@@ -56,4 +56,18 @@ export default defineNuxtConfig({
       }
     }
   } : {}),
+
+  // Force absolute SSR mode - no prerendering at all
+  nitro: {
+    preset: 'node-server'
+  },
+
+  // Force SSR mode, no static generation
+  ssr: true,
+
+  vite: {
+    build: {
+      sourcemap: false
+    }
+  }
 });

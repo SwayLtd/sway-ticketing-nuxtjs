@@ -36,7 +36,7 @@ Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduct
 3. Start webhook forwarding:
 
    ```bash
-   stripe listen --forward-to localhost:3000/api/webhooks/stripe
+   stripe listen --forward-to https://localhost:3000/api/webhooks/stripe --skip-verify
    ```
 
 4. Copy the webhook signing secret that is displayed after running the listen command and add it to your `.env.local`:
