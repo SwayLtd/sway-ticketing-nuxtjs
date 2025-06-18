@@ -6,9 +6,19 @@ import { createClient } from '@supabase/supabase-js';
 import { sendOrderSummaryEmail } from '../../utils/email';
 
 export default defineEventHandler(async (event) => {
+    // 🔍 LOGS DE DEBUG - Variables d'environnement
+    console.log('=== WEBHOOK STRIPE DEBUG ===');
+    console.log('Timestamp:', new Date().toISOString());
+    console.log('STRIPE_SECRET_KEY présente:', !!process.env.STRIPE_SECRET_KEY, process.env.STRIPE_SECRET_KEY ? `(${process.env.STRIPE_SECRET_KEY.substring(0, 12)}...)` : 'MANQUANTE');
+    console.log('STRIPE_WEBHOOK_SECRET présente:', !!process.env.STRIPE_WEBHOOK_SECRET, process.env.STRIPE_WEBHOOK_SECRET ? `(${process.env.STRIPE_WEBHOOK_SECRET.substring(0, 12)}...)` : 'MANQUANTE');
+    console.log('SUPABASE_URL présente:', !!process.env.SUPABASE_URL, process.env.SUPABASE_URL || 'MANQUANTE');
+    console.log('SUPABASE_SERVICE_ROLE_KEY présente:', !!process.env.SUPABASE_SERVICE_ROLE_KEY, process.env.SUPABASE_SERVICE_ROLE_KEY ? `(${process.env.SUPABASE_SERVICE_ROLE_KEY.substring(0, 12)}...)` : 'MANQUANTE');
+    console.log('BASE_URL présente:', !!process.env.BASE_URL, process.env.BASE_URL || 'MANQUANTE');
+    console.log('=============================');
+
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
         apiVersion: '2025-02-24.acacia',
-    }); const sig = event.node.req.headers['stripe-signature'];
+    });    const sig = event.node.req.headers['stripe-signature'];
     const body = await readRawBody(event);
 
     if (!body) {
