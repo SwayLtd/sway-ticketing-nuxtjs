@@ -62,7 +62,13 @@ export default defineNuxtConfig({
     preset: process.env.NETLIFY ? 'netlify' : 'node-server',
     logLevel: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
     // Force la fermeture propre du processus
-    minify: process.env.NODE_ENV === 'production'
+    minify: process.env.NODE_ENV === 'production',
+    // Résout les problèmes de build qui ne se terminent pas
+    legacyExternals: true,
+    // Force l'arrêt des processus en arrière-plan
+    close: true,
+    // Désactive les watchers qui peuvent rester actifs
+    devProxy: false
   },
 
   // Force SSR mode, no static generation
