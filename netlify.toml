@@ -8,6 +8,7 @@
   NPM_FLAGS = "--legacy-peer-deps"
   # Configuration du scanner de secrets
   SECRETS_SCAN_OMIT_PATHS = ".netlify/**,docs/**,tests/**,**/test-*.js,**/netlify-*.js,.nuxt/**,.output/**,dist/**"
+  SECRETS_SCAN_OMIT_KEYS = "SMTP_FROM"
 
 # Redirects pour SPA (routes dynamiques)
 [[redirects]]

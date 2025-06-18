@@ -218,12 +218,10 @@ export default defineEventHandler(async (event) => {
                 <li>Keep this email as your booking confirmation</li>
                 <li>Arrive early to avoid queues at the entrance</li>
               </ul>
-            </div>
-
-            <!-- Footer Message -->
+            </div>            <!-- Footer Message -->
             <div style="text-align: center; padding-top: 20px; border-top: 1px solid #eee;">
               <p style="margin: 0; font-size: 14px; color: #666; line-height: 1.5;">
-                We're excited to see you at the event! If you have any questions, please <a href="mailto:contact@sway.events" style="color: #FFBC00; text-decoration: none; font-weight: 500;">contact our support team</a>.
+                We're excited to see you at the event! If you have any questions, please <a href="mailto:${process.env.SMTP_FROM || 'no-reply@sway.events'}" style="color: #FFBC00; text-decoration: none; font-weight: 500;">contact our support team</a>.
               </p>
             </div>
           </div>          <!-- Footer with Logo -->
@@ -237,7 +235,7 @@ export default defineEventHandler(async (event) => {
         </div>
       </body>
       </html>
-    `;    await transporter.sendMail({
+    `; await transporter.sendMail({
       from: process.env.SMTP_FROM,
       to: customization.email,
       subject: subjectLine,

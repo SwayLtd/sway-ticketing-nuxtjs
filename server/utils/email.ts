@@ -170,7 +170,7 @@ export async function sendOrderSummaryEmail(to: string | null, orderId: string, 
           ` : ''}          <!-- Footer Message -->
           <div style="text-align: center; padding-top: 20px; border-top: 1px solid #eee;">
             <p style="margin: 0; font-size: 14px; color: #666; line-height: 1.5;">
-              Thank you for choosing us! If you have any questions, please don't hesitate to <a href="mailto:contact@sway.events" style="color: #FFBC00; text-decoration: none; font-weight: 500;">contact our support team</a>.
+              Thank you for choosing us! If you have any questions, please don't hesitate to <a href="mailto:${process.env.SMTP_FROM || 'no-reply@sway.events'}" style="color: #FFBC00; text-decoration: none; font-weight: 500;">contact our support team</a>.
             </p>
           </div>
         </div>        <!-- Footer -->
@@ -202,7 +202,7 @@ export async function sendOrderSummaryEmail(to: string | null, orderId: string, 
       }
     } else {
       console.warn('Logo file not found at:', logoPath);
-    }    const mailOptions = {
+    } const mailOptions = {
       from: process.env.SMTP_FROM,
       to,
       subject: subjectLine,
