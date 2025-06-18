@@ -47,16 +47,13 @@ export default defineNuxtConfig({
   },
 
   // Configuration HTTPS pour le développement (requis pour la caméra sur mobile)
-  devServer: {
-    https: {
-      key: './server.key',
-      cert: './server.crt'
+  // Configuré via la variable d'environnement NUXT_DEV_HTTPS
+  ...(process.env.NUXT_DEV_HTTPS === 'true' ? {
+    devServer: {
+      https: {
+        key: './server.key',
+        cert: './server.crt'
+      }
     }
-  },
-
-  vite: {
-    server: {
-      https: true
-    }
-  },
+  } : {}),
 });

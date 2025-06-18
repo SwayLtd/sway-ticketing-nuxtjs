@@ -368,15 +368,20 @@ const getScanResultMessage = (result) => {
                 return 'Mauvais événement'
             case 'scan_error':
                 return 'Erreur de scan'
-            default:
-                if (result.errorCode === 'ALREADY_SCANNED') {
+            default:                if (result.errorCode === 'ALREADY_SCANNED') {
+                    // Utiliser le message formaté de la fonction SQL si disponible
+                    if (result.message && result.message !== 'Ticket déjà scanné') {
+                        return result.message
+                    }
+                    
+                    // Sinon, formater nous-mêmes
                     let message = 'Ticket déjà scanné'
-                    if (result.scannedAt) {
-                        const scanDate = new Date(result.scannedAt)
+                    if (result.scanned_at) {
+                        const scanDate = new Date(result.scanned_at)
                         message += ` le ${scanDate.toLocaleDateString()} à ${scanDate.toLocaleTimeString()}`
                     }
-                    if (result.scannedBy && result.scannedBy.name) {
-                        message += ` par ${result.scannedBy.name}`
+                    if (result.scanned_by && result.scanned_by.name) {
+                        message += ` par ${result.scanned_by.name}`
                     }
                     return message
                 }

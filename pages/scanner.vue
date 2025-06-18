@@ -8,65 +8,82 @@
             <!-- Header -->
             <ScannerHeader :event="currentEvent" :scanner="currentScanner" :stats="scannerStats" />
 
-            <!-- Statut de connexion -->
-            <ConnectionStatus :is-online="isOnline" :is-syncing="isSyncing" :offline-queue-count="offlineQueue.length"
-                :last-sync-time="lastSyncTime" />            <!-- Queue des scans offline -->
-            <OfflineQueue v-if="offlineQueue.length > 0" :queue-items="offlineQueue" :can-sync="isOnline"
-                :is-syncing="isSyncing" @sync-now="syncOfflineScans" @remove-item="removeFromOfflineQueue" />
-            
+            <!-- Statut de connexion et session -->
+            <div class="bg-white border-b border-gray-200 px-4 py-2">
+                <div class="flex justify-between items-center text-sm">
+                    <div class="flex items-center space-x-4">
+                        <span :class="[
+                            'flex items-center',
+                            isOnline ? 'text-green-600' : 'text-red-600'
+                        ]">
+                            <span :class="[
+                                'w-2 h-2 rounded-full mr-2',
+                                isOnline ? 'bg-green-500' : 'bg-red-500'
+                            ]"></span>
+                            {{ isOnline ? 'En ligne' : 'Hors ligne' }}
+                        </span>
+                        <span v-if="hasOfflineQueue" class="text-orange-600">
+                            Scans en attente
+                        </span>
+                    </div>
+
+                    <div class="flex items-center space-x-4">
+                        <span v-if="sessionInfo.isValid" class="text-gray-600">
+                            Session expire dans {{ formatTimeRemaining(sessionInfo.timeRemaining) }}
+                        </span>
+                        <button @click="logout" class="text-red-600 hover:text-red-800 font-medium">
+                            Déconnexion
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             <!-- Scanner QR -->
             <div class="max-w-2xl mx-auto p-4">
-                <QRScanner @qr-scanned="wrappedHandleQRScan" @clear-result="clearScanResult" :is-scanning="isScanning"
+                <QRScanner @qr-scanned="handleQRScan" @clear-result="clearScanResult" :is-scanning="isScanning"
                     :scan-result="scanResult" :event-id="currentEvent?.id" :scanner-id="currentScanner?.id"
-                    :is-online="isOnline" />                <!-- Statistiques en temps réel -->
+                    :is-online="isOnline" />
+
+                <!-- Statistiques en temps réel -->
                 <ScannerStats :stats="scannerStats" />
-                
+
                 <!-- Préférences utilisateur -->
                 <div class="mt-6">
                     <ScannerPreferences :vibration-enabled="vibrationEnabled" @toggle-vibration="toggleVibration" />
                 </div>
             </div>
-
-            <!-- Plus de popup ScanResult -->
         </div>
     </div>
 </template>
 
 <script setup>
 import { ref, onMounted, onUnmounted, watch } from 'vue'
-import { useScanner } from '~/composables/useScanner'
+import { useScannerSecure } from '~/composables/useScannerSecure'
 import { useScannerSound } from '~/composables/useScannerSound'
 
 // Import des composants
 import ScannerAuth from '~/components/scanner/ScannerAuth.vue'
 import ScannerHeader from '~/components/scanner/ScannerHeader.vue'
-import ConnectionStatus from '~/components/scanner/ConnectionStatus.vue'
-import OfflineQueue from '~/components/scanner/OfflineQueue.vue'
 import QRScanner from '~/components/scanner/QRScanner.vue'
 import ScannerStats from '~/components/scanner/ScannerStats.vue'
 import ScannerPreferences from '~/components/scanner/ScannerPreferences.vue'
-import ScanResult from '~/components/scanner/ScanResult.vue'
 
-// Composable principal
+// Composable principal sécurisé
 const {
     isAuthenticated,
     currentEvent,
     currentScanner,
     isOnline,
-    scannerStats,
-    offlineQueue,
     isScanning,
     scanResult,
-    isSyncing,
-    lastSyncTime,
-    handleAuth,
-    handleQRScan,
-    syncOfflineScans,
-    clearScanResult,
-    nextScan,
-    removeFromOfflineQueue,
-    downloadEventData
-} = useScanner()
+    sessionInfo,
+    scannerStats,
+    hasOfflineQueue,
+    authenticate,
+    logout,
+    scanQRCode,
+    checkSessionValidity
+} = useScannerSecure()
 
 // Composable pour le feedback sonore
 const {
@@ -79,43 +96,38 @@ const {
 // Préférences utilisateur
 const vibrationEnabled = ref(true)
 
-// Charger les préférences depuis localStorage
-onMounted(() => {
-    if (process.client) {
-        const savedVibration = localStorage.getItem('scanner-vibration-enabled')
-        if (savedVibration !== null) {
-            vibrationEnabled.value = JSON.parse(savedVibration)
-        }
-        
-        // Initialiser le contexte audio et charger les préférences sonores
-        initAudioContext()
-        loadSoundPreferences()
-    }
-})
-
-// Sauvegarder les préférences
-const toggleVibration = () => {
-    vibrationEnabled.value = !vibrationEnabled.value
-    if (process.client) {
-        localStorage.setItem('scanner-vibration-enabled', JSON.stringify(vibrationEnabled.value))
+// Gestion de l'authentification
+const handleAuth = async (authData) => {
+    try {
+        await authenticate(authData)
+        console.log('Authentification réussie')
+    } catch (error) {
+        console.error('Erreur authentification:', error)
+        // Afficher une erreur à l'utilisateur
     }
 }
 
-// Wrapper pour les logs, vibrations et sons
-const wrappedHandleQRScan = (qrData) => {
+// Gestion du scan QR avec feedback
+const handleQRScan = async (qrData) => {
     console.log('Page scanner: QR scanné:', qrData)
-    
+
     // Déclencher feedback pour la détection du QR
     triggerScanVibration('detection')
     playScanSound('detection')
-    
-    handleQRScan(qrData)
+
+    // Effectuer le scan sécurisé
+    await scanQRCode(qrData)
+}
+
+// Fonction pour effacer le résultat
+const clearScanResult = () => {
+    // Le scanResult est géré par le composable sécurisé
 }
 
 // Fonction pour gérer les vibrations selon le contexte
 const triggerScanVibration = (type) => {
     if (!process.client || !('vibrate' in navigator) || !vibrationEnabled.value) return
-    
+
     try {
         switch (type) {
             case 'detection':
@@ -145,11 +157,11 @@ const triggerScanVibration = (type) => {
 // Watcher pour déclencher vibration et son selon le résultat
 watch(() => scanResult.value, (newResult) => {
     if (!newResult) return
-    
+
     if (newResult.valid) {
         triggerScanVibration('success')
         playScanSound('success')
-    } else if (newResult.errorCode === 'ALREADY_SCANNED') {
+    } else if (newResult.reason === 'Ticket déjà scanné') {
         triggerScanVibration('warning')
         playScanSound('warning')
     } else {
@@ -158,23 +170,55 @@ watch(() => scanResult.value, (newResult) => {
     }
 }, { immediate: false })
 
-// Gestion PWA et cache offline
-onMounted(() => {
-    // Enregistrer service worker si disponible
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/sw.js')
-            .then(registration => {
-                console.log('Service Worker enregistré:', registration)
-            })
-            .catch(error => {
-                console.error('Erreur Service Worker:', error)
-            })
-    }
+// Formater le temps restant pour la session
+const formatTimeRemaining = (milliseconds) => {
+    const minutes = Math.floor(milliseconds / 60000)
+    const hours = Math.floor(minutes / 60)
 
-    // Désactiver le zoom sur les appareils mobiles
-    const viewport = document.querySelector('meta[name=viewport]')
-    if (viewport) {
-        viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no')
+    if (hours > 0) {
+        return `${hours}h ${minutes % 60}min`
+    } else {
+        return `${minutes}min`
+    }
+}
+
+// Sauvegarder les préférences
+const toggleVibration = () => {
+    vibrationEnabled.value = !vibrationEnabled.value
+    if (process.client) {
+        localStorage.setItem('scanner-vibration-enabled', JSON.stringify(vibrationEnabled.value))
+    }
+}
+
+// Gestion PWA et initialisation
+onMounted(() => {
+    if (process.client) {
+        // Charger les préférences depuis localStorage
+        const savedVibration = localStorage.getItem('scanner-vibration-enabled')
+        if (savedVibration !== null) {
+            vibrationEnabled.value = JSON.parse(savedVibration)
+        }
+
+        // Initialiser le contexte audio et charger les préférences sonores
+        initAudioContext()
+        loadSoundPreferences()
+
+        // Enregistrer service worker si disponible
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js')
+                .then(registration => {
+                    console.log('Service Worker enregistré:', registration)
+                })
+                .catch(error => {
+                    console.error('Erreur Service Worker:', error)
+                })
+        }
+
+        // Désactiver le zoom sur les appareils mobiles
+        const viewport = document.querySelector('meta[name=viewport]')
+        if (viewport) {
+            viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no')
+        }
     }
 })
 

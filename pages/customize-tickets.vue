@@ -115,21 +115,18 @@ if (!orderId || !token) {
 async function fetchTickets() {
     if (!orderId || !token) return
 
-    // Retrieve tickets for the order with matching customization_token,
-    // including the associated product data (to get its name)
-    const { data, error } = await supabase
-        .from("tickets")
-        .select("*, products ( name )")
-        .eq("order_id", orderId)
-        .eq("customization_token", token)
+    try {
+        // Utiliser l'API au lieu d'accéder directement à Supabase
+        const response = await $fetch<{success: boolean, tickets: any[]}>('/api/tickets/customize', {
+            method: 'GET',
+            query: {
+                order_id: orderId,
+                token: token
+            }
+        })
 
-    if (error) {
-        errorMessage.value = error.message
-    } else {
-        if (!data || data.length === 0) {
-            errorMessage.value = "No tickets found or invalid token."
-        } else {
-            tickets.value = data
+        if (response.success && response.tickets) {
+            tickets.value = response.tickets
 
             // Compute frequency per product_id to assign sequential numbers only if needed
             const frequency: { [key: string]: number } = {}
@@ -153,12 +150,16 @@ async function fetchTickets() {
                         firstName: ticket.customization_data?.firstName || "",
                         lastName: ticket.customization_data?.lastName || "",
                         email: ticket.customization_data?.email || ""
-                    }
-                }
+                    }                }
                 // Initialize dropdown state
                 ticket.showForm = false
             })
+        } else {
+            errorMessage.value = "No tickets found or invalid token."
         }
+    } catch (error: any) {
+        console.error('Error fetching tickets:', error)
+        errorMessage.value = error.data?.message || error.message || "Error loading tickets."
     }
     loading.value = false
 }
@@ -179,40 +180,38 @@ async function updateTicket(ticket: any) {
         email: customizationInputs[ticket.id].email,
     }
 
-    // Update ticket's customization_data without modifying customization_token
-    const updateData = { customization_data: customizationData };
-    const { error } = await (supabase as any)
-        .from("tickets")
-        .update(updateData)
-        .eq("id", ticket.id)
-
-    if (error) {
-        alert("Error updating ticket: " + error.message)
-    } else {
-        // Update the local ticket object to reflect that it's now customized
-        ticket.customization_data = customizationData
-
-        // Automatically send personalized ticket email
-        try {
-            const response = await fetch('/api/ticket-personalization-email', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ ticket_id: ticket.id })
-            });
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error('Failed to send personalized ticket email:', errorText);
-                successMessage.value = `Ticket updated successfully, but failed to send email notification.`;
-            } else {
-                successMessage.value = `Ticket updated successfully and personalized ticket email sent!`;
+    try {
+        // Update ticket's customization_data using API
+        const response = await $fetch<{success: boolean, ticket: any}>('/api/tickets/update-customization', {
+            method: 'POST',
+            body: {
+                ticket_id: ticket.id,
+                order_id: orderId,
+                token: token,
+                customization_data: customizationData
             }
-        } catch (emailError) {
-            console.error('Error sending personalized ticket email:', emailError);
-            successMessage.value = `Ticket updated successfully, but failed to send email notification.`;
+        })
+
+        if (response.success) {
+            // Update the local ticket object to reflect that it's now customized
+            ticket.customization_data = customizationData
+
+            // Automatically send personalized ticket email
+            try {
+                const emailResponse = await $fetch('/api/ticket-personalization-email', {
+                    method: 'POST',
+                    body: { ticket_id: ticket.id }
+                });
+
+                successMessage.value = `Ticket updated successfully and personalized ticket email sent!`;
+            } catch (emailError: any) {
+                console.error('Error sending personalized ticket email:', emailError);
+                successMessage.value = `Ticket updated successfully, but failed to send email notification.`;
+            }
         }
+    } catch (error: any) {
+        console.error('Error updating ticket:', error)
+        errorMessage.value = error.data?.message || error.message || "Error updating ticket."
     }
 }
 
@@ -258,21 +257,15 @@ async function downloadTicket(ticket: any) {
 // New function to resend ticket personalization email
 async function resendTicketEmail(ticket: any) {
     try {
-        const response = await fetch('/api/ticket-personalization-email', {
+        const response = await $fetch('/api/ticket-personalization-email', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ ticket_id: ticket.id })
+            body: { ticket_id: ticket.id }
         });
-        if (!response.ok) {
-            const errorText = await response.text();
-            alert('Failed to resend email: ' + errorText);
-        } else {
-            alert('Personalized ticket email resent successfully.');
-        }
-    } catch (error) {
-        alert('Error resending email: ' + error);
+        
+        successMessage.value = 'Personalized ticket email resent successfully.';
+    } catch (error: any) {
+        console.error('Error resending email:', error);
+        errorMessage.value = error.data?.message || error.message || 'Error resending email.';
     }
 }
 </script>
