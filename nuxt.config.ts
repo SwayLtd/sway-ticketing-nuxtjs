@@ -64,7 +64,12 @@ export default defineNuxtConfig({
     // Force l'arrêt des processus en arrière-plan
     close: true,
     // Désactive les watchers qui peuvent rester actifs
-    devProxy: false
+    devProxy: false,
+    // Configuration plus agressive pour forcer la fermeture
+    timing: false,
+    experimental: {
+      wasm: false
+    }
   },
 
   // Force SSR mode, no static generation
