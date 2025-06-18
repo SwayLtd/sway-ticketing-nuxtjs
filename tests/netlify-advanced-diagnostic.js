@@ -7,7 +7,7 @@
 
 import https from 'https';
 
-const SITE_URL = 'https://test.sway.events';
+const SITE_URL = process.env.BASE_URL || 'https://your-app.netlify.app';
 
 console.log('🔧 DIAGNOSTIC NETLIFY AVANCÉ');
 console.log('============================');

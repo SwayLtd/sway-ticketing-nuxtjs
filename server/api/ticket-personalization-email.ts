@@ -237,8 +237,8 @@ export default defineEventHandler(async (event) => {
         </div>
       </body>
       </html>
-    `; await transporter.sendMail({
-      from: process.env.SMTP_FROM || 'no-reply@sway.events',
+    `;    await transporter.sendMail({
+      from: process.env.SMTP_FROM,
       to: customization.email,
       subject: subjectLine,
       html: htmlContent,

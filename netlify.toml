@@ -6,6 +6,8 @@
 [build.environment]
   NODE_VERSION = "18"
   NPM_FLAGS = "--legacy-peer-deps"
+  # Configuration du scanner de secrets
+  SECRETS_SCAN_OMIT_PATHS = ".netlify/**,docs/**,tests/**,**/test-*.js,**/netlify-*.js,.nuxt/**,.output/**,dist/**"
 
 # Redirects pour SPA (routes dynamiques)
 [[redirects]]

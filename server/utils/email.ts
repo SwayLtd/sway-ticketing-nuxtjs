@@ -202,10 +202,8 @@ export async function sendOrderSummaryEmail(to: string | null, orderId: string, 
       }
     } else {
       console.warn('Logo file not found at:', logoPath);
-    }
-
-    const mailOptions = {
-      from: process.env.SMTP_FROM || 'no-reply@sway.events',
+    }    const mailOptions = {
+      from: process.env.SMTP_FROM,
       to,
       subject: subjectLine,
       html: htmlContent,

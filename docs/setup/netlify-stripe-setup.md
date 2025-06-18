@@ -51,7 +51,7 @@ Ajoute les variables suivantes (ne mets jamais les clés secrètes dans le code)
 Dans ton `.env` (commit dans le repo, safe pour les clés publiques) :
 
 ```env
-BASE_URL=https://test.sway.events
+BASE_URL=https://your-app.netlify.app
 NUXT_PUBLIC_SUPABASE_URL=...
 NUXT_PUBLIC_SUPABASE_ANON_KEY=...
 NUXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
@@ -134,7 +134,7 @@ Lance-le avec :
 ### ✅ Flux de paiement réussi
 
 Quand tout fonctionne, le flux est :
-1. `https://test.sway.events/event/51/tickets`
+1. `https://your-app.netlify.app/event/51/tickets`
 2. Stripe Checkout (avec compte connecté)
 3. Webhook déclenché sur compte principal
 4. Commande créée dans Supabase
