@@ -22,14 +22,10 @@ export default defineNuxtConfig({
 
   modules: [
     '@nuxtjs/tailwindcss',
-    '@nuxt/content',
-    '@nuxt/eslint',
-    '@nuxt/scripts',
     '@nuxt/ui',
     '@nuxt/fonts',
     '@nuxt/icon',
     '@nuxt/image',
-    '@nuxt/test-utils',
     '@unlok-co/nuxt-stripe',
     '@nuxtjs/supabase'
   ],
