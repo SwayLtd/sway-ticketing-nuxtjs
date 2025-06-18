@@ -25,3 +25,6 @@ logs
 .vscode/
 server.crt
 server.key
+
+# Netlify
+.netlify
