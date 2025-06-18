@@ -57,9 +57,10 @@ export default defineNuxtConfig({
     }
   } : {}),
 
-  // Force absolute SSR mode - no prerendering at all
+  // Nitro configuration - adaptable selon l'environnement
   nitro: {
-    preset: 'node-server'
+    preset: process.env.NETLIFY ? 'netlify' : 'node-server',
+    logLevel: process.env.NODE_ENV === 'production' ? 'info' : 'debug'
   },
 
   // Force SSR mode, no static generation
