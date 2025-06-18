@@ -6,13 +6,6 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 });
 
 export default defineEventHandler(async (event) => {
-    // 🔍 LOGS DE DEBUG - Variables d'environnement Stripe
-    console.log('=== CREATE CHECKOUT SESSION DEBUG ===');
-    console.log('Timestamp:', new Date().toISOString());
-    console.log('STRIPE_SECRET_KEY présente:', !!process.env.STRIPE_SECRET_KEY, process.env.STRIPE_SECRET_KEY ? `(${process.env.STRIPE_SECRET_KEY.substring(0, 12)}...)` : 'MANQUANTE');
-    console.log('BASE_URL présente:', !!process.env.BASE_URL, process.env.BASE_URL || 'MANQUANTE');
-    console.log('====================================');
-
     const body = await readBody(event);
     // On attend de recevoir feeAmount en centimes, calculé côté front-end comme la commission nette
     const { eventId, lineItems, promoterStripeAccountId, currency, feeAmount, buyerEmail, userId } = body;

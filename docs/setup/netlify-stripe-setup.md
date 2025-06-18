@@ -1,5 +1,22 @@
 # Netlify & Stripe Webhook Setup
 
+## 🚨 IMPORTANT - Stripe Connect & Webhooks
+
+**DÉCOUVERTE CRUCIALE** : Avec Stripe Connect, les webhooks pour `checkout.session.completed` passent par le compte PRINCIPAL ("Your Account") et NON par les comptes connectés, même si le paiement utilise un compte connecté !
+
+### Configuration correcte
+
+1. **Créer le webhook sur "Your Account"** (compte principal)
+2. **URL** : `https://test.sway.events/api/webhooks/stripe`
+3. **Utiliser le `STRIPE_WEBHOOK_SECRET` du webhook "Your Account"**
+4. **PAS celui du webhook "Connected accounts"**
+
+### Mode Test vs Production
+
+- **Mode Test** : Webhook configuré sur <https://dashboard.stripe.com/test/webhooks>
+- **Mode Production** : Webhook configuré sur <https://dashboard.stripe.com/webhooks>
+- ⚠️ **Les deux sont séparés** : il faut configurer les webhooks dans chaque mode !
+
 ## 1. Stripe Webhook Events à sélectionner
 
 Pour une application de billetterie, coche au minimum :
@@ -67,6 +84,64 @@ Lance-le avec :
 ```bash
 ./stripe-listen.sh
 ```
+
+---
+
+## 4. Troubleshooting - Problèmes courants
+
+### ❌ Le webhook ne se déclenche pas après paiement
+
+**Symptômes** :
+- Le paiement Stripe réussit
+- Pas d'événements dans les logs Netlify
+- Pas de commande créée dans Supabase
+- Page de succès sans données de commande
+
+**Causes principales** :
+
+1. **Mauvaise configuration mode Test/Production** :
+   - Vérifiez que vous êtes en mode TEST sur Stripe si vous utilisez des clés de test
+   - Les webhooks Test et Production sont complètement séparés !
+
+2. **Mauvais webhook secret avec Stripe Connect** :
+   - ✅ **CORRECT** : Utiliser le secret du webhook "Your Account"
+   - ❌ **INCORRECT** : Utiliser le secret du webhook "Connected accounts"
+   - Même avec Stripe Connect, `checkout.session.completed` passe par le compte principal
+
+3. **URL du webhook incorrecte** :
+   - ✅ **CORRECT** : `https://test.sway.events/api/webhooks/stripe`
+   - ❌ **INCORRECT** : `http://localhost:3000/...` (en production)
+
+### 🔍 Diagnostic étape par étape
+
+1. **Vérifiez le mode Stripe** :
+   - Interface Stripe : URL doit contenir `/test/` pour le mode test
+   - Variables env : `STRIPE_SECRET_KEY` doit commencer par `sk_test_`
+
+2. **Testez le webhook manuellement** :
+   ```bash
+   node test-with-netlify-logs.js
+   ```
+
+3. **Vérifiez les logs Netlify** :
+   - Netlify Dashboard → Functions → Logs
+   - Cherchez les logs "=== WEBHOOK STRIPE DEBUG ==="
+
+4. **Vérifiez Stripe Dashboard** :
+   - Webhooks → Recent attempts
+   - Events → Recherchez `checkout.session.completed`
+
+### ✅ Flux de paiement réussi
+
+Quand tout fonctionne, le flux est :
+1. `https://test.sway.events/event/51/tickets`
+2. Stripe Checkout (avec compte connecté)
+3. Webhook déclenché sur compte principal
+4. Commande créée dans Supabase
+5. Email envoyé
+6. Redirection vers `https://test.sway.events/success?provider_order_id=cs_test_...`
+7. Page de succès avec récapitulatif de commande
+8. Possibilité de customiser les tickets
 
 ---
 
