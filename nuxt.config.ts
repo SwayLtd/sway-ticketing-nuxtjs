@@ -60,7 +60,9 @@ export default defineNuxtConfig({
   // Nitro configuration - adaptable selon l'environnement
   nitro: {
     preset: process.env.NETLIFY ? 'netlify' : 'node-server',
-    logLevel: process.env.NODE_ENV === 'production' ? 'info' : 'debug'
+    logLevel: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
+    // Force la fermeture propre du processus
+    minify: process.env.NODE_ENV === 'production'
   },
 
   // Force SSR mode, no static generation

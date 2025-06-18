@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "build": "nuxt build",
+    "build:netlify": "cross-env NODE_ENV=production NETLIFY=true nuxt build",
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
@@ -44,6 +45,7 @@
     "@nuxtjs/tailwindcss": "^7.0.0-beta.0",
     "@types/nodemailer": "^6.4.17",
     "@types/qrcode": "^1.5.5",
-    "@vitejs/plugin-basic-ssl": "^2.0.0"
+    "@vitejs/plugin-basic-ssl": "^2.0.0",
+    "cross-env": "^7.0.3"
   }
 }
