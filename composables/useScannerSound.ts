@@ -4,8 +4,9 @@
  */
 import { ref } from 'vue'
 
+export const soundEnabled = ref(true) // Shared global state
+
 export const useScannerSound = () => {
-  const soundEnabled = ref(true)
   let audioContext: AudioContext | null = null
 
   // Initialiser le contexte audio
@@ -137,7 +138,6 @@ export const useScannerSound = () => {
   }
 
   return {
-    soundEnabled,
     initAudioContext,
     loadSoundPreferences,
     playScanSound,

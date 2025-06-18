@@ -21,17 +21,17 @@ function checkRateLimit(identifier: string, maxAttempts = 30, windowMs = 60 * 10
     return true
 }
 
-// Fonction pour vérifier et décoder le token de session
+// Function to verify and decode the session token
 function verifySessionToken(token: string): any {
     try {
         const decoded = JSON.parse(Buffer.from(token, 'base64').toString())
 
-        // Vérifier l'expiration
+        // Check expiration
         if (Date.now() > decoded.expires) {
             throw new Error('Token expired')
         }
 
-        // Vérifier la signature
+        // Check signature
         const expectedSignature = crypto
             .createHmac('sha256', process.env.JWT_SECRET || 'fallback-secret')
             .update(JSON.stringify(decoded.data) + decoded.timestamp)
@@ -47,7 +47,7 @@ function verifySessionToken(token: string): any {
     }
 }
 
-// Fonction pour logger les événements de sécurité
+// Function to log security events
 async function logSecurityEvent(supabase: any, eventType: string, payload: any) {
     try {
         await supabase
@@ -63,7 +63,7 @@ async function logSecurityEvent(supabase: any, eventType: string, payload: any) 
 }
 
 export default defineEventHandler(async (event) => {
-    // Vérification de la méthode
+    // Method check
     if (getMethod(event) !== 'POST') {
         throw createError({
             statusCode: 405,
@@ -74,7 +74,7 @@ export default defineEventHandler(async (event) => {
     const body = await readBody(event)
     const { qrData, eventId, scannerId, sessionToken } = body
 
-    // Validation des paramètres requis
+    // Required parameter validation
     if (!qrData || !eventId) {
         throw createError({
             statusCode: 400,
@@ -89,7 +89,7 @@ export default defineEventHandler(async (event) => {
 
     const clientIP = getHeader(event, 'x-forwarded-for') || getHeader(event, 'x-real-ip') || 'unknown'
 
-    // Rate limiting agressif pour les validations QR
+    // Aggressive rate limiting for QR validations
     if (!checkRateLimit(`qr_validate_${clientIP}`, 30, 60 * 1000)) {
         await logSecurityEvent(supabase, 'qr_validate_rate_limited', {
             ip: clientIP,
@@ -106,12 +106,12 @@ export default defineEventHandler(async (event) => {
     try {
         let authenticatedScanner = null
 
-        // Vérification de l'authentification (session token ou scannerId legacy)
+        // Authentication check (session token or legacy scannerId)
         if (sessionToken) {
             try {
                 const sessionData = verifySessionToken(sessionToken)
 
-                // Vérifier que la session correspond à l'événement
+                // Check that the session matches the event
                 if (sessionData.event_id !== eventId) {
                     await logSecurityEvent(supabase, 'qr_validate_auth_failed', {
                         reason: 'event_mismatch',
@@ -146,7 +146,7 @@ export default defineEventHandler(async (event) => {
                 })
             }
         } else if (scannerId) {
-            // Mode legacy pour compatibilité (moins sécurisé)
+            // Legacy mode for compatibility (less secure)
             const { data: scanner, error: scannerError } = await supabase
                 .from('scanners')
                 .select('*')
@@ -176,7 +176,7 @@ export default defineEventHandler(async (event) => {
                 statusCode: 401,
                 statusMessage: 'Authentication required (session token or scanner ID)'
             })
-        }        // Utiliser la fonction RPC sécurisée pour valider le QR code
+        }        // Use the secure RPC function to validate the QR code
         const { data: validationResult, error: validationError } = await supabase
             .rpc('validate_qr_code', {
                 qr_data: qrData,
@@ -194,9 +194,9 @@ export default defineEventHandler(async (event) => {
 
             throw createError({
                 statusCode: 400,
-                statusMessage: `Erreur de validation: ${validationError.message}`
+                statusMessage: `Validation error: ${validationError.message}`
             })
-        }        // Si le ticket est valide, le marquer comme scanné
+        }        // If the ticket is valid, mark it as scanned
         console.log('DEBUG: validationResult:', JSON.stringify(validationResult, null, 2))
         console.log('DEBUG: check condition:', validationResult?.valid, validationResult?.ticket?.id)
 
@@ -224,18 +224,18 @@ export default defineEventHandler(async (event) => {
 
                 throw createError({
                     statusCode: 500,
-                    statusMessage: `Erreur lors du marquage du ticket: ${scanError.message}`
+                    statusMessage: `Error marking ticket as scanned: ${scanError.message}`
                 })
             }
 
-            // Vérifier le résultat du scan
+            // Check the scan result
             if (!scanResult?.success) {
                 console.log('DEBUG: Scan failed, reason:', scanResult?.reason)
-                // Le ticket ne peut pas être scanné (déjà scanné, statut invalide, etc.)
+                // The ticket cannot be scanned (already scanned, invalid status, etc.)
                 const reason = scanResult?.reason || 'unknown'
 
                 if (reason === 'already_scanned') {
-                    // Récupérer les informations complètes du scanner qui a effectué le scan
+                    // Retrieve full scanner info who performed the scan
                     const { data: scannerData } = await supabase
                         .from('scanners')
                         .select('id, name')
@@ -245,28 +245,28 @@ export default defineEventHandler(async (event) => {
                     return {
                         valid: false,
                         ticket: validationResult.ticket || { id: 'unknown' },
-                        message: 'Ticket déjà scanné',
+                        message: 'Ticket already scanned',
                         errorCode: 'ALREADY_SCANNED',
                         scanned_at: scanResult.scanned_at,
-                        scanned_by: scannerData || { name: 'Scanner inconnu' }
+                        scanned_by: scannerData || { name: 'Unknown scanner' }
                     }
                 } else {
                     return {
                         valid: false,
                         ticket: validationResult.ticket,
-                        message: `Impossible de scanner le ticket: ${reason}`,
+                        message: `Unable to scan ticket: ${reason}`,
                         errorCode: 'SCAN_FAILED',
                         reason: reason
                     }
                 }
             }
 
-            // Mise à jour réussie - utiliser les données retournées par mark_ticket_scanned
+            // Successful update - use data returned by mark_ticket_scanned
             validationResult.ticket = {
                 ...validationResult.ticket,
                 ...scanResult.ticket
             }
-        }        // Log de l'activité de scan
+        }        // Log scan activity
         await logSecurityEvent(supabase, 'qr_scan_attempt', {
             scanner_id: authenticatedScanner.id,
             event_id: eventId,
@@ -276,9 +276,9 @@ export default defineEventHandler(async (event) => {
             timestamp: new Date().toISOString()
         })
 
-        // Si le ticket est valide, il a été automatiquement marqué comme scanné par mark_ticket_scanned
+        // If the ticket is valid, it was automatically marked as scanned by mark_ticket_scanned
         if (validationResult.valid) {
-            // Log de succès
+            // Log success
             await logSecurityEvent(supabase, 'ticket_scanned_success', {
                 ticket_id: validationResult.ticket.id,
                 scanner_id: authenticatedScanner.id,
@@ -290,17 +290,17 @@ export default defineEventHandler(async (event) => {
             return {
                 valid: true,
                 ticket: validationResult.ticket,
-                message: 'Ticket validé et scanné avec succès',
+                message: 'Ticket successfully validated and scanned',
                 scannedBy: {
                     id: authenticatedScanner.id,
                     name: authenticatedScanner.name
                 }
             }
-        }        // Gérer les autres cas d'invalidité
+        }        // Handle other invalid cases
         if (!validationResult.valid) {
             switch (validationResult.reason) {
                 case 'already_scanned':
-                    // Récupérer les informations complètes du scanner qui a effectué le scan
+                    // Retrieve full scanner info who performed the scan
                     const { data: scannerData } = await supabase
                         .from('scanners')
                         .select('id, name')
@@ -309,40 +309,40 @@ export default defineEventHandler(async (event) => {
 
                     return {
                         valid: false,
-                        message: 'Ticket déjà scanné',
+                        message: 'Ticket already scanned',
                         errorCode: 'ALREADY_SCANNED',
                         scanned_at: validationResult.scanned_at,
-                        scanned_by: scannerData || { name: 'Scanner inconnu' }
+                        scanned_by: scannerData || { name: 'Unknown scanner' }
                     }
                 case 'event_not_found':
                     return {
                         valid: false,
-                        message: 'Événement non trouvé',
+                        message: 'Event not found',
                         errorCode: 'EVENT_NOT_FOUND',
                         reason: 'event_not_found'
                     }
                 case 'ticket_not_found_or_invalid_hmac':
                     return {
                         valid: false,
-                        message: 'QR code invalide ou contrefait',
+                        message: 'Invalid or counterfeit QR code',
                         errorCode: 'INVALID_QR',
                         reason: 'ticket_not_found_or_invalid_hmac'
                     }
                 default:
                     return {
                         valid: false,
-                        message: validationResult.reason || 'Ticket invalide',
+                        message: validationResult.reason || 'Invalid ticket',
                         errorCode: 'UNKNOWN',
                         reason: validationResult.reason
                     }
             }
         }
 
-        // Retourner le résultat de validation par défaut
+        // Return default validation result
         return validationResult
 
     } catch (error: any) {
-        // Log des erreurs système
+        // Log system errors
         await logSecurityEvent(supabase, 'qr_validate_system_error', {
             error: error.message || 'Unknown error',
             event_id: eventId,
@@ -356,7 +356,7 @@ export default defineEventHandler(async (event) => {
 
         throw createError({
             statusCode: 500,
-            statusMessage: 'Erreur interne du serveur'
+            statusMessage: 'Internal server error'
         })
     }
 })

@@ -5,10 +5,10 @@
             <video ref="videoElement" autoplay playsinline muted class="w-full h-64 object-cover"
                 :class="{ 'mirror': isFrontCamera }"></video>
 
-            <!-- Canvas pour le traitement (caché) -->
+            <!-- Canvas for processing (hidden) -->
             <canvas ref="canvasElement" style="display: none;"></canvas>
 
-            <!-- Overlay de visée -->
+            <!-- Target overlay -->
             <div class="absolute inset-0 flex items-center justify-center">
                 <div class="scanner-overlay">
                     <div class="scan-area border-2 border-white rounded-lg relative">
@@ -18,21 +18,21 @@
                         <div class="corner corner-br"></div>
                     </div>
                 </div>
-            </div>            <!-- Indicateur de scan -->
+            </div> <!-- Scan indicator -->
             <div v-if="isScanning" class="absolute top-4 left-4 right-4">
                 <div class="bg-black bg-opacity-50 text-white px-3 py-2 rounded-lg text-sm text-center">
                     {{ scanStatus }}
                 </div>
             </div>
 
-            <!-- Indicateur de délai de scan -->
+            <!-- Scan cooldown indicator -->
             <div v-if="scanCooldownRemaining > 0" class="absolute top-16 left-4 right-4">
                 <div class="bg-yellow-500 bg-opacity-90 text-white px-3 py-2 rounded-lg text-sm text-center">
-                    Prochain scan dans {{ Math.ceil(scanCooldownRemaining / 1000) }}s
+                    Next scan in {{ Math.ceil(scanCooldownRemaining / 1000) }}s
                 </div>
             </div>
 
-            <!-- Contrôles caméra -->
+            <!-- Camera controls -->
             <div class="absolute bottom-4 right-4 flex gap-2">
                 <button @click="toggleCamera"
                     class="bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-70">
@@ -43,32 +43,38 @@
                     :class="{ 'bg-yellow-500': torchEnabled }">
                     <BoltIcon class="h-5 w-5" />
                 </button>
-            </div>        </div>        <!-- Résultat du scan intégré -->
-        <div v-if="lastScanResult" class="scan-result mt-4 p-4 rounded-lg border-2 transition-all duration-300" 
-             :class="getScanResultClasses(lastScanResult).bg">
+            </div>
+        </div> <!-- Integrated scan result -->
+        <div v-if="lastScanResult" class="scan-result mt-4 p-4 rounded-lg border-2 transition-all duration-300"
+            :class="getScanResultClasses(lastScanResult).bg">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
                     <div class="flex-shrink-0">
-                        <div v-if="getScanResultType(lastScanResult) === 'success'" class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                        <div v-if="getScanResultType(lastScanResult) === 'success'"
+                            class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
                             <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M5 13l4 4L19 7"></path>
                             </svg>
                         </div>
-                        <div v-else-if="getScanResultType(lastScanResult) === 'warning'" class="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
+                        <div v-else-if="getScanResultType(lastScanResult) === 'warning'"
+                            class="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
                             <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
                         </div>
                         <div v-else class="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center">
                             <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12"></path>
                             </svg>
                         </div>
                     </div>
                     <div>
                         <div class="font-semibold" :class="getScanResultClasses(lastScanResult).title">
-                            {{ getScanResultType(lastScanResult) === 'success' ? 'Ticket Valide' : 
-                               getScanResultType(lastScanResult) === 'warning' ? 'Attention' : 'Ticket Invalide' }}
+                            {{ getScanResultType(lastScanResult) === 'success' ? 'Valid Ticket' :
+                                getScanResultType(lastScanResult) === 'warning' ? 'Warning' : 'Invalid Ticket' }}
                         </div>
                         <div class="text-sm" :class="getScanResultClasses(lastScanResult).message">
                             {{ getScanResultMessage(lastScanResult) }}
@@ -77,35 +83,36 @@
                 </div>
                 <button @click="clearScanResult" class="text-gray-400 hover:text-gray-600">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                        </path>
                     </svg>
                 </button>
             </div>
         </div>
 
-        <!-- Saisie manuelle -->
+        <!-- Manual input -->
         <div class="manual-input mt-4">
             <div class="flex gap-2">
-                <input v-model="manualQR" @keyup.enter="handleManualScan" placeholder="Ou saisir le code manuellement"
+                <input v-model="manualQR" @keyup.enter="handleManualScan" placeholder="Or enter the code manually"
                     class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
                 <button @click="handleManualScan" :disabled="!manualQR.trim()"
                     class="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white px-4 py-2 rounded-md">
-                    Scanner
+                    Scan
                 </button>
             </div>
-        </div>        <!-- Messages d'erreur -->
+        </div> <!-- Error messages -->
         <div v-if="cameraError" class="mt-4 bg-red-50 border border-red-200 rounded-md p-3">
             <p class="text-sm text-red-600">{{ cameraError }}</p>
             <button @click="startCamera" class="mt-2 text-sm text-red-700 underline hover:no-underline">
-                Réessayer
+                Retry
             </button>
         </div>
 
-        <!-- Information HTTPS pour mobile -->
+        <!-- HTTPS info for mobile -->
         <div class="mt-4 bg-blue-50 border border-blue-200 rounded-md p-3" v-if="showHTTPSWarning">
             <p class="text-sm text-blue-600">
-                📱 <strong>Sur mobile :</strong> L'accès à la caméra nécessite HTTPS. 
-                Si vous rencontrez des problèmes, demandez le lien HTTPS à l'organisateur.
+                📱 <strong>On mobile:</strong> Camera access requires HTTPS.
+                If you encounter issues, ask the organizer for the HTTPS link.
             </p>
         </div>
     </div>
@@ -129,47 +136,47 @@ const props = defineProps({
     }
 })
 
-// Références DOM
+// DOM references
 const videoElement = ref(null)
 const canvasElement = ref(null)
 
-// État
+// State
 const manualQR = ref('')
 const cameraError = ref('')
-const scanStatus = ref('Recherche de QR code...')
+const scanStatus = ref('Looking for QR code...')
 const isFrontCamera = ref(false)
 const hasTorch = ref(false)
 const torchEnabled = ref(false)
 const showHTTPSWarning = ref(false)
 const lastScanResult = ref(null)
 const lastScanTime = ref(0)
-const scanCooldown = 3000 // 3 secondes minimum entre les scans
+const scanCooldown = 3000 // 3 seconds minimum between scans
 const scanCooldownRemaining = ref(0)
 
-// Variables pour le streaming
+// Streaming variables
 let stream = null
 let scanningInterval = null
 
-// Détecter si HTTPS est requis
+// Detect if HTTPS is required
 const checkHTTPSRequirement = () => {
     if (process.client) {
         const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
         const isHTTP = window.location.protocol === 'http:'
         const isNotLocalhost = !window.location.hostname.includes('localhost') && !window.location.hostname.includes('127.0.0.1')
-        
+
         showHTTPSWarning.value = isMobile && isHTTP && isNotLocalhost
     }
 }
 let currentTrack = null
 
-// Méthodes
+// Methods
 const checkCameraPermissions = async () => {
     try {
-        // Vérifier si les permissions sont déjà accordées
+        // Check if permissions are already granted
         const permissions = await navigator.permissions.query({ name: 'camera' })
         return permissions.state === 'granted'
     } catch (error) {
-        console.log('Permissions API non supportée')
+        console.log('Permissions API not supported')
         return false
     }
 }
@@ -177,20 +184,18 @@ const checkCameraPermissions = async () => {
 const startCamera = async () => {
     try {
         cameraError.value = ''
-        scanStatus.value = 'Demande d\'accès à la caméra...'
-
-        // Vérifier le support des médias
+        scanStatus.value = 'Requesting camera access...'        // Check media support
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-            throw new Error('getUserMedia non supporté par ce navigateur')
+            throw new Error('getUserMedia not supported by this browser')
         }
 
-        // Vérifier les permissions d'abord (si supporté)
+        // Check permissions first (if supported)
         const hasPermission = await checkCameraPermissions()
         if (!hasPermission) {
-            scanStatus.value = 'Veuillez autoriser l\'accès à la caméra'
+            scanStatus.value = 'Please allow camera access'
         }
 
-        // Préférences caméra (arrière par défaut)
+        // Camera preferences (back by default)
         const constraints = {
             video: {
                 facingMode: isFrontCamera.value ? 'user' : 'environment',
@@ -205,31 +210,31 @@ const startCamera = async () => {
         if (videoElement.value) {
             videoElement.value.srcObject = stream
 
-            // Vérifier les capacités de la caméra
+            // Check camera capabilities
             currentTrack = stream.getVideoTracks()[0]
             const capabilities = currentTrack.getCapabilities()
             hasTorch.value = !!capabilities.torch
-            
-            scanStatus.value = 'Recherche de QR code...'
+
+            scanStatus.value = 'Looking for QR code...'
         }
 
         startScanning()
     } catch (error) {
-        console.error('Erreur caméra:', error)
-        
-        // Messages d'erreur spécifiques
+        console.error('Camera error:', error)
+
+        // Specific error messages
         if (error.name === 'NotAllowedError') {
-            cameraError.value = 'Accès à la caméra refusé. Veuillez autoriser l\'accès dans les paramètres de votre navigateur.'
+            cameraError.value = 'Camera access denied. Please allow access in your browser settings.'
         } else if (error.name === 'NotFoundError') {
-            cameraError.value = 'Aucune caméra trouvée sur cet appareil.'
+            cameraError.value = 'No camera found on this device.'
         } else if (error.name === 'NotReadableError') {
-            cameraError.value = 'La caméra est déjà utilisée par une autre application.'
+            cameraError.value = 'The camera is already in use by another application.'
         } else if (error.name === 'OverconstrainedError') {
-            cameraError.value = 'Impossible de satisfaire les contraintes de la caméra.'
-        } else if (error.message.includes('getUserMedia non supporté')) {
-            cameraError.value = 'Votre navigateur ne supporte pas l\'accès à la caméra. Essayez avec Chrome, Firefox ou Safari.'
+            cameraError.value = 'Unable to satisfy camera constraints.'
+        } else if (error.message.includes('getUserMedia not supported')) {
+            cameraError.value = 'Your browser does not support camera access. Try Chrome, Firefox, or Safari.'
         } else {
-            cameraError.value = `Erreur caméra: ${error.message}. Sur mobile, assurez-vous d'utiliser HTTPS.`
+            cameraError.value = `Camera error: ${error.message}. On mobile, make sure you are using HTTPS.`
         }
     }
 }
@@ -243,13 +248,13 @@ const stopCamera = () => {
 }
 
 const startScanning = () => {
-    console.log('startScanning appelé, props.isScanning:', props.isScanning)
+    console.log('startScanning called, props.isScanning:', props.isScanning)
     if (!props.isScanning) return
 
-    console.log('Démarrage du scan avec intervalle de 100ms')
+    console.log('Starting scan with 100ms interval')
     scanningInterval = setInterval(() => {
         scanQRCode()
-    }, 100) // Scan toutes les 100ms
+    }, 100) // Scan every 100ms
 }
 
 const stopScanning = () => {
@@ -261,7 +266,7 @@ const stopScanning = () => {
 
 const scanQRCode = () => {
     if (!videoElement.value || !canvasElement.value || !props.isScanning) {
-        console.log('scanQRCode arrêté:', {
+        console.log('scanQRCode stopped:', {
             hasVideo: !!videoElement.value,
             hasCanvas: !!canvasElement.value,
             isScanning: props.isScanning
@@ -273,11 +278,11 @@ const scanQRCode = () => {
     const context = canvas.getContext('2d')
     const video = videoElement.value
 
-    // Vérifier que la vidéo est prête
+    // Check that the video is ready
     if (video.readyState !== video.HAVE_ENOUGH_DATA) {
-        console.log('Vidéo pas prête, readyState:', video.readyState)
+        console.log('Video not ready, readyState:', video.readyState)
         return
-    }    canvas.width = video.videoWidth
+    } canvas.width = video.videoWidth
     canvas.height = video.videoHeight
     context.drawImage(video, 0, 0, canvas.width, canvas.height)
 
@@ -288,21 +293,21 @@ const scanQRCode = () => {
 
     if (code) {
         const now = Date.now()
-        
-        // Vérifier le délai minimum depuis le dernier scan
+
+        // Check minimum delay since last scan
         if (now - lastScanTime.value < scanCooldown) {
-            console.log('Scan ignoré - trop proche du précédent:', now - lastScanTime.value, 'ms')
+            console.log('Scan ignored - too close to previous:', now - lastScanTime.value, 'ms')
             return
         }
-          console.log('QR Code détecté:', code.data)
+        console.log('QR Code detected:', code.data)
         lastScanTime.value = now
-        
-        // Démarrer le compte à rebours pour le prochain scan
+
+        // Start countdown for next scan
         startScanCooldown()
-        
+
         emit('qr-scanned', code.data)
 
-        // Arrêter temporairement le scan pour éviter les doubles détections
+        // Temporarily stop scanning to avoid double detections
         stopScanning()
         setTimeout(() => {
             if (props.isScanning) {
@@ -310,21 +315,21 @@ const scanQRCode = () => {
             }
         }, 1000)
     } else {
-        // Log périodique pour montrer que le scan fonctionne
-        if (Math.random() < 0.01) { // 1% de chance d'afficher le log
-            console.log('Scan en cours... pas de QR trouvé')
+        // Periodic log to show scanning is working
+        if (Math.random() < 0.01) { // 1% chance to log
+            console.log('Scanning... no QR found')
         }
     }
 }
 
 const handleManualScan = () => {
-    console.log('handleManualScan appelé, valeur:', manualQR.value.trim())
+    console.log('handleManualScan called, value:', manualQR.value.trim())
     if (manualQR.value.trim()) {
-        console.log('Émission de qr-scanned avec:', manualQR.value.trim())
+        console.log('Emitting qr-scanned with:', manualQR.value.trim())
         emit('qr-scanned', manualQR.value.trim())
         manualQR.value = ''
     } else {
-        console.log('Valeur manuelle vide')
+        console.log('Manual value empty')
     }
 }
 
@@ -343,49 +348,53 @@ const toggleTorch = async () => {
             advanced: [{ torch: torchEnabled.value }]
         })
     } catch (error) {
-        console.error('Erreur torch:', error)
+        console.error('Torch error:', error)
         torchEnabled.value = false
     }
 }
 
 const getScanResultMessage = (result) => {
     if (!result) return ''
-    
+
     if (result.valid) {
         if (result.ticket) {
             return `Ticket #${result.ticket.id}`
         }
-        return 'Accès autorisé'
+        return 'Access granted'
     } else {
         switch (result.reason) {
             case 'ticket_not_found':
-                return 'Ticket non trouvé'
+                return 'Ticket not found'
             case 'ticket_already_scanned':
-                return 'Ticket déjà scanné'
+                return 'Ticket already scanned'
             case 'ticket_expired':
-                return 'Ticket expiré'
+                return 'Ticket expired'
             case 'wrong_event':
-                return 'Mauvais événement'
+                return 'Wrong event'
             case 'scan_error':
-                return 'Erreur de scan'
-            default:                if (result.errorCode === 'ALREADY_SCANNED') {
-                    // Utiliser le message formaté de la fonction SQL si disponible
-                    if (result.message && result.message !== 'Ticket déjà scanné') {
+                return 'Scan error'
+            default:
+                if (result.errorCode === 'ALREADY_SCANNED') {
+                    // Accept both French and English for compatibility
+                    if (
+                        result.message &&
+                        result.message !== 'Ticket déjà scanné' &&
+                        result.message !== 'Ticket already scanned'
+                    ) {
                         return result.message
                     }
-                    
-                    // Sinon, formater nous-mêmes
-                    let message = 'Ticket déjà scanné'
+                    // Otherwise, build the message
+                    let message = 'Ticket already scanned'
                     if (result.scanned_at) {
                         const scanDate = new Date(result.scanned_at)
-                        message += ` le ${scanDate.toLocaleDateString()} à ${scanDate.toLocaleTimeString()}`
+                        message += ` on ${scanDate.toLocaleDateString()} at ${scanDate.toLocaleTimeString()}`
                     }
                     if (result.scanned_by && result.scanned_by.name) {
-                        message += ` par ${result.scanned_by.name}`
+                        message += ` by ${result.scanned_by.name}`
                     }
                     return message
                 }
-                return result.message || 'Raison inconnue'
+                return result.message || 'Unknown reason'
         }
     }
 }
@@ -403,21 +412,21 @@ const startScanCooldown = () => {
 
 const getScanResultType = (result) => {
     if (!result) return 'error'
-    
+
     if (result.valid) return 'success'
-    
-    // Ticket déjà scanné = warning (orange/jaune)
+
+    // Ticket already scanned = warning (orange/yellow)
     if (result.errorCode === 'ALREADY_SCANNED' || result.reason === 'ticket_already_scanned') {
         return 'warning'
     }
-    
-    // Autres erreurs = error (rouge)
+
+    // Other errors = error (red)
     return 'error'
 }
 
 const getScanResultClasses = (result) => {
     const type = getScanResultType(result)
-    
+
     switch (type) {
         case 'success':
             return {
@@ -449,7 +458,7 @@ const clearScanResult = () => {
     emit('clear-result')
 }
 
-// Cycle de vie
+// Lifecycle
 onMounted(async () => {
     checkHTTPSRequirement()
     await startCamera()
@@ -459,30 +468,28 @@ onUnmounted(() => {
     stopCamera()
 })
 
-// Watcher pour démarrer/arrêter le scan
+// Watcher to start/stop scanning
 watch(() => props.isScanning, (newVal) => {
-    console.log('props.isScanning changé:', newVal)
+    console.log('props.isScanning changed:', newVal)
     if (newVal) {
-        console.log('Démarrage du scanning...')
+        console.log('Starting scanning...')
         startScanning()
     } else {
-        console.log('Arrêt du scanning...')
+        console.log('Stopping scanning...')
         stopScanning()
     }
 })
 
-// Watcher pour afficher le résultat du scan
+// Watcher to display scan result
 watch(() => props.scanResult, (newResult) => {
     if (newResult) {
         lastScanResult.value = newResult
-        // Auto-effacer après 5 secondes pour les résultats valides
-        if (newResult.valid) {
-            setTimeout(() => {
-                if (lastScanResult.value === newResult) {
-                    clearScanResult()
-                }
-            }, 5000)
-        }
+        // Auto-clear after 3 seconds for any result
+        setTimeout(() => {
+            if (lastScanResult.value === newResult) {
+                clearScanResult()
+            }
+        }, 3000)
     }
 })
 </script>
@@ -538,7 +545,7 @@ watch(() => props.scanResult, (newResult) => {
     transform: scaleX(-1);
 }
 
-/* Animation pour les coins */
+/* Animation for corners */
 @keyframes pulse {
 
     0%,
@@ -555,7 +562,7 @@ watch(() => props.scanResult, (newResult) => {
     animation: pulse 2s infinite;
 }
 
-/* Styles responsive */
+/* Responsive styles */
 @media (max-width: 640px) {
     .scanner-overlay {
         width: 200px;

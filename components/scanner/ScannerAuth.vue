@@ -2,20 +2,20 @@
     <div class="scanner-auth max-w-md mx-auto mt-8 p-6 bg-white rounded-lg shadow-lg">
         <div class="text-center mb-6">
             <h1 class="text-2xl font-bold text-gray-900 mb-2">Sway Scanner</h1>
-            <p class="text-gray-600">Authentifiez-vous pour commencer le contrôle</p>
+            <p class="text-gray-600">Authenticate to start scanning</p>
         </div>
 
-        <!-- Authentification automatique (URL avec token) -->
+        <!-- Automatic authentication (URL with token) -->
         <div v-if="hasUrlParams" class="text-center">
             <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-            <p class="mt-4 text-gray-600">Authentification en cours...</p>
+            <p class="mt-4 text-gray-600">Authenticating...</p>
         </div>
 
-        <!-- Formulaire d'authentification manuel -->
+        <!-- Manual authentication form -->
         <form v-else @submit.prevent="authenticate" class="space-y-4">
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">
-                    ID de l'Événement
+                    Event ID
                 </label>
                 <input v-model="form.eventId" type="number" required placeholder="Ex: 123"
                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
@@ -23,51 +23,51 @@
 
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">
-                    Type d'Authentification
+                    Authentication Type
                 </label>
                 <select v-model="authType"
                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <option value="token">Token de Scanner</option>
-                    <option value="user">Compte Utilisateur</option>
+                    <option value="token">Scanner Token</option>
+                    <option value="user">User Account</option>
                 </select>
             </div>
 
-            <!-- Authentification par token -->
+            <!-- Token-based authentication -->
             <div v-if="authType === 'token'">
                 <label class="block text-sm font-medium text-gray-700 mb-1">
-                    Token d'Authentification
+                    Authentication Token
                 </label>
-                <input v-model="form.authToken" type="text" required placeholder="Token du scanner"
+                <input v-model="form.authToken" type="text" required placeholder="Scanner token"
                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
             </div>
 
-            <!-- Authentification par utilisateur -->
+            <!-- User-based authentication -->
             <div v-if="authType === 'user'" class="space-y-3">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">
                         Email
                     </label>
-                    <input v-model="form.email" type="email" required placeholder="votre@email.com"
+                    <input v-model="form.email" type="email" required placeholder="your@email.com"
                         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">
-                        Mot de passe
+                        Password
                     </label>
                     <input v-model="form.password" type="password" required placeholder="••••••••"
                         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
                 </div>
             </div>
 
-            <!-- Message d'erreur -->
+            <!-- Error message -->
             <div v-if="errorMessage" class="bg-red-50 border border-red-200 rounded-md p-3">
                 <p class="text-sm text-red-600">{{ errorMessage }}</p>
             </div>
 
-            <!-- Bouton de connexion -->
+            <!-- Login button -->
             <button type="submit" :disabled="loading || !canSubmit"
                 class="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium py-2 px-4 rounded-md transition-colors">
-                {{ loading ? 'Authentification...' : 'Se connecter' }}
+                {{ loading ? 'Authenticating...' : 'Connect' }}
             </button>
         </form>
 
@@ -75,12 +75,12 @@
         <div class="mt-6 text-center">
             <details class="text-sm text-gray-500">
                 <summary class="cursor-pointer hover:text-gray-700">
-                    Besoin d'aide ?
+                    Need help?
                 </summary>
                 <div class="mt-2 text-left space-y-2">
-                    <p><strong>Scanner avec token :</strong> Utilisez le lien fourni par l'organisateur</p>
-                    <p><strong>Scanner utilisateur :</strong> Connectez-vous avec votre compte Sway</p>
-                    <p><strong>Problème ?</strong> Contactez l'organisateur de l'événement</p>
+                    <p><strong>Token Scan:</strong> Use the link provided by the organizer</p>
+                    <p><strong>User Scan:</strong> Log in with your Sway account</p>
+                    <p><strong>Problem?</strong> Contact the event organizer</p>
                 </div>
             </details>
         </div>
@@ -92,7 +92,7 @@ import { ref, reactive, computed, onMounted } from 'vue'
 
 const emit = defineEmits(['authenticated'])
 
-// État
+// State
 const loading = ref(false)
 const errorMessage = ref('')
 const authType = ref('token')
@@ -119,7 +119,7 @@ const canSubmit = computed(() => {
     return false
 })
 
-// Méthodes
+// Methods
 const authenticate = async () => {
     try {
         loading.value = true
@@ -133,22 +133,22 @@ const authenticate = async () => {
                 authToken: form.authToken
             }
         } else {
-            // TODO: Authentifier l'utilisateur d'abord, puis récupérer son ID
+            // TODO: Authenticate the user first, then retrieve their ID
             authData = {
                 eventId: form.eventId,
-                userId: form.userId // Sera défini après l'auth utilisateur
+                userId: form.userId // Will be set after user auth
             }
         }
 
         emit('authenticated', authData)
     } catch (error) {
-        errorMessage.value = error.message || 'Erreur d\'authentification'
+        errorMessage.value = error.message || 'Authentication error'
     } finally {
         loading.value = false
     }
 }
 
-// Vérifier les paramètres URL au montage
+// Check URL parameters on mount
 onMounted(() => {
     const route = useRoute()
 
@@ -157,7 +157,7 @@ onMounted(() => {
         form.eventId = route.query.event_id
         form.authToken = route.query.auth_token
 
-        // Tentative d'authentification automatique
+        // Attempting automatic authentication
         setTimeout(() => {
             authenticate()
         }, 1000)
@@ -168,7 +168,7 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* Animations pour le loader */
+/* Loader animations */
 @keyframes spin {
     to {
         transform: rotate(360deg);
@@ -179,12 +179,12 @@ onMounted(() => {
     animation: spin 1s linear infinite;
 }
 
-/* Empêcher le zoom sur mobile */
+/* Prevent zoom on mobile */
 input {
     font-size: 16px;
 }
 
-/* Focus styles personnalisés */
+/* Custom focus styles */
 input:focus,
 select:focus {
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
