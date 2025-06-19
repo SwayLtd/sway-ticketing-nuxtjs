@@ -41,7 +41,14 @@ Chaque solution suit ce format :
 **Symptômes :** `ERESOLVE unable to resolve dependency tree`  
 **Solution :** Utiliser `--legacy-peer-deps` et mettre à jour les packages
 
+### Images non accessibles dans les fonctions serverless
+→ Voir [netlify-images-serverless.md](./netlify-images-serverless.md)
+
+**Symptômes :** `ENOENT: no such file or directory` sur images, emails sans logo, PDFs sans images  
+**Solution :** Utiliser URLs Netlify Image CDN au lieu d'accès fichier local
+
 ## 📈 Historique des solutions
 
+- **19/06/2025** - Résolution problème images serverless Netlify (Image CDN URLs)
 - **18/06/2025** - Résolution problème build timeout (modules persistants)
 - **18/06/2025** - Configuration Netlify optimisée avec SSR
