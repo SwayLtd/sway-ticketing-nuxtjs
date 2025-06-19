@@ -51,9 +51,7 @@ export default defineNuxtConfig({
         cert: './server.crt'
       }
     }
-  } : {}),
-
-  // Nitro configuration - adaptable selon l'environnement
+  } : {}),  // Nitro configuration - adaptable selon l'environnement
   nitro: {
     preset: process.env.NETLIFY ? 'netlify' : 'node-server',
     logLevel: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
@@ -63,13 +61,20 @@ export default defineNuxtConfig({
     legacyExternals: true,
     // Force l'arrêt des processus en arrière-plan
     close: true,
-    // Désactive les watchers qui peuvent rester actifs
-    devProxy: false,
     // Configuration plus agressive pour forcer la fermeture
     timing: false,
     experimental: {
       wasm: false
-    }
+    },
+    // Configuration spécifique pour Netlify - inclusion des assets statiques
+    bundledStorage: ['images'],
+    publicAssets: [
+      {
+        baseURL: '/images',
+        dir: 'public/images',
+        maxAge: 60 * 60 * 24 * 365 // 1 year
+      }
+    ]
   },
 
   // Force SSR mode, no static generation
