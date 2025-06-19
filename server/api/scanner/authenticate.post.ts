@@ -45,22 +45,10 @@ async function logSecurityEvent(supabase: any, eventType: string, payload: any) 
 function generateSessionToken(payload: any): string {
     const data = JSON.stringify(payload)
     const timestamp = Date.now()
-    const jwtSecret = process.env.JWT_SECRET || 'fallback-secret'
     const signature = crypto
-        .createHmac('sha256', jwtSecret)
+        .createHmac('sha256', process.env.JWT_SECRET || 'fallback-secret')
         .update(data + timestamp)
         .digest('hex')
-
-    console.log('Session token generation debug:', {
-        has_env_secret: !!process.env.JWT_SECRET,
-        secret_length: jwtSecret.length,
-        using_fallback: !process.env.JWT_SECRET,
-        data_string: data,
-        timestamp,
-        signature,
-        secret_used: jwtSecret.substring(0, 10) + '...',
-        payload: payload
-    })
 
     return Buffer.from(JSON.stringify({
         data: payload,
