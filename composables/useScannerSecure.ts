@@ -148,7 +148,8 @@ export const useScannerSecure = () => {
                 query: { session_token: sessionToken.value }
             })
 
-            return response?.valid || false        } catch (error) {
+            return response?.valid || false
+        } catch (error) {
             console.error('Session validation failed:', error)
 
             // En développement, si la validation côté serveur échoue mais que le token n'est pas expiré côté client,
@@ -228,14 +229,14 @@ export const useScannerSecure = () => {
             try {
                 const isValid = await checkSessionValidity()
                 if (!isValid) {
-                    console.warn('Session validation failed during scan')
+                    console.warn('Session validation failed during scan - session expired')
                     scanResult.value = {
                         valid: false,
-                        reason: 'session_validation_failed'
+                        reason: 'Session expired. Please log in again.'
                     }
-                    
-                    // Ne pas continuer le scan mais ne pas forcer la déconnexion
-                    // L'utilisateur peut ressayer ou se reconnecter manuellement
+
+                    // Invalider l'authentification pour forcer la reconnexion
+                    isAuthenticated.value = false
                     return
                 }
             } catch (error) {
@@ -243,8 +244,12 @@ export const useScannerSecure = () => {
                 if (process.env.NODE_ENV === 'development' && sessionExpiresAt.value && new Date() < sessionExpiresAt.value) {
                     console.warn('Mode développement : erreur de validation de session ignorée, token client valide')
                 } else {
-                    console.warn('Session validation error during scan, continuing with current session')
-                    // Ne pas bloquer le scan sur une erreur de validation
+                    console.warn('Session validation error during scan - network or server issue')
+                    scanResult.value = {
+                        valid: false,
+                        reason: 'Unable to verify session. Please check connection and try again.'
+                    }
+                    return
                 }
             }
         }
@@ -285,12 +290,32 @@ export const useScannerSecure = () => {
                     valid: true,
                     reason: 'offline_scan'
                 }
-            }
-        } catch (error: any) {
+            }        } catch (error: any) {
             console.error('Erreur scan QR:', error)
-            scanResult.value = {
-                valid: false,
-                reason: error.message || 'Erreur de scan'
+            
+            // Gestion spécifique des erreurs HTTP
+            if (error.statusCode === 401) {
+                scanResult.value = {
+                    valid: false,
+                    reason: 'Session expired. Please log in again.'
+                }
+                // Forcer la déconnexion sur 401
+                isAuthenticated.value = false
+            } else if (error.statusCode === 403) {
+                scanResult.value = {
+                    valid: false,
+                    reason: 'Access denied for this event.'
+                }
+            } else if (error.statusCode === 429) {
+                scanResult.value = {
+                    valid: false,
+                    reason: 'Too many scan attempts. Please wait and try again.'
+                }
+            } else {
+                scanResult.value = {
+                    valid: false,
+                    reason: error.message || 'Unknown scan error'
+                }
             }
         }
 

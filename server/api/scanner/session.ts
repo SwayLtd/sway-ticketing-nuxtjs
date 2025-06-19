@@ -9,29 +9,49 @@ function verifySessionToken(token: string): any {
 
         // Vérifier l'expiration
         if (Date.now() > decoded.expires) {
+            console.error('Token expired:', {
+                now: Date.now(),
+                expires: decoded.expires,
+                expired_since: Date.now() - decoded.expires
+            })
             throw new Error('Token expired')
         }
 
         // Vérifier la signature - utiliser le même format que pour la génération
         const dataString = JSON.stringify(decoded.data)
+        const jwtSecret = process.env.JWT_SECRET || 'fallback-secret'
         const expectedSignature = crypto
-            .createHmac('sha256', process.env.JWT_SECRET || 'fallback-secret')
+            .createHmac('sha256', jwtSecret)
             .update(dataString + decoded.timestamp)
             .digest('hex')
+
+        console.log('Session token verification debug:', {
+            has_env_secret: !!process.env.JWT_SECRET,
+            secret_length: jwtSecret.length,
+            using_fallback: !process.env.JWT_SECRET,
+            data_string: dataString,
+            timestamp: decoded.timestamp,
+            expected_signature: expectedSignature,
+            received_signature: decoded.signature,
+            signatures_match: expectedSignature === decoded.signature,
+            token_age_minutes: Math.floor((Date.now() - decoded.timestamp) / (1000 * 60))
+        })
 
         if (expectedSignature !== decoded.signature) {
             console.error('Signature mismatch:', {
                 expected: expectedSignature,
                 received: decoded.signature,
                 dataString,
-                timestamp: decoded.timestamp
+                timestamp: decoded.timestamp,
+                secret_used: jwtSecret.substring(0, 10) + '...',
+                has_env_secret: !!process.env.JWT_SECRET
             })
             throw new Error('Invalid signature')
         }
 
         return decoded.data
     } catch (error: any) {
-        console.error('Token verification failed:', error)
+        console.error('Token verification failed:', error.message)
         throw new Error('Invalid token')
     }
 }
