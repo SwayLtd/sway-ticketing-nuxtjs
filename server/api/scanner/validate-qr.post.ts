@@ -31,14 +31,11 @@ function verifySessionToken(token: string): any {
             throw new Error('Token expired')
         }
 
-        // Check signature - utiliser la même clé fixe que les autres fonctions
-        const testSecret = 'test-fixed-secret-key-12345'
+        // Check signature
         const expectedSignature = crypto
-            .createHmac('sha256', testSecret)
+            .createHmac('sha256', process.env.JWT_SECRET || 'fallback-secret')
             .update(JSON.stringify(decoded.data) + decoded.timestamp)
             .digest('hex')
-
-        console.log('DEBUG: QR validation with fixed secret')
 
         if (expectedSignature !== decoded.signature) {
             throw new Error('Invalid signature')

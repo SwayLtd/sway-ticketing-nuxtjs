@@ -14,14 +14,10 @@ function verifySessionToken(token: string): any {
 
         // Vérifier la signature - utiliser le même format que pour la génération
         const dataString = JSON.stringify(decoded.data)
-        // Test temporaire : utiliser la même clé fixe que pour la génération
-        const testSecret = 'test-fixed-secret-key-12345'
         const expectedSignature = crypto
-            .createHmac('sha256', testSecret)
+            .createHmac('sha256', process.env.JWT_SECRET || 'fallback-secret')
             .update(dataString + decoded.timestamp)
             .digest('hex')
-
-        console.log('DEBUG: Token verification with fixed secret')
 
         if (expectedSignature !== decoded.signature) {
             console.error('Signature mismatch:', {
