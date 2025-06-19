@@ -3,10 +3,6 @@
   publish = "dist"
   functions = ".netlify/functions-internal"
 
-[functions]
-  # Include static assets in functions
-  included_files = ["public/images/**/*"]
-
 [build.environment]
   NODE_VERSION = "18"
   NPM_FLAGS = "--legacy-peer-deps"

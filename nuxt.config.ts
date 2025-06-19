@@ -30,6 +30,11 @@ export default defineNuxtConfig({
     '@nuxtjs/supabase'
   ],
 
+  image: {
+    provider: "netlify",
+    domains: ["test.sway.events", "sway.events"],
+  },
+
   // https://github.com/supabase/supabase/issues/16551
   // Désactive la redirection automatique par Supabase
   supabase: {
@@ -57,24 +62,9 @@ export default defineNuxtConfig({
     logLevel: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
     // Force la fermeture propre du processus
     minify: process.env.NODE_ENV === 'production',
-    // Résout les problèmes de build qui ne se terminent pas
-    legacyExternals: true,
-    // Force l'arrêt des processus en arrière-plan
-    close: true,
-    // Configuration plus agressive pour forcer la fermeture
-    timing: false,
     experimental: {
       wasm: false
-    },
-    // Configuration spécifique pour Netlify - inclusion des assets statiques
-    bundledStorage: ['images'],
-    publicAssets: [
-      {
-        baseURL: '/images',
-        dir: 'public/images',
-        maxAge: 60 * 60 * 24 * 365 // 1 year
-      }
-    ]
+    }
   },
 
   // Force SSR mode, no static generation

@@ -21,7 +21,11 @@ const supabase = createClient(
 export async function sendOrderSummaryEmail(to: string | null, orderId: string, customizationLink: string, products: any[], entityType?: string, entityId?: number) {
   if (!to) {
     throw new Error('Recipient email address missing');
-  }  // Retrieve event information if this is an event-related order
+  }
+
+  // Use Netlify Image CDN URL for logo
+  const logoUrl = `${process.env.BASE_URL || 'https://test.sway.events'}/images/black_logotype.jpg`;
+  console.log('Using logo URL:', logoUrl);// Retrieve event information if this is an event-related order
   let eventInfo = null;
   if (entityType === 'event' && entityId) {
     try {
@@ -175,7 +179,7 @@ export async function sendOrderSummaryEmail(to: string | null, orderId: string, 
           </div>
         </div>        <!-- Footer -->
         <div style="background-color: #f8f9fa; padding: 20px 40px; text-align: center; border-top: 1px solid #eee;">
-          <img src="cid:logo" alt="Sway" style="width: 80px; height: 25px; margin-bottom: 15px; object-fit: contain;" />
+          <img src="${logoUrl}" alt="Sway" style="width: 80px; height: 25px; margin-bottom: 15px; object-fit: contain;" />
           <p style="margin: 0; font-size: 12px; color: #999;">Order ID: ${orderId}</p>
         </div>
       </div>
@@ -183,31 +187,12 @@ export async function sendOrderSummaryEmail(to: string | null, orderId: string, 
     </html>
   `;  // Send email
   try {
-    // Prepare logo attachment
-    let attachments = [];
-    const logoPath = path.join(process.cwd(), 'public', 'images', 'black_logotype.jpg');
-
-    console.log('Attempting to load logo from:', logoPath);
-
-    if (fs.existsSync(logoPath)) {
-      try {
-        attachments.push({
-          filename: 'logo.jpg',
-          path: logoPath,
-          cid: 'logo'
-        });
-        console.log('Logo attachment prepared successfully');
-      } catch (logoError) {
-        console.warn('Failed to prepare logo attachment:', logoError);
-      }
-    } else {
-      console.warn('Logo file not found at:', logoPath);
-    } const mailOptions = {
+    const mailOptions = {
       from: process.env.SMTP_FROM,
       to,
       subject: subjectLine,
       html: htmlContent,
-      attachments: attachments
+      attachments: [] // No more file attachments needed
     };
 
     console.log('Sending order summary email...');

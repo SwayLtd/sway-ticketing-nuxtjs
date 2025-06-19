@@ -281,50 +281,33 @@ export async function generateStylizedTicketPDF(ticket: any, eventInfo: any): Pr
         const logoY = logoBottomY; // Logo vertical position
 
         console.log('Container ends at Y:', currentY);
-        console.log('Logo will be placed at Y:', logoY, 'with dimensions:', logoWidth, 'x', logoHeight);// Add logo using JPG file
+        console.log('Logo will be placed at Y:', logoY, 'with dimensions:', logoWidth, 'x', logoHeight);        // Add logo using Netlify URL
         try {
             console.log('Logo area at position:', logoX, logoY, 'with dimensions:', logoWidth, 'x', logoHeight);
 
-            const logoPath = './public/images/black_logotype.jpg';
+            // Use Netlify optimized image URL
+            const logoUrl = `${process.env.BASE_URL || 'https://test.sway.events'}/images/black_logotype.jpg`;
+            console.log('Fetching logo from Netlify URL:', logoUrl);
 
-            if (fs.existsSync(logoPath)) {
-                console.log('Loading JPG logo from:', logoPath);
-
-                try {
-                    // Try direct path method for JPG with proper dimensions
-                    doc.image(logoPath, logoX, logoY, {
-                        width: logoWidth,
-                        height: logoHeight
-                    });
-                    console.log('JPG Logo loaded successfully');
-
-                } catch (jpgDirectErr) {
-                    console.log('Direct path failed, trying buffer method for JPG');
-                    try {
-                        // Try buffer method
-                        const logoBuffer = fs.readFileSync(logoPath);
-                        console.log('JPG Buffer size:', logoBuffer.length, 'bytes');
-
-                        doc.image(logoBuffer, logoX, logoY, {
-                            width: logoWidth,
-                            height: logoHeight
-                        });
-                        console.log('JPG Logo loaded successfully via buffer');
-
-                    } catch (jpgBufferErr) {
-                        console.error('JPG buffer method failed:', jpgBufferErr);
-                        // Fallback to placeholder
-                        doc.rect(logoX, logoY, logoWidth, logoHeight)
-                            .fillAndStroke('#FFBC00', '#E6A600')
-                            .lineWidth(2);
-                        doc.fontSize(8)
-                            .fill('#333333')
-                            .font('Helvetica-Bold')
-                            .text('JPG ERR', logoX + 5, logoY + logoHeight / 2 - 4);
-                    }
+            try {
+                // Fetch the image from Netlify CDN
+                const response = await fetch(logoUrl);
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch logo: ${response.status}`);
                 }
-            } else {
-                console.warn('JPG Logo file not found at:', logoPath);
+
+                const logoBuffer = Buffer.from(await response.arrayBuffer());
+                console.log('Logo fetched successfully, size:', logoBuffer.length, 'bytes');
+
+                // Use the fetched buffer
+                doc.image(logoBuffer, logoX, logoY, {
+                    width: logoWidth,
+                    height: logoHeight
+                });
+                console.log('Logo loaded successfully from Netlify CDN');
+
+            } catch (fetchError) {
+                console.error('Failed to fetch logo from Netlify CDN:', fetchError);
                 // Fallback to placeholder
                 doc.rect(logoX, logoY, logoWidth, logoHeight)
                     .fillAndStroke('#FFBC00', '#E6A600')
@@ -332,11 +315,11 @@ export async function generateStylizedTicketPDF(ticket: any, eventInfo: any): Pr
                 doc.fontSize(8)
                     .fill('#333333')
                     .font('Helvetica-Bold')
-                    .text('NO JPG', logoX + 5, logoY + logoHeight / 2 - 4);
+                    .text('NO LOGO', logoX + 5, logoY + logoHeight / 2 - 4);
             }
 
         } catch (err) {
-            console.error('Error loading JPG logo:', err);
+            console.error('Error loading logo:', err);
             // Fallback to placeholder
             doc.rect(logoX, logoY, logoWidth, logoHeight)
                 .fillAndStroke('#FFBC00', '#E6A600')

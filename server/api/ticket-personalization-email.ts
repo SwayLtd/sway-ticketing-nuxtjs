@@ -20,7 +20,11 @@ const transporter = nodemailer.createTransport({
 export default defineEventHandler(async (event) => {
   try {
     const body = await readBody(event);
-    const { ticket_id } = body; if (!ticket_id) {
+    const { ticket_id } = body;
+
+    // Use Netlify Image CDN URL for logo
+    const logoUrl = `${process.env.BASE_URL || 'https://test.sway.events'}/images/black_logotype.jpg`;
+    console.log('Using logo URL:', logoUrl); if (!ticket_id) {
       throw createError({ statusCode: 400, statusMessage: 'ticket_id is required' });
     } console.log('Debug - Looking for ticket_id:', ticket_id);
 
@@ -228,7 +232,7 @@ export default defineEventHandler(async (event) => {
           <div style="background-color: #f8f9fa; padding: 20px 40px; text-align: center; border-top: 1px solid #eee;">
             <!-- Logo -->
             <div style="margin-bottom: 15px;">
-              <img src="cid:logo" alt="Sway Logo" style="height: 25px; width: auto;" />
+              <img src="${logoUrl}" alt="Sway Logo" style="height: 25px; width: auto;" />
             </div>
             <p style="margin: 0; font-size: 12px; color: #999;">Ticket ID: ${finalTicket.id}</p>
           </div>
@@ -245,13 +249,8 @@ export default defineEventHandler(async (event) => {
           filename: `ticket_${finalTicket.id}.pdf`,
           content: pdfBuffer,
           contentType: 'application/pdf',
-        },
-        {
-          filename: 'logo.jpg',
-          path: './public/images/black_logotype.jpg',
-          cid: 'logo',
-          contentType: 'image/jpeg',
-        },
+        }
+        // Logo now loaded via URL in HTML, no need for attachment
       ],
     });
 
