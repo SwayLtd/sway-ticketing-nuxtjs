@@ -31,9 +31,14 @@ function verifySessionToken(token: string): any {
             throw new Error('Token expired')
         }
 
+        if (!process.env.JWT_SECRET) {
+            console.error('❌ CRITICAL: JWT_SECRET environment variable is not defined!')
+            throw new Error('JWT_SECRET environment variable is required')
+        }
+
         // Check signature
         const expectedSignature = crypto
-            .createHmac('sha256', process.env.JWT_SECRET || 'fallback-secret')
+            .createHmac('sha256', process.env.JWT_SECRET)
             .update(JSON.stringify(decoded.data) + decoded.timestamp)
             .digest('hex')
 

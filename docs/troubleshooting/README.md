@@ -37,6 +37,12 @@ Chaque solution suit ce format :
 **Symptômes :** Timeouts, 404 sur routes dynamiques, erreurs de build  
 **Solution :** Configuration Netlify/Vercel optimisée
 
+### Scanner QR invalide en production (401 Unauthorized)
+→ Voir [scanner-session-401-fix.md](./scanner-session-401-fix.md)
+
+**Symptômes :** Scanner fonctionne en dev mais échoue en prod, erreur "Session validation failed"  
+**Solution :** Correction du calcul d'expiration et validation stricte JWT_SECRET
+
 ### Conflits de dépendances
 **Symptômes :** `ERESOLVE unable to resolve dependency tree`  
 **Solution :** Utiliser `--legacy-peer-deps` et mettre à jour les packages

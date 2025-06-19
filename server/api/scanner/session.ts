@@ -12,32 +12,17 @@ function verifySessionToken(token: string): any {
             throw new Error('Token expired')
         }
 
+        if (!process.env.JWT_SECRET) {
+            console.error('❌ CRITICAL: JWT_SECRET environment variable is not defined!')
+            throw new Error('JWT_SECRET environment variable is required')
+        }
+
         // Vérifier la signature - utiliser le même format que pour la génération
         const dataString = JSON.stringify(decoded.data)
-        const jwtSecret = process.env.JWT_SECRET || 'fallback-secret'
-        
-        // Log temporaire pour diagnostic
-        console.log('🔍 TOKEN VERIFICATION DEBUG:', {
-            has_jwt_secret: !!process.env.JWT_SECRET,
-            jwt_secret_length: jwtSecret.length,
-            jwt_secret_first_10: jwtSecret.substring(0, 10),
-            jwt_secret_last_10: jwtSecret.substring(jwtSecret.length - 10),
-            using_fallback: !process.env.JWT_SECRET,
-            token_timestamp: decoded.timestamp,
-            token_signature: decoded.signature,
-            data_length: dataString.length
-        })
-        
         const expectedSignature = crypto
-            .createHmac('sha256', jwtSecret)
+            .createHmac('sha256', process.env.JWT_SECRET)
             .update(dataString + decoded.timestamp)
             .digest('hex')
-
-        console.log('🔍 SIGNATURE COMPARISON:', {
-            expected: expectedSignature,
-            received: decoded.signature,
-            match: expectedSignature === decoded.signature
-        })
 
         if (expectedSignature !== decoded.signature) {
             console.error('Signature mismatch:', {
