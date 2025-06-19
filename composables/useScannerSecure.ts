@@ -148,8 +148,7 @@ export const useScannerSecure = () => {
                 query: { session_token: sessionToken.value }
             })
 
-            return response?.valid || false
-        } catch (error) {
+            return response?.valid || false        } catch (error) {
             console.error('Session validation failed:', error)
 
             // En développement, si la validation côté serveur échoue mais que le token n'est pas expiré côté client,
@@ -159,7 +158,9 @@ export const useScannerSecure = () => {
                 return true
             }
 
-            await logout()
+            // En production, ne pas forcer la déconnexion immédiatement sur erreur réseau
+            // Retourner false mais laisser le composant gérer la déconnexion
+            console.warn('Session validation failed, but not forcing logout immediately')
             return false
         }
     }
@@ -218,7 +219,7 @@ export const useScannerSecure = () => {
             return
         }        // Vérifier la validité de la session avant le scan 
         // En dev : seulement après 5 minutes depuis la dernière vérification ET après avoir au moins fait une vérification
-        // En prod : toujours vérifier
+        // En prod : vérifier à chaque scan mais pas forcer la déconnexion
         const now = Date.now()
         const isFirstCheckInDev = process.env.NODE_ENV === 'development' && lastSessionValidationCheck.value === 0
         const shouldCheckSession = process.env.NODE_ENV !== 'development' || (!isFirstCheckInDev && (now - lastSessionValidationCheck.value > 5 * 60 * 1000))
@@ -227,11 +228,14 @@ export const useScannerSecure = () => {
             try {
                 const isValid = await checkSessionValidity()
                 if (!isValid) {
-                    console.error('Session invalide, authentification requise')
+                    console.warn('Session validation failed during scan')
                     scanResult.value = {
                         valid: false,
-                        reason: 'session_expired'
+                        reason: 'session_validation_failed'
                     }
+                    
+                    // Ne pas continuer le scan mais ne pas forcer la déconnexion
+                    // L'utilisateur peut ressayer ou se reconnecter manuellement
                     return
                 }
             } catch (error) {
@@ -239,12 +243,8 @@ export const useScannerSecure = () => {
                 if (process.env.NODE_ENV === 'development' && sessionExpiresAt.value && new Date() < sessionExpiresAt.value) {
                     console.warn('Mode développement : erreur de validation de session ignorée, token client valide')
                 } else {
-                    console.error('Session invalide, authentification requise')
-                    scanResult.value = {
-                        valid: false,
-                        reason: 'session_expired'
-                    }
-                    return
+                    console.warn('Session validation error during scan, continuing with current session')
+                    // Ne pas bloquer le scan sur une erreur de validation
                 }
             }
         }
