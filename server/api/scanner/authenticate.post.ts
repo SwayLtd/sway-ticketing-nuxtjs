@@ -45,10 +45,14 @@ async function logSecurityEvent(supabase: any, eventType: string, payload: any) 
 function generateSessionToken(payload: any): string {
     const data = JSON.stringify(payload)
     const timestamp = Date.now()
+    // Test temporaire : utiliser une clé fixe au lieu de JWT_SECRET
+    const testSecret = 'test-fixed-secret-key-12345'
     const signature = crypto
-        .createHmac('sha256', process.env.JWT_SECRET || 'fallback-secret')
+        .createHmac('sha256', testSecret)
         .update(data + timestamp)
         .digest('hex')
+
+    console.log('DEBUG: Token generation with fixed secret')
 
     return Buffer.from(JSON.stringify({
         data: payload,
