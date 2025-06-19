@@ -74,15 +74,26 @@ export default defineEventHandler(async (event) => {
                 statusCode: 400,
                 statusMessage: 'Session token required'
             })
-        } try {
+        }        try {
             const sessionData = verifySessionToken(session_token)
+            console.log('✅ Token verified successfully:', sessionData)
 
             // Vérifier si la session est active
             const sessionKey = `${sessionData.scanner_id}_${sessionData.event_id}`
-            const activeSession = activeSessions.get(sessionKey)            // En développement, être plus permissif si la session n'est pas trouvée
+            const activeSession = activeSessions.get(sessionKey)
+            
+            console.log('🔍 SESSION CHECK:', {
+                sessionKey,
+                hasActiveSession: !!activeSession,
+                nodeEnv: process.env.NODE_ENV,
+                isProduction: process.env.NODE_ENV !== 'development'
+            })
+
+            // En développement, être plus permissif si la session n'est pas trouvée
             // (le serveur peut avoir redémarré et perdu les sessions en mémoire)
             if (!activeSession) {
                 if (process.env.NODE_ENV === 'development') {
+                    console.log('🔧 DEV MODE: Recreating session automatically')
                     // En dev, on recrée automatiquement la session à partir du token valide
                     const newSession = {
                         scanner_id: sessionData.scanner_id,
@@ -92,6 +103,7 @@ export default defineEventHandler(async (event) => {
                     }
                     activeSessions.set(sessionKey, newSession)
                 } else {
+                    console.log('🔍 PROD MODE: Checking scanner existence in database')
                     // En production, vérifier que le scanner existe toujours en base avant de recréer la session
                     const { data: scanner, error } = await supabase
                         .from('scanners')
@@ -101,13 +113,22 @@ export default defineEventHandler(async (event) => {
                         .eq('status', 'active')
                         .single()
 
+                    console.log('🔍 DATABASE CHECK RESULT:', {
+                        scanner,
+                        error: error?.message,
+                        hasScanner: !!scanner,
+                        scannerStatus: scanner?.status
+                    })
+
                     if (error || !scanner) {
+                        console.error('❌ Scanner not found or inactive in database')
                         throw createError({
                             statusCode: 401,
                             statusMessage: 'Scanner no longer active'
                         })
                     }
 
+                    console.log('✅ Scanner found and active, recreating session')
                     // Si le scanner existe, recréer la session
                     const newSession = {
                         scanner_id: sessionData.scanner_id,
@@ -115,8 +136,9 @@ export default defineEventHandler(async (event) => {
                         created_at: Date.now(),
                         last_activity: Date.now()
                     }
-                    activeSessions.set(sessionKey, newSession)
-                }
+                    activeSessions.set(sessionKey, newSession)                }
+            } else {
+                console.log('✅ Active session found, updating last activity')
             }
 
             // Mettre à jour la dernière activité
@@ -132,6 +154,7 @@ export default defineEventHandler(async (event) => {
             }
 
         } catch (error) {
+            console.error('❌ Session validation error:', error)
             throw createError({
                 statusCode: 401,
                 statusMessage: 'Invalid or expired session token'
