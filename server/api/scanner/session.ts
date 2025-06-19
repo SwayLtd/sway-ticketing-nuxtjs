@@ -144,13 +144,14 @@ export default defineEventHandler(async (event) => {
             // Mettre à jour la dernière activité
             const currentSession = activeSessions.get(sessionKey)!
             currentSession.last_activity = Date.now()
-            activeSessions.set(sessionKey, currentSession)
+            activeSessions.set(sessionKey, currentSession)            // Décoder le token pour récupérer l'expiration réelle
+            const decoded = JSON.parse(Buffer.from(session_token, 'base64').toString())
 
             return {
                 valid: true,
                 scanner_id: sessionData.scanner_id,
                 event_id: sessionData.event_id,
-                expires_at: new Date(sessionData.timestamp + (8 * 60 * 60 * 1000)).toISOString()
+                expires_at: new Date(decoded.expires).toISOString()
             }
 
         } catch (error) {
