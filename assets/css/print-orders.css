@@ -1,0 +1,237 @@
+/* Print styles for order detail page */
+@media print {
+
+    /* Hide navigation and action elements, including sidebar actions */
+    .print-hidden,
+    .order-actions-panel,
+    nav,
+    button,
+    .fixed,
+    .sticky,
+    [class*="ActionPanel"] {
+        display: none !important;
+    }
+
+    /* Hide the entire sidebar on print */
+    .lg\\:grid-cols-3>.space-y-8 {
+        display: none !important;
+    }
+
+    /* Reset page layout for printing */
+    body {
+        margin: 0;
+        padding: 20px;
+        font-size: 11pt;
+        line-height: 1.3;
+        color: #000;
+        background: #fff;
+    }
+
+    /* Container adjustments */
+    .min-h-screen {
+        min-height: auto;
+    }
+
+    .max-w-7xl {
+        max-width: none;
+    }
+
+    .px-4,
+    .sm\\:px-6,
+    .lg\\:px-8 {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+
+    .py-8 {
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+    }
+
+    /* Grid layout adjustments - make everything single column */
+    .lg\\:grid-cols-3 {
+        grid-template-columns: 1fr !important;
+    }
+
+    .lg\\:col-span-2 {
+        grid-column: auto !important;
+    }
+
+    /* Compact general info section */
+    .lg\\:col-span-2>.space-y-8> :first-child .p-6 {
+        padding: 12pt !important;
+    }
+
+    .lg\\:col-span-2>.space-y-8> :first-child .space-y-4 {
+        gap: 8pt !important;
+    }
+
+    /* Emphasize products section */
+    .lg\\:col-span-2>.space-y-8> :nth-child(2) {
+        margin-top: 20pt !important;
+    }
+
+    /* Typography adjustments - more compact */
+    .text-3xl {
+        font-size: 16pt;
+        margin-bottom: 8pt;
+    }
+
+    .text-xl {
+        font-size: 13pt;
+    }
+
+    .text-lg {
+        font-size: 12pt;
+    }
+
+    .text-base {
+        font-size: 11pt;
+    }
+
+    .text-sm {
+        font-size: 9pt;
+    }
+
+    .text-xs {
+        font-size: 8pt;
+    }
+
+    /* Card styles */
+    .shadow-lg,
+    .shadow-md {
+        box-shadow: none !important;
+    }
+
+    .rounded-xl,
+    .rounded-lg {
+        border-radius: 0 !important;
+    }
+
+    .border {
+        border: 1px solid #ccc !important;
+    }
+
+    /* Background adjustments */
+    .bg-gray-50 {
+        background-color: #f5f5f5 !important;
+    }
+
+    .bg-white {
+        background-color: #fff !important;
+    }
+
+    /* Spacing adjustments */
+    .space-y-8>*+* {
+        margin-top: 15pt !important;
+    }
+
+    .space-y-6>*+* {
+        margin-top: 12pt !important;
+    }
+
+    .space-y-4>*+* {
+        margin-top: 10pt !important;
+    }
+
+    .mb-8 {
+        margin-bottom: 15pt !important;
+    }
+
+    .mb-1 {
+        margin-bottom: 3pt !important;
+    }
+
+    /* Table styles */
+    table {
+        width: 100% !important;
+        border-collapse: collapse !important;
+        margin-top: 10pt !important;
+    }
+
+    th,
+    td {
+        border: 1px solid #ccc !important;
+        padding: 6pt !important;
+        text-align: left !important;
+    }
+
+    th {
+        background-color: #f5f5f5 !important;
+        font-weight: bold !important;
+    }
+
+    /* Status badges */
+    .inline-flex {
+        display: inline !important;
+    }
+
+    .rounded-full {
+        border-radius: 0 !important;
+        padding: 2pt 6pt !important;
+        border: 1px solid #ccc !important;
+    }
+
+    /* Colors for black and white printing */
+    .bg-green-100 {
+        background-color: #f0f0f0 !important;
+        border-color: #ccc !important;
+    }
+
+    .bg-yellow-100 {
+        background-color: #f5f5f5 !important;
+        border-color: #ccc !important;
+    }
+
+    .bg-red-100 {
+        background-color: #f0f0f0 !important;
+        border-color: #ccc !important;
+    }
+
+    .text-green-800,
+    .text-yellow-800,
+    .text-red-800,
+    .text-gray-800 {
+        color: #000 !important;
+    }
+
+    /* Hide copy buttons and interactive elements */
+    .group:hover>*,
+    .opacity-0 {
+        display: none !important;
+    }
+
+    /* Page breaks */
+    .page-break-before {
+        page-break-before: always;
+    }
+
+    .page-break-after {
+        page-break-after: always;
+    }
+
+    .page-break-inside-avoid {
+        page-break-inside: avoid;
+    }
+
+    /* Print header */
+    .print-header {
+        display: block !important;
+        text-align: center;
+        margin-bottom: 20pt;
+        border-bottom: 2px solid #000;
+        padding-bottom: 10pt;
+    }
+
+    .print-header h1 {
+        margin: 0;
+        font-size: 16pt;
+        font-weight: bold;
+    }
+
+    .print-header p {
+        margin: 5pt 0 0 0;
+        font-size: 10pt;
+        color: #666;
+    }
+}

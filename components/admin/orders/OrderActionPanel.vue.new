@@ -1,0 +1,240 @@
+<template>
+  <div class="bg-white shadow-lg rounded-xl border border-gray-200 overflow-hidden">
+    <div class="px-6 py-5 bg-gray-50">
+      <h3 class="text-lg font-semibold text-gray-900">Actions sur la commande</h3>
+    </div>
+    
+    <div class="p-6 space-y-4">
+      <!-- Status Actions -->
+      <div class="space-y-3">
+        <div v-if="canRefund">
+          <button
+            @click="showConfirmModal('refund')"
+            :disabled="!!loading"
+            class="w-full flex items-center justify-center px-4 py-2 border border-red-300 rounded-md shadow-sm bg-white text-sm font-medium text-red-700 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <svg class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 15v-1a4 4 0 00-4-4H8m0 0l3 3m-3-3l3-3m5 0v12a2 2 0 01-2 2H6a2 2 0 01-2-2V7a2 2 0 012-2h5m3 0a1 1 0 000-2H9a1 1 0 000 2h5z" />
+            </svg>
+            {{ loading === 'refund' ? 'Remboursement...' : 'Rembourser la commande' }}
+          </button>
+        </div>
+
+        <div v-if="canCancel">
+          <button
+            @click="showConfirmModal('cancel')"
+            :disabled="!!loading"
+            class="w-full flex items-center justify-center px-4 py-2 border border-red-300 rounded-md shadow-sm bg-white text-sm font-medium text-red-700 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <svg class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+            {{ loading === 'cancel' ? 'Annulation...' : 'Annuler la commande' }}
+          </button>
+          <p class="text-xs text-gray-500 mt-1">
+            Annule la commande sans la supprimer (pour historique)
+          </p>
+        </div>
+      </div>
+
+      <!-- No actions available -->
+      <div v-if="!canRefund && !canCancel" class="text-center py-4">
+        <p class="text-sm text-gray-500">Aucune action disponible pour cette commande</p>
+        <p class="text-xs text-gray-400 mt-1">
+          Statut actuel: {{ order.status }}
+        </p>
+      </div>
+
+      <!-- Export Actions -->
+      <div class="pt-4 border-t border-gray-200 space-y-3">
+        <h4 class="text-sm font-medium text-gray-700">Export & Impression</h4>
+        
+        <button
+          @click="exportPDF"
+          :disabled="!!loading"
+          class="w-full flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <svg class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+          </svg>
+          {{ loading === 'export' ? 'Génération...' : 'Télécharger le reçu PDF' }}
+        </button>
+
+        <button
+          @click="printReceipt"
+          :disabled="!!loading"
+          class="w-full flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <svg class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+          </svg>
+          Imprimer le reçu
+        </button>
+      </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div v-if="showModal" class="fixed inset-0 z-50 overflow-y-auto">
+      <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" @click="hideModal"></div>
+        
+        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+          <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+            <div class="sm:flex sm:items-start">
+              <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+                <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L3.732 16.5c-.77.833-.23 2.5 1.732 2.5z" />
+                </svg>
+              </div>
+              <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                <h3 class="text-lg leading-6 font-medium text-gray-900">
+                  Confirmer {{ actionLabels[pendingAction] }}
+                </h3>
+                <div class="mt-2">
+                  <p class="text-sm text-gray-500">
+                    {{ actionConfirmMessages[pendingAction] }}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+            <button
+              @click="confirmAction"
+              :disabled="!!loading"
+              class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {{ loading ? 'Traitement...' : 'Confirmer' }}
+            </button>
+            <button
+              @click="hideModal"
+              :disabled="!!loading"
+              class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Annuler
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, computed } from 'vue'
+
+interface Order {
+  id: string
+  status: string
+  [key: string]: any
+}
+
+interface Props {
+  order: Order
+  eventId: string
+}
+
+const props = defineProps<Props>()
+
+const emit = defineEmits<{
+  orderUpdated: [order: Order]
+  showNotification: [notification: { type: 'success' | 'error' | 'info', message: string }]
+}>()
+
+// Reactive data
+const loading = ref<string | boolean>(false)
+const showModal = ref(false)
+const pendingAction = ref('')
+
+const actionLabels: Record<string, string> = {
+  refund: 'le remboursement',
+  cancel: 'l\'annulation'
+}
+
+const actionConfirmMessages: Record<string, string> = {
+  refund: 'Cette action va rembourser la commande et ne peut pas être annulée. Êtes-vous sûr de vouloir continuer ?',
+  cancel: 'Cette action va annuler la commande définitivement. Êtes-vous sûr de vouloir continuer ?'
+}
+
+// Computed properties for action availability
+const canRefund = computed(() => {
+  return ['paid', 'succeeded'].includes(props.order.status)
+})
+
+const canCancel = computed(() => {
+  return ['pending', 'paid', 'succeeded'].includes(props.order.status)
+})
+
+function showConfirmModal(action: string) {
+  pendingAction.value = action
+  showModal.value = true
+}
+
+function hideModal() {
+  showModal.value = false
+  pendingAction.value = ''
+}
+
+async function confirmAction() {
+  await performAction(pendingAction.value)
+  hideModal()
+}
+
+async function performAction(action: string) {
+  try {
+    loading.value = action
+    
+    const response: any = await $fetch(`/api/admin/orders/${props.order.id}/actions`, {
+      method: 'POST',
+      body: { action }
+    })
+    
+    if (response.success) {
+      emit('orderUpdated', response.order || props.order)
+      emit('showNotification', {
+        type: 'success',
+        message: response.message
+      })
+    }
+  } catch (error: any) {
+    console.error('Action failed:', error)
+    emit('showNotification', {
+      type: 'error',
+      message: error.data?.statusMessage || 'Une erreur est survenue'
+    })
+  } finally {
+    loading.value = false
+  }
+}
+
+async function exportPDF() {
+  try {
+    loading.value = 'export'
+    
+    // Create a link to download the PDF
+    const link = document.createElement('a')
+    link.href = `/api/admin/orders/${props.order.id}/export-pdf?eventId=${props.eventId}`
+    link.download = `recu-commande-${props.order.id.slice(0, 8)}.pdf`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    
+    emit('showNotification', {
+      type: 'success',
+      message: 'Téléchargement du reçu PDF démarré'
+    })
+  } catch (error: any) {
+    console.error('PDF export failed:', error)
+    emit('showNotification', {
+      type: 'error',
+      message: 'Échec de l\'export PDF'
+    })
+  } finally {
+    loading.value = false
+  }
+}
+
+function printReceipt() {
+  window.print()
+}
+</script>

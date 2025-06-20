@@ -1,0 +1,106 @@
+import { defineEventHandler, readBody, getRouterParam, createError } from 'h3'
+import { serverSupabaseServiceRole } from '#supabase/server'
+
+export default defineEventHandler(async (event) => {
+    try {
+        const supabase = serverSupabaseServiceRole(event)
+        const orderId = getRouterParam(event, 'orderId')
+        const body = await readBody(event)
+
+        if (!orderId) {
+            throw createError({
+                statusCode: 400,
+                statusMessage: 'Order ID is required'
+            })
+        }
+
+        const { action, notes } = body
+        if (!action || !['refund', 'cancel'].includes(action)) {
+            throw createError({
+                statusCode: 400,
+                statusMessage: 'Invalid action. Must be one of: refund, cancel'
+            })
+        }
+
+        // Get current order to verify existence and permissions
+        const { data: currentOrder, error: fetchError } = await supabase
+            .from('orders')
+            .select('*')
+            .eq('id', orderId)
+            .single()
+
+        if (fetchError || !currentOrder) {
+            throw createError({
+                statusCode: 404,
+                statusMessage: 'Order not found'
+            })
+        }
+
+        // Prepare update data based on action
+        const updateData: Record<string, any> = {
+            updated_at: new Date().toISOString()
+        }
+        switch (action) {
+            case 'refund':
+                updateData.status = 'refunded'
+                updateData.refunded_at = new Date().toISOString()
+                break
+            case 'cancel':
+                updateData.status = 'canceled'
+                break
+        }// Update the order
+        const { data: updatedOrder, error: updateError } = await (supabase as any)
+            .from('orders')
+            .update(updateData)
+            .eq('id', orderId)
+            .select()
+            .single()
+
+        if (updateError) {
+            throw createError({
+                statusCode: 500,
+                statusMessage: `Failed to update order: ${updateError.message}`
+            })
+        }
+
+        // Log the action for audit trail
+        try {
+            const logData = {
+                order_id: orderId,
+                action: action,
+                notes: notes || null,
+                performed_at: new Date().toISOString()
+            }
+
+            const { error: logError } = await (supabase as any)
+                .from('order_logs')
+                .insert([logData])
+
+            if (logError) {
+                console.warn('Failed to log action:', logError)
+            }
+        } catch (logError) {
+            // If audit table has issues, just log to console  
+            console.log('Action logged:', { orderId, action, notes })
+        }
+
+        return {
+            success: true,
+            order: updatedOrder,
+            action: action,
+            message: `Order ${action} successfully`
+        }
+
+    } catch (error: any) {
+        console.error('Order action error:', error)
+
+        if (error.statusCode) {
+            throw error
+        }
+
+        throw createError({
+            statusCode: 500,
+            statusMessage: `Server error: ${error.message || 'Unknown error'}`
+        })
+    }
+})
