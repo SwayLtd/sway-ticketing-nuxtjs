@@ -6,7 +6,7 @@ export default defineEventHandler(async (event) => {
     const config = useRuntimeConfig()
     const supabase = createClient(
         config.public.SUPABASE_URL,
-        config.SUPABASE_SERVICE_KEY
+        config.SUPABASE_SERVICE_ROLE_KEY
     )
 
     try {

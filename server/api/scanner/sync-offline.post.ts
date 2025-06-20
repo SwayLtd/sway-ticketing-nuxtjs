@@ -7,7 +7,7 @@ export default defineEventHandler(async (event) => {
         const response = await $fetch('/functions/v1/sync-scanned-tickets', {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${process.env.SUPABASE_SERVICE_KEY}`,
+                'Authorization': `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({

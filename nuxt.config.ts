@@ -8,7 +8,7 @@ export default defineNuxtConfig({
       key: process.env.STRIPE_SECRET_KEY,
       options: {},
     },
-    SUPABASE_SERVICE_KEY: process.env.SUPABASE_SERVICE_KEY,
+    SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
     public: {
       BASE_URL: process.env.BASE_URL,
       stripe: {
@@ -34,11 +34,11 @@ export default defineNuxtConfig({
     provider: "netlify",
     domains: ["test.sway.events", "sway.events"],
   },
+
   // https://github.com/supabase/supabase/issues/16551
   // Désactive la redirection automatique par Supabase
   supabase: {
     redirect: false,
-    serviceKey: process.env.SUPABASE_SERVICE_KEY,
     // Si vous préférez personnaliser la redirection, vous pouvez utiliser redirectOptions :
     // redirectOptions: {
     //   login: '/login',

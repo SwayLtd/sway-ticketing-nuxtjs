@@ -45,12 +45,12 @@ async function logSecurityEvent(supabase: any, eventType: string, payload: any) 
 function generateSessionToken(payload: any): string {
     const data = JSON.stringify(payload)
     const timestamp = Date.now()
-
+    
     if (!process.env.JWT_SECRET) {
         console.error('❌ CRITICAL: JWT_SECRET environment variable is not defined!')
         throw new Error('JWT_SECRET environment variable is required')
     }
-
+    
     const signature = crypto
         .createHmac('sha256', process.env.JWT_SECRET)
         .update(data + timestamp)
@@ -93,7 +93,7 @@ export default defineEventHandler(async (event) => {
 
     const supabase = createClient(
         process.env.SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_KEY!
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
     )
 
     // Rate limiting par IP
