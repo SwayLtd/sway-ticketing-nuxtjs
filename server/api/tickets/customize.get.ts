@@ -2,7 +2,7 @@ import { createClient } from '@supabase/supabase-js'
 import { defineEventHandler, getQuery, createError } from 'h3'
 
 const supabaseUrl = process.env.SUPABASE_URL
-const serviceRoleKey = process.env.SUPABASE_SERVICE_KEY
+const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
 if (!supabaseUrl || !serviceRoleKey) {
     throw new Error('Missing Supabase configuration')

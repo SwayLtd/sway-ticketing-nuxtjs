@@ -26,7 +26,7 @@ async function createHmac(hmacToken: string, message: string): Promise<string> {
 
 // Récupérer les variables d'environnement
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_KEY")!;
+const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 if (!supabaseUrl || !serviceRoleKey) {
   throw new Error("Missing Supabase configuration");
 }

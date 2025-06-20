@@ -42,7 +42,7 @@ Ajoute les variables suivantes (ne mets jamais les clés secrètes dans le code)
 - `STRIPE_SECRET_KEY=sk_test_...`
 - `STRIPE_WEBHOOK_SECRET=whsec_...`
 - `SUPABASE_KEY=...`
-- `SUPABASE_SERVICE_KEY=...`
+- `SUPABASE_SERVICE_ROLE_KEY=...`
 - `JWT_SECRET=...`
 - `SMTP_USER=...`
 - `SMTP_PASS=...`
