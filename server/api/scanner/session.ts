@@ -46,7 +46,7 @@ export default defineEventHandler(async (event) => {
 
     const supabase = createClient(
         process.env.SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!
+        process.env.SUPABASE_SERVICE_KEY!
     )
 
     // GET: Vérifier le statut d'une session
@@ -59,14 +59,14 @@ export default defineEventHandler(async (event) => {
                 statusCode: 400,
                 statusMessage: 'Session token required'
             })
-        }        try {
+        } try {
             const sessionData = verifySessionToken(session_token)
             console.log('✅ Token verified successfully:', sessionData)
 
             // Vérifier si la session est active
             const sessionKey = `${sessionData.scanner_id}_${sessionData.event_id}`
             const activeSession = activeSessions.get(sessionKey)
-            
+
             console.log('🔍 SESSION CHECK:', {
                 sessionKey,
                 hasActiveSession: !!activeSession,
@@ -121,7 +121,8 @@ export default defineEventHandler(async (event) => {
                         created_at: Date.now(),
                         last_activity: Date.now()
                     }
-                    activeSessions.set(sessionKey, newSession)                }
+                    activeSessions.set(sessionKey, newSession)
+                }
             } else {
                 console.log('✅ Active session found, updating last activity')
             }

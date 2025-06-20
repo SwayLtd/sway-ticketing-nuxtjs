@@ -4,7 +4,7 @@ import nodemailer from 'nodemailer';
 import { generateStylizedTicketPDF } from '../utils/ticket-pdf';
 
 const supabaseUrl = process.env.SUPABASE_URL!;
-const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const serviceRoleKey = process.env.SUPABASE_SERVICE_KEY!;
 const supabase = createClient(supabaseUrl, serviceRoleKey);
 
 const transporter = nodemailer.createTransport({
