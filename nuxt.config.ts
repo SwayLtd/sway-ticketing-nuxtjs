@@ -8,7 +8,7 @@ export default defineNuxtConfig({
       key: process.env.STRIPE_SECRET_KEY,
       options: {},
     },
-    SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
+    SUPABASE_SERVICE_KEY: process.env.SUPABASE_SERVICE_KEY,
     public: {
       BASE_URL: process.env.BASE_URL,
       stripe: {
