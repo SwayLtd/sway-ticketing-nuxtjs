@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { defineEventHandler, getRouterParam, createError } from 'h3'
 
 export default defineEventHandler(async (event) => {
     const eventId = getRouterParam(event, 'eventId')
