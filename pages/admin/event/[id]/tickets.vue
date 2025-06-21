@@ -204,6 +204,47 @@ function formatCurrency(amount, currency) {
   return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: currency.toUpperCase() }).format(amount)
 }
 
+// Fonction pour formater le prix avec deux décimales
+function formatPrice(value) {
+  if (value === null || value === undefined || value === '') return ''
+  const num = parseFloat(value)
+  if (isNaN(num)) return '0.00'
+  return num.toFixed(2)
+}
+
+// Fonction pour gérer la saisie du prix et limiter à deux décimales
+function formatPriceInput(type) {
+  const inputElement = document.getElementById(type === 'add' ? 'modalTicketPrice' : 'editTicketPrice')
+  if (!inputElement) return
+
+  let value = inputElement.value
+
+  // Supprimer tous les caractères non numériques sauf le point et les chiffres
+  value = value.replace(/[^0-9.]/g, '')
+
+  // S'assurer qu'il n'y a qu'un seul point
+  const parts = value.split('.')
+  if (parts.length > 2) {
+    value = parts[0] + '.' + parts.slice(1).join('')
+  }
+
+  // Limiter à deux décimales
+  if (parts.length === 2 && parts[1].length > 2) {
+    value = parts[0] + '.' + parts[1].substring(0, 2)
+  }
+
+  // Mettre à jour la valeur dans l'input
+  inputElement.value = value
+
+  // Mettre à jour la variable réactive
+  const numValue = parseFloat(value) || 0
+  if (type === 'add') {
+    ticketPrice.value = numValue
+  } else {
+    editingTicket.value.price = numValue
+  }
+}
+
 // Fonctions pour l'édition
 function startEditTicket(ticket) {
   editingTicket.value = { ...ticket }
@@ -893,33 +934,27 @@ onMounted(async () => {
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Ventes</label>
 
-                <!-- Range slider toujours affiché -->
-                <div class="mt-2 p-4 bg-gray-50 rounded-lg">
-                  <!--<label class="block text-xs font-medium text-gray-600 mb-3">
-                    Nombre de ventes : {{ filters.salesRange[0] }} - {{ filters.salesRange[1] }}
-                  </label>-->
-                  <!-- Range slider à deux points -->
-                  <div class="relative mb-4">
-                    <div class="flex items-center justify-between mb-2">
-                      <input type="number" v-model.number="filters.salesRange[0]" min="0" :max="filters.salesRange[1]"
-                        class="w-16 px-2 py-1 text-xs border rounded" @input="updateMinRange(filters.salesRange[0])">
-                      <span class="text-xs text-gray-500">à</span>
-                      <input type="number" v-model.number="filters.salesRange[1]" :min="filters.salesRange[0]"
-                        :max="maxSalesRange" class="w-16 px-2 py-1 text-xs border rounded"
-                        @input="updateMaxRange(filters.salesRange[1])">
-                    </div>
-                    <div class="relative h-6 flex items-center">
-                      <!-- Track de fond -->
-                      <div class="w-full h-2 bg-gray-200 rounded-lg"></div>
-                      <!-- Range min -->
-                      <input type="range" v-model.number="filters.salesRange[0]" min="0" :max="maxSalesRange"
-                        class="absolute w-full h-2 bg-transparent appearance-none cursor-pointer slider-thumb"
-                        @input="updateMinRange(filters.salesRange[0])">
-                      <!-- Range max -->
-                      <input type="range" v-model.number="filters.salesRange[1]" min="0" :max="maxSalesRange"
-                        class="absolute w-full h-2 bg-transparent appearance-none cursor-pointer slider-thumb"
-                        @input="updateMaxRange(filters.salesRange[1])">
-                    </div>
+                <!-- Range slider à deux points -->
+                <div class="relative mb-4">
+                  <div class="flex items-center justify-between mb-2">
+                    <input type="number" v-model.number="filters.salesRange[0]" min="0" :max="filters.salesRange[1]"
+                      class="w-16 px-2 py-1 text-xs border rounded" @input="updateMinRange(filters.salesRange[0])">
+                    <span class="text-xs text-gray-500">à</span>
+                    <input type="number" v-model.number="filters.salesRange[1]" :min="filters.salesRange[0]"
+                      :max="maxSalesRange" class="w-16 px-2 py-1 text-xs border rounded"
+                      @input="updateMaxRange(filters.salesRange[1])">
+                  </div>
+                  <div class="relative h-6 flex items-center">
+                    <!-- Track de fond -->
+                    <div class="w-full h-2 bg-gray-200 rounded-lg"></div>
+                    <!-- Range min -->
+                    <input type="range" v-model.number="filters.salesRange[0]" min="0" :max="maxSalesRange"
+                      class="absolute w-full h-2 bg-transparent appearance-none cursor-pointer slider-thumb"
+                      @input="updateMinRange(filters.salesRange[0])">
+                    <!-- Range max -->
+                    <input type="range" v-model.number="filters.salesRange[1]" min="0" :max="maxSalesRange"
+                      class="absolute w-full h-2 bg-transparent appearance-none cursor-pointer slider-thumb"
+                      @input="updateMaxRange(filters.salesRange[1])">
                   </div>
                 </div>
               </div>
@@ -1182,7 +1217,7 @@ onMounted(async () => {
             </div>
           </div>
         </div>
-      </div>      <!-- Modal d'ajout de ticket -->
+      </div> <!-- Modal d'ajout de ticket -->
       <div v-if="showAddModal"
         class="fixed inset-0 bg-gray-500/30 overflow-y-auto h-full w-full z-50 flex items-center justify-center"
         @click.self="closeAddModal">
@@ -1211,10 +1246,9 @@ onMounted(async () => {
               </div>
               <div class="grid grid-cols-2 gap-4">
                 <div>
-                  <label for="modalTicketPrice" class="block text-sm font-medium text-gray-700">Prix (€)</label>
-                  <input id="modalTicketPrice" v-model.number="ticketPrice" type="number" step="1" min="0"
-                    placeholder="25" required
-                    class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                  <label for="modalTicketPrice" class="block text-sm font-medium text-gray-700">Prix (€)</label>                  <input id="modalTicketPrice" type="number" step="1" min="0" placeholder="25.00" required
+                    class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    @input="formatPriceInput('add')" :value="formatPrice(ticketPrice)">
                 </div>
                 <div>
                   <label for="modalCurrency" class="block text-sm font-medium text-gray-700">Devise</label>
@@ -1265,7 +1299,7 @@ onMounted(async () => {
             </form>
           </div>
         </div>
-      </div>      <!-- Modal d'édition -->
+      </div> <!-- Modal d'édition -->
       <div v-if="showEditModal"
         class="fixed inset-0 bg-gray-500/30 overflow-y-auto h-full w-full z-50 flex items-center justify-center"
         @click.self="cancelEdit">
@@ -1286,10 +1320,9 @@ onMounted(async () => {
               </div>
               <div class="grid grid-cols-2 gap-4">
                 <div>
-                  <label for="editTicketPrice" class="block text-sm font-medium text-gray-700">Prix (€)</label>
-                  <input id="editTicketPrice" v-model.number="editingTicket.price" type="number" step="1" min="0"
-                    required
-                    class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                  <label for="editTicketPrice" class="block text-sm font-medium text-gray-700">Prix (€)</label>                  <input id="editTicketPrice" type="number" step="1" min="0" required
+                    class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    @input="formatPriceInput('edit')" :value="formatPrice(editingTicket.price)">
                 </div>
                 <div>
                   <label for="editCurrency" class="block text-sm font-medium text-gray-700">Devise</label>
@@ -1334,7 +1367,7 @@ onMounted(async () => {
             </form>
           </div>
         </div>
-      </div>      <!-- Modal de suppression -->
+      </div> <!-- Modal de suppression -->
       <div v-if="showDeleteModal"
         class="fixed inset-0 bg-gray-500/30 overflow-y-auto h-full w-full z-50 flex items-center justify-center"
         @click.self="cancelDelete">
@@ -1372,7 +1405,7 @@ onMounted(async () => {
       <div class="fixed top-4 right-4 z-50 space-y-4">
         <AdminNotification v-for="notification in notifications" :key="notification.id" :type="notification.type"
           :title="notification.title" :message="notification.message" @close="removeNotification(notification.id)" />
-      </div>      <!-- Modal de gestion des stocks -->
+      </div> <!-- Modal de gestion des stocks -->
       <div v-if="showStockModal"
         class="fixed inset-0 bg-gray-500/30 overflow-y-auto h-full w-full z-50 flex items-center justify-center"
         @click.self="cancelStock">
@@ -1403,7 +1436,7 @@ onMounted(async () => {
             </form>
           </div>
         </div>
-      </div>      <!-- Modal des filtres pour mobile -->
+      </div> <!-- Modal des filtres pour mobile -->
       <div v-if="showFilterSidebar"
         class="xl:hidden fixed inset-0 bg-gray-500/30 z-50 flex items-end justify-center sm:items-center"
         @click.self="showFilterSidebar = false">
@@ -1469,10 +1502,10 @@ onMounted(async () => {
                     <span class="ml-2 text-sm text-gray-700">Épuisé</span>
                   </label>
                 </div>
-              </div>              <!-- Filtre par ventes -->
+              </div> <!-- Filtre par ventes -->
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Ventes</label>
-                
+
                 <!-- Range slider toujours affiché dans mobile -->
                 <div class="mt-2 p-4 bg-gray-50 rounded-lg">
                   <label class="block text-xs font-medium text-gray-600 mb-2">
