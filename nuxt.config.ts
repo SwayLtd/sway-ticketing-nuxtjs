@@ -1,7 +1,11 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
+import tailwindcss from "@tailwindcss/vite";
+
 export default defineNuxtConfig({
   compatibilityDate: '2024-11-01',
   devtools: { enabled: true },
+
+  css: ["~/assets/app.css"],
 
   runtimeConfig: {
     stripe: {
@@ -19,9 +23,7 @@ export default defineNuxtConfig({
       SUPABASE_ANON_KEY: process.env.NUXT_PUBLIC_SUPABASE_ANON_KEY,
     },
   },
-
   modules: [
-    '@nuxtjs/tailwindcss',
     '@nuxt/ui',
     '@nuxt/fonts',
     '@nuxt/icon',
@@ -69,8 +71,8 @@ export default defineNuxtConfig({
 
   // Force SSR mode, no static generation
   ssr: true,
-
   vite: {
+    plugins: [tailwindcss()],
     build: {
       sourcemap: false
     }

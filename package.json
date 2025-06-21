@@ -22,6 +22,7 @@
     "@nuxt/ui": "^3.0.0",
     "@nuxtjs/supabase": "^1.5.0",
     "@stripe/stripe-js": "^7.3.1",
+    "@tailwindcss/vite": "^4.1.10",
     "@types/pdfkit": "^0.14.0",
     "@unhead/vue": "^2.0.0-rc.8",
     "@unlok-co/nuxt-stripe": "^4.0.2",
@@ -36,6 +37,7 @@
     "pdfkit": "^0.17.1",
     "qrcode": "^1.5.4",
     "stripe": "^17.7.0",
+    "tailwindcss": "^4.1.10",
     "typescript": "^5.8.2",
     "vue": "^3.5.13",
     "vue-router": "^4.5.0"
@@ -44,6 +46,7 @@
     "@nuxtjs/tailwindcss": "^7.0.0-beta.0",
     "@types/nodemailer": "^6.4.17",
     "@types/qrcode": "^1.5.5",
-    "@vitejs/plugin-basic-ssl": "^2.0.0"
+    "@vitejs/plugin-basic-ssl": "^2.0.0",
+    "daisyui": "^5.0.43"
   }
 }
