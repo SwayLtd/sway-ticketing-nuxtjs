@@ -1,0 +1,26 @@
+{
+  "context": {
+    "frameworks": ["Nuxt 3", "Vue 3", "Tailwind CSS", "daisyUI"],
+    "styling": {
+      "primary": "Tailwind CSS v4",
+      "components": "daisyUI",
+      "preferences": [
+        "Use daisyUI components instead of custom CSS when possible",
+        "Follow daisyUI naming conventions",
+        "Use Tailwind utility classes for layout and spacing",
+        "Prefer daisyUI themes for consistent styling"
+      ]
+    },
+    "project_setup": {
+      "css_framework": "Tailwind CSS v4 with daisyUI plugin",
+      "configuration": "Vite plugin setup with @tailwindcss/vite",
+      "css_file": "assets/app.css with @import 'tailwindcss' and @plugin 'daisyui'"
+    },
+    "coding_preferences": [
+      "Always suggest daisyUI components for UI elements",
+      "Use semantic daisyUI class names (btn, card, alert, etc.)",
+      "Include responsive design with Tailwind classes",
+      "Maintain consistent theming with daisyUI themes"
+    ]
+  }
+}

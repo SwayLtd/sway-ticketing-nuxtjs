@@ -1,4 +1,90 @@
-# Nuxt Minimal Starter
+# Sway Ticketing - Nuxt.js
+
+Plateforme de billetterie événementielle construite avec Nuxt 3, Tailwind CSS v4 et daisyUI.
+
+## 🛠️ Stack Technique
+
+- **Framework**: Nuxt 3 (Vue 3)
+- **Styling**: Tailwind CSS v4 + daisyUI
+- **Base de données**: Supabase
+- **Paiements**: Stripe
+- **Déploiement**: Netlify
+
+## 🎨 Design System
+
+Ce projet utilise **daisyUI** comme système de composants principal :
+
+- Classes sémantiques : `btn`, `card`, `alert`, `badge`, `modal`
+- Thèmes configurables avec support dark/light mode
+- Composants accessibles par défaut
+
+### Conventions de styling
+
+- Privilégier les composants daisyUI plutôt que du CSS custom
+- Utiliser les utilitaires Tailwind pour le layout et l'espacement
+- Respecter les conventions de nommage daisyUI pour les variants
+
+## 📁 Structure du Projet
+
+```text
+├── components/          # Composants Vue réutilisables
+├── layouts/            # Layouts Nuxt
+├── pages/              # Pages et routes
+├── assets/             # Assets statiques et CSS
+├── server/             # API routes et middleware
+└── supabase/           # Configuration et migrations Supabase
+```
+
+## 🚀 Développement
+
+### Prérequis
+
+- Node.js 18+
+- npm ou yarn
+- Compte Supabase
+- Compte Stripe
+
+### Installation
+
+```bash
+# Cloner le repository
+git clone <repository-url>
+cd sway-ticketing-nuxtjs
+
+# Installer les dépendances
+npm install
+
+# Configurer les variables d'environnement
+cp .env.example .env.local
+```
+
+### Configuration des variables d'environnement
+
+```env
+# Base
+BASE_URL=http://localhost:3000
+
+# Supabase
+NUXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NUXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+
+# Stripe
+NUXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key
+STRIPE_SECRET_KEY=your_stripe_secret_key
+```
+
+### Démarrage du serveur de développement
+
+```bash
+# Développement standard
+npm run dev
+
+# Avec HTTPS (pour les tests mobile/caméra)
+NUXT_DEV_HTTPS=true npm run dev
+```
+
+## 📚 Documentation
 
 Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
 
