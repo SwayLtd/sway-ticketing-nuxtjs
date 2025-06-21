@@ -68,6 +68,23 @@ const sortDirection = ref('desc')
 // Variables pour la recherche
 const searchTerm = ref('')
 
+// Limite de 20 types de tickets par événement
+const MAX_TICKETS = 20
+
+// Computed property pour vérifier si la limite est atteinte
+const isTicketLimitReached = computed(() => {
+  return tickets.value.length >= MAX_TICKETS
+})
+
+// Fonction pour afficher une notification de limite atteinte
+function showLimitReachedNotification() {
+  showNotification({
+    type: 'warning',
+    title: 'Limite atteinte',
+    message: `Vous avez atteint la limite de ${MAX_TICKETS} types de tickets par événement.`
+  })
+}
+
 // Fonction pour récupérer les types de tickets pour cet événement
 async function fetchTickets() {
   loadingTickets.value = true
@@ -152,6 +169,11 @@ async function addTicketTypeModal() {
       title: 'Erreur',
       message: 'Le nom du ticket est requis.'
     })
+    return
+  }
+  // Vérifier si la limite de tickets est atteinte
+  if (isTicketLimitReached.value) {
+    showLimitReachedNotification()
     return
   }
   addingTicket.value = true
@@ -383,6 +405,12 @@ function cancelDelete() {
 
 // Fonction pour dupliquer un ticket
 async function duplicateTicket(ticket) {
+  // Vérifier si la limite de tickets est atteinte
+  if (isTicketLimitReached.value) {
+    showLimitReachedNotification()
+    return
+  }
+
   try {
     const { error } = await supabase
       .from('products')
@@ -728,7 +756,18 @@ function resetFilters() {
 
 // Fonction pour ouvrir le modal d'ajout
 function openAddModal() {
+  if (isTicketLimitReached.value) {
+    showLimitReachedNotification()
+    return
+  }
   showAddModal.value = true
+}
+
+// Fonction pour gérer les clics sur boutons désactivés
+function handleDisabledClick() {
+  if (isTicketLimitReached.value) {
+    showLimitReachedNotification()
+  }
 }
 
 // Fonction pour fermer le modal d'ajout
@@ -779,12 +818,14 @@ onMounted(async () => {
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8"> <!-- Header -->
       <div class="flex items-center justify-between mb-8">
         <div>
-          <h1 class="text-3xl font-bold text-gray-900 mb-1">Gestion des Tickets</h1>
+          <h1 class="text-3xl font-bold text-gray-900 mb-1">Gestion des tickets</h1>
           <p class="text-sm text-gray-600">Ajoutez et gérez les types de tickets pour votre événement.</p>
         </div>
-        <div class="flex space-x-3">
-          <button @click="openAddModal"
-            class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+        <div class="flex space-x-3"> <button @click="isTicketLimitReached ? handleDisabledClick() : openAddModal()"
+            :disabled="isTicketLimitReached"
+            :class="isTicketLimitReached ? 'bg-gray-400 hover:bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'"
+            class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+            :title="isTicketLimitReached ? `Limite de ${MAX_TICKETS} types de tickets atteinte` : ''">
             <svg class="-ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
             </svg>
@@ -813,7 +854,7 @@ onMounted(async () => {
         <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
           <div class="flex items-center">
             <div class="flex-1">
-              <p class="text-sm font-medium text-gray-600">Total Tickets</p>
+              <p class="text-sm font-medium text-gray-600">Total tickets</p>
               <p class="text-2xl font-bold text-gray-900">{{ ticketInsights.totalTickets }}</p>
               <p class="text-sm text-gray-500">{{ ticketInsights.activeTickets }} actifs</p>
             </div>
@@ -829,7 +870,7 @@ onMounted(async () => {
         <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
           <div class="flex items-center">
             <div class="flex-1">
-              <p class="text-sm font-medium text-gray-600">Tickets Vendus</p>
+              <p class="text-sm font-medium text-gray-600">Tickets vendus</p>
               <p class="text-2xl font-bold text-gray-900">{{ ticketInsights.totalSold }}</p>
               <p class="text-sm text-gray-500">Total</p>
             </div>
@@ -965,7 +1006,10 @@ onMounted(async () => {
           <div class="bg-white shadow-lg rounded-xl border border-gray-200 overflow-hidden">
             <div class="px-6 py-4 border-b border-gray-200">
               <div class="flex items-center justify-between">
-                <h2 class="text-lg font-medium leading-6 text-gray-900">Types de tickets existants</h2>
+                <h2 class="text-lg font-medium leading-6 text-gray-900">
+                  Types de tickets existants
+                  <span class="text-sm font-normal text-gray-500">({{ tickets.length }}/{{ MAX_TICKETS }})</span>
+                </h2>
                 <div class="flex items-center space-x-4">
                   <button @click="showFilterSidebar = true"
                     class="xl:hidden inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
@@ -1166,10 +1210,12 @@ onMounted(async () => {
                               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                             </svg>
-                          </button>
-                          <button @click="duplicateTicket(ticket)"
-                            class="text-green-600 hover:text-green-900 transition-colors duration-200 p-1 hidden sm:block"
-                            title="Dupliquer">
+                          </button> <button
+                            @click="isTicketLimitReached ? handleDisabledClick() : duplicateTicket(ticket)"
+                            :disabled="isTicketLimitReached"
+                            :class="isTicketLimitReached ? 'text-gray-400 cursor-not-allowed' : 'text-green-600 hover:text-green-900'"
+                            class="transition-colors duration-200 p-1 hidden sm:block"
+                            :title="isTicketLimitReached ? `Limite de ${MAX_TICKETS} types de tickets atteinte` : 'Dupliquer'">
                             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -1246,7 +1292,8 @@ onMounted(async () => {
               </div>
               <div class="grid grid-cols-2 gap-4">
                 <div>
-                  <label for="modalTicketPrice" class="block text-sm font-medium text-gray-700">Prix (€)</label>                  <input id="modalTicketPrice" type="number" step="1" min="0" placeholder="25.00" required
+                  <label for="modalTicketPrice" class="block text-sm font-medium text-gray-700">Prix (€)</label> <input
+                    id="modalTicketPrice" type="number" step="1" min="0" placeholder="25.00" required
                     class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                     @input="formatPriceInput('add')" :value="formatPrice(ticketPrice)">
                 </div>
@@ -1320,7 +1367,8 @@ onMounted(async () => {
               </div>
               <div class="grid grid-cols-2 gap-4">
                 <div>
-                  <label for="editTicketPrice" class="block text-sm font-medium text-gray-700">Prix (€)</label>                  <input id="editTicketPrice" type="number" step="1" min="0" required
+                  <label for="editTicketPrice" class="block text-sm font-medium text-gray-700">Prix (€)</label> <input
+                    id="editTicketPrice" type="number" step="1" min="0" required
                     class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                     @input="formatPriceInput('edit')" :value="formatPrice(editingTicket.price)">
                 </div>
