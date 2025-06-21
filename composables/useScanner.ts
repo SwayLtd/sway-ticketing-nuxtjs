@@ -311,210 +311,178 @@ export const useScanner = () => {
         // Sauvegarder les stats
         saveToLocalStorage()
     }
-} else {
-    // Scan hors ligne - ajouter à la queue
-    const offlineItem: OfflineQueueItem = {
-        ticketId: qrData, // On suppose que le QR contient l'ID du ticket
-        scannedAt: new Date(),
-        attempts: 0
-    }
 
-                offlineQueue.value.push(offlineItem)
-scannerStats.offlineScans++
+    // Synchronisation offline
+    const syncOfflineScans = async () => {
+        if (!isOnline.value || isSyncing.value || offlineQueue.value.length === 0) {
+            return
+        }
 
-// Résultat offline générique
-scanResult.value = {
-    valid: true,
-    reason: 'offline_scan'
-}
+        if (!currentScanner.value?.id) {
+            console.error('Scanner non configuré')
+            return
+        }
 
-saveToLocalStorage()
-            }
-        } catch (error) {
-    console.error('Erreur lors du scan:', error)
-    scanResult.value = {
-        valid: false,
-        reason: 'scan_error'
-    }
-}
+        isSyncing.value = true
 
-// Remettre l'état de scanning si nécessaire
-if (wasScanning) {
-    isScanning.value = true
-}
-    }
-
-// Synchronisation offline
-const syncOfflineScans = async () => {
-    if (!isOnline.value || isSyncing.value || offlineQueue.value.length === 0) {
-        return
-    }
-
-    if (!currentScanner.value?.id) {
-        console.error('Scanner non configuré')
-        return
-    }
-
-    isSyncing.value = true
-
-    try {
-        const response = await $fetch<SyncResponse>('/api/scanner/sync-offline', {
-            method: 'POST',
-            body: {
-                scannedTickets: offlineQueue.value.map(item => ({
-                    ticketId: item.ticketId,
-                    scannedAt: item.scannedAt.toISOString()
-                })),
-                scannerId: currentScanner.value.id
-            }
-        })
-
-        // Traiter les résultats
-        if (response.results) {
-            const successfulSyncs = response.results.filter(r => r.success)
-            const failedSyncs = response.results.filter(r => !r.success)
-
-            // Supprimer les scans synchronisés avec succès
-            const successfulTicketIds = successfulSyncs.map(r => r.ticket_id)
-            offlineQueue.value = offlineQueue.value.filter(
-                item => !successfulTicketIds.includes(item.ticketId)
-            )
-
-            // Marquer les échecs
-            failedSyncs.forEach(failedResult => {
-                const queueItem = offlineQueue.value.find(
-                    item => item.ticketId === failedResult.ticket_id
-                )
-                if (queueItem) {
-                    queueItem.attempts++
-                    queueItem.lastError = failedResult.error
+        try {
+            const response = await $fetch<SyncResponse>('/api/scanner/sync-offline', {
+                method: 'POST',
+                body: {
+                    scannedTickets: offlineQueue.value.map(item => ({
+                        ticketId: item.ticketId,
+                        scannedAt: item.scannedAt.toISOString()
+                    })),
+                    scannerId: currentScanner.value.id
                 }
             })
 
-            // Mettre à jour les stats
-            scannerStats.offlineScans = offlineQueue.value.length
-            lastSyncTime.value = new Date()
+            // Traiter les résultats
+            if (response.results) {
+                const successfulSyncs = response.results.filter(r => r.success)
+                const failedSyncs = response.results.filter(r => !r.success)
 
-            saveToLocalStorage()
+                // Supprimer les scans synchronisés avec succès
+                const successfulTicketIds = successfulSyncs.map(r => r.ticket_id)
+                offlineQueue.value = offlineQueue.value.filter(
+                    item => !successfulTicketIds.includes(item.ticketId)
+                )
+
+                // Marquer les échecs
+                failedSyncs.forEach(failedResult => {
+                    const queueItem = offlineQueue.value.find(
+                        item => item.ticketId === failedResult.ticket_id
+                    )
+                    if (queueItem) {
+                        queueItem.attempts++
+                        queueItem.lastError = failedResult.error
+                    }
+                })
+
+                // Mettre à jour les stats
+                scannerStats.offlineScans = offlineQueue.value.length
+                lastSyncTime.value = new Date()
+
+                saveToLocalStorage()
+            }
+        } catch (error) {
+            console.error('Erreur lors de la synchronisation:', error)
+            // Marquer toutes les tentatives comme échouées
+            offlineQueue.value.forEach(item => {
+                item.attempts++
+                item.lastError = 'Erreur réseau'
+            })
+        } finally {
+            isSyncing.value = false
         }
-    } catch (error) {
-        console.error('Erreur lors de la synchronisation:', error)
-        // Marquer toutes les tentatives comme échouées
-        offlineQueue.value.forEach(item => {
-            item.attempts++
-            item.lastError = 'Erreur réseau'
-        })
-    } finally {
-        isSyncing.value = false
-    }
-}    // Mettre à jour les statistiques
-const updateStats = (result: ScanResult) => {
-    scannerStats.totalScanned++
-    if (result.valid) {
-        scannerStats.validScans++
-    } else {
-        scannerStats.invalidScans++
-    }
-    saveToLocalStorage()
-}// Scan suivant
-const nextScan = () => {
-    scanResult.value = null
-    // Optionnel: focus sur le scanner ou autre action
-}
-
-// Supprimer un élément de la queue
-const removeFromOfflineQueue = (ticketId: string) => {
-    offlineQueue.value = offlineQueue.value.filter(item => item.ticketId !== ticketId)
-    saveToLocalStorage()
-}
-
-// Effacer le résultat de scan
-const clearScanResult = () => {
-    scanResult.value = null
-}
-
-// Télécharger les données de l'événement
-const downloadEventData = async () => {
-    if (!currentEvent.value?.id) return
-
-    try {
-        const eventData = await $fetch(`/api/scanner/event-data/${currentEvent.value.id}`)
-        // Sauvegarder en cache local pour l'utilisation offline
-        localStorage.setItem(`event-data-${currentEvent.value.id}`, JSON.stringify(eventData))
-    } catch (error) {
-        console.error('Erreur lors du téléchargement des données:', error)
-    }
-}
-
-// Sauvegarde localStorage
-const saveToLocalStorage = () => {
-    if (currentScanner.value) {
-        const data = {
-            stats: scannerStats,
-            offlineQueue: offlineQueue.value,
-            lastSyncTime: lastSyncTime.value
+    }    // Mettre à jour les statistiques
+    const updateStats = (result: ScanResult) => {
+        scannerStats.totalScanned++
+        if (result.valid) {
+            scannerStats.validScans++
+        } else {
+            scannerStats.invalidScans++
         }
-        localStorage.setItem(`scanner-${currentScanner.value.id}`, JSON.stringify(data))
+        saveToLocalStorage()
+    }// Scan suivant
+    const nextScan = () => {
+        scanResult.value = null
+        // Optionnel: focus sur le scanner ou autre action
     }
-}
 
-// Chargement localStorage
-const loadFromLocalStorage = () => {
-    if (currentScanner.value) {
-        const stored = localStorage.getItem(`scanner-${currentScanner.value.id}`)
-        if (stored) {
-            try {
-                const data = JSON.parse(stored)
-                Object.assign(scannerStats, data.stats || {})
-                offlineQueue.value = (data.offlineQueue || []).map((item: any) => ({
-                    ...item,
-                    scannedAt: new Date(item.scannedAt)
-                }))
-                lastSyncTime.value = data.lastSyncTime ? new Date(data.lastSyncTime) : null
-            } catch (error) {
-                console.error('Erreur lors du chargement des données locales:', error)
+    // Supprimer un élément de la queue
+    const removeFromOfflineQueue = (ticketId: string) => {
+        offlineQueue.value = offlineQueue.value.filter(item => item.ticketId !== ticketId)
+        saveToLocalStorage()
+    }
+
+    // Effacer le résultat de scan
+    const clearScanResult = () => {
+        scanResult.value = null
+    }
+
+    // Télécharger les données de l'événement
+    const downloadEventData = async () => {
+        if (!currentEvent.value?.id) return
+
+        try {
+            const eventData = await $fetch(`/api/scanner/event-data/${currentEvent.value.id}`)
+            // Sauvegarder en cache local pour l'utilisation offline
+            localStorage.setItem(`event-data-${currentEvent.value.id}`, JSON.stringify(eventData))
+        } catch (error) {
+            console.error('Erreur lors du téléchargement des données:', error)
+        }
+    }
+
+    // Sauvegarde localStorage
+    const saveToLocalStorage = () => {
+        if (currentScanner.value) {
+            const data = {
+                stats: scannerStats,
+                offlineQueue: offlineQueue.value,
+                lastSyncTime: lastSyncTime.value
+            }
+            localStorage.setItem(`scanner-${currentScanner.value.id}`, JSON.stringify(data))
+        }
+    }
+
+    // Chargement localStorage
+    const loadFromLocalStorage = () => {
+        if (currentScanner.value) {
+            const stored = localStorage.getItem(`scanner-${currentScanner.value.id}`)
+            if (stored) {
+                try {
+                    const data = JSON.parse(stored)
+                    Object.assign(scannerStats, data.stats || {})
+                    offlineQueue.value = (data.offlineQueue || []).map((item: any) => ({
+                        ...item,
+                        scannedAt: new Date(item.scannedAt)
+                    }))
+                    lastSyncTime.value = data.lastSyncTime ? new Date(data.lastSyncTime) : null
+                } catch (error) {
+                    console.error('Erreur lors du chargement des données locales:', error)
+                }
             }
         }
+    }    // Lifecycle
+    onMounted(() => {
+        if (process.client) {
+            // Mettre à jour l'état de connexion
+            isOnline.value = navigator.onLine
+
+            // Ajouter les listeners
+            window.addEventListener('online', handleOnline)
+            window.addEventListener('offline', handleOffline)
+        }
+    })
+
+    onUnmounted(() => {
+        if (process.client) {
+            window.removeEventListener('online', handleOnline)
+            window.removeEventListener('offline', handleOffline)
+        }
+    })
+
+    return {
+        // État
+        isAuthenticated,
+        currentEvent,
+        currentScanner,
+        isOnline,
+        isSyncing,
+        isScanning,
+        scanResult,
+        lastSyncTime,
+        scannerStats,
+        offlineQueue,
+
+        // Actions
+        handleAuth,
+        handleQRScan,
+        syncOfflineScans,
+        removeFromOfflineQueue,
+        clearScanResult,
+        nextScan,
+        downloadEventData
     }
-}    // Lifecycle
-onMounted(() => {
-    if (process.client) {
-        // Mettre à jour l'état de connexion
-        isOnline.value = navigator.onLine
-
-        // Ajouter les listeners
-        window.addEventListener('online', handleOnline)
-        window.addEventListener('offline', handleOffline)
-    }
-})
-
-onUnmounted(() => {
-    if (process.client) {
-        window.removeEventListener('online', handleOnline)
-        window.removeEventListener('offline', handleOffline)
-    }
-})
-
-return {
-    // État
-    isAuthenticated,
-    currentEvent,
-    currentScanner,
-    isOnline,
-    isSyncing,
-    isScanning,
-    scanResult,
-    lastSyncTime,
-    scannerStats,
-    offlineQueue,
-
-    // Actions
-    handleAuth,
-    handleQRScan,
-    syncOfflineScans,
-    removeFromOfflineQueue,
-    clearScanResult,
-    nextScan,
-    downloadEventData
-}
 }
