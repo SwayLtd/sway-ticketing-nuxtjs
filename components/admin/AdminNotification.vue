@@ -3,7 +3,7 @@
         'fixed top-4 right-4 z-50 max-w-sm w-full bg-white shadow-lg rounded-lg pointer-events-auto ring-1 ring-black ring-opacity-5 transform transition-all duration-300 ease-in-out',
         show ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'
     ]">
-        <div class="p-4">
+        <div class="p-4 min-h-[5.5em]">
             <div class="flex items-start">
                 <div class="flex-shrink-0">
                     <svg v-if="type === 'success'" class="h-6 w-6 text-green-400" fill="none" viewBox="0 0 24 24"
@@ -58,6 +58,15 @@
                     </button>
                 </div>
             </div>
+        </div> <!-- Barre de progression temporelle -->
+        <div v-if="duration > 0" class="h-1 bg-gray-200 rounded-b-lg overflow-hidden">
+            <div :class="[
+                'h-full transition-all duration-100 ease-linear rounded-b-lg',
+                type === 'success' ? 'bg-green-400' :
+                    type === 'error' ? 'bg-red-400' :
+                        type === 'warning' ? 'bg-yellow-400' :
+                            'bg-blue-400'
+            ]" :style="{ width: progressWidth + '%' }"></div>
         </div>
     </div>
 </template>
@@ -77,14 +86,28 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits(['close'])
 
 const show = ref(true)
+const timeRemaining = ref(props.duration)
+const progressWidth = computed(() => {
+    if (props.duration <= 0) return 100
+    return (timeRemaining.value / props.duration) * 100
+})
 
 let timeoutId: NodeJS.Timeout
+let intervalId: NodeJS.Timeout
 
 onMounted(() => {
     if (props.duration > 0) {
         timeoutId = setTimeout(() => {
             hide()
         }, props.duration)
+
+        // Mettre à jour le temps restant chaque seconde
+        intervalId = setInterval(() => {
+            timeRemaining.value -= 1000
+            if (timeRemaining.value <= 0) {
+                clearInterval(intervalId)
+            }
+        }, 1000)
     }
 })
 
@@ -92,10 +115,17 @@ onUnmounted(() => {
     if (timeoutId) {
         clearTimeout(timeoutId)
     }
+    if (intervalId) {
+        clearInterval(intervalId)
+    }
 })
 
 function hide() {
     show.value = false
+    // Nettoyer les timers
+    if (timeoutId) clearTimeout(timeoutId)
+    if (intervalId) clearInterval(intervalId)
+
     setTimeout(() => {
         emit('close')
     }, 300) // Wait for animation to complete
