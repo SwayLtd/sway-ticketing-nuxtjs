@@ -3,6 +3,25 @@ applyTo: "**"
 ---
 # Project general coding standards
 
+## Development Environment
+
+### Package Manager and Runtime
+- **Use Bun for development**: Always use `npm run dev:bun` instead of `npm run dev`
+- **Bun advantages**: Faster startup times, better performance, native TypeScript support
+- **Production builds**: Use `bun run build:bun` for production builds
+- **Installation**: Use `bun install` for package installation when possible
+
+### Development Commands
+```bash
+# ✅ Preferred for development
+npm run dev:bun        # Start development server with Bun
+bun run build:bun      # Build for production with Bun
+bun install            # Install dependencies
+
+# ❌ Avoid for development (slower)
+npm run dev            # Standard Node.js development server
+```
+
 ## Naming Conventions
 
 ### Files and Directories
