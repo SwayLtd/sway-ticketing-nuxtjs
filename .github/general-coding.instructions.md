@@ -6,21 +6,53 @@ applyTo: "**"
 ## Development Environment
 
 ### Package Manager and Runtime
-- **Use Bun for development**: Always use `npm run dev:bun` instead of `npm run dev`
-- **Bun advantages**: Faster startup times, better performance, native TypeScript support
+- **Use Bun in complement with Node.js for development**: Bun provides faster performance while maintaining Node.js compatibility
+- **Bun advantages**: Faster startup times, better performance, native TypeScript support, improved package installation
+- **Development preference**: Always use `npm run dev:bun` instead of `npm run dev`
 - **Production builds**: Use `bun run build:bun` for production builds
-- **Installation**: Use `bun install` for package installation when possible
+- **Package management**: Use `bun install` and `bun remove` for faster package operations when possible
+
+### Runtime Environment
+- **Hybrid approach**: This project uses Bun as a development accelerator while maintaining Node.js compatibility
+- **Why this setup**: 
+  - Bun provides faster package installation and development server startup
+  - Node.js ensures production compatibility and ecosystem stability
+  - Both runtimes share the same JavaScript standards and npm ecosystem
+- **Development workflow**: Use Bun commands for daily development, npm for compatibility testing
 
 ### Development Commands
 ```bash
-# ✅ Preferred for development
+# ✅ Preferred for development (Bun + Node.js)
 npm run dev:bun        # Start development server with Bun
 bun run build:bun      # Build for production with Bun
-bun install            # Install dependencies
+bun install            # Install dependencies with Bun
+bun remove <package>   # Remove dependencies with Bun
+
+# ✅ Alternative Node.js commands
+npm install            # Install dependencies with npm
+npm uninstall <package># Remove dependencies with npm
 
 # ❌ Avoid for development (slower)
 npm run dev            # Standard Node.js development server
 ```
+
+### Terminal Commands Best Practices
+**IMPORTANT**: When using terminal commands, do NOT prefix with `cd` to the project directory.
+The terminal is already in the correct working directory for all developers.
+
+```bash
+# ✅ Correct - Simple commands
+npm install
+npm run dev:bun
+bun install
+bun remove package-name
+
+# ❌ Incorrect - Unnecessary cd prefix
+cd "/path/to/project" && npm install
+cd "/path/to/project" && npm run dev:bun
+```
+
+**Reason**: The working directory is already set correctly for all developers using this project, regardless of their local setup.
 
 ## Naming Conventions
 
