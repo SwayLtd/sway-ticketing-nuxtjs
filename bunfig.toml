@@ -1,0 +1,21 @@
+# Bun configuration for Sway Ticketing project
+[install]
+# Use cache for faster installations
+cache = true
+
+# Automatically link workspace packages
+linkWorkspacePackages = true
+
+# Production-only installs exclude devDependencies
+production = false
+
+[test]
+# Test configuration (when you add tests)
+preload = ["./tests/setup.ts"]
+
+[run]
+# Default environment variables for development
+env = { NODE_ENV = "development" }
+
+# Allow bun to run scripts even if they are in node_modules
+allowBunRunning = true
