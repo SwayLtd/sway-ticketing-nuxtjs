@@ -25,12 +25,15 @@
   to = "/event/index.html"
   status = 200
 
-# Redirect catch-all pour SSR
+# Fallback catch-all pour SSR
 [[redirects]]
   from = "/*"
-  to = "/.netlify/functions/server"
+  to = "/index.html"
   status = 200
 ```
+
+Ce fallback statique est essentiel: le rendu SSR de Nuxt s'appuie sur
+`index.html` pour démarrer correctement.
 
 ### Variables d'environnement Netlify
 
