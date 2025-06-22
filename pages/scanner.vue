@@ -9,14 +9,16 @@
             <div class="bg-white border-b border-gray-200 px-4 py-2 sticky top-0 z-10 flex-shrink-0">
                 <div class="flex justify-between items-center text-sm max-w-2xl mx-auto">
                     <div class="flex items-center space-x-4">
-                        <span :class="[
+                        <span
+:class="[
                             'flex items-center',
                             isOnline ? 'text-green-600' : 'text-red-600'
                         ]">
-                            <span :class="[
+                            <span
+:class="[
                                 'w-2 h-2 rounded-full mr-2',
                                 isOnline ? 'bg-green-500' : 'bg-red-500'
-                            ]"></span>
+                            ]"/>
                             {{ isOnline ? 'Online' : 'Offline' }}
                         </span>
                         <span class="text-md text-gray-600">{{ currentScanner?.name }}</span>
@@ -29,7 +31,7 @@
                         <span v-if="sessionInfo.isValid" class="text-gray-600">
                             Expires in {{ formatTimeRemaining(sessionInfo.timeRemaining) }}
                         </span>
-                        <button @click="logout" class="text-red-600 hover:text-red-800 font-medium">
+                        <button class="text-red-600 hover:text-red-800 font-medium" @click="logout">
                             Logout
                         </button>
                     </div>
@@ -40,9 +42,10 @@
             <div class="flex-grow overflow-y-auto p-4">
                 <div class="max-w-2xl mx-auto">
                     <!-- QR Scanner -->
-                    <QRScanner @qr-scanned="handleQRScan" @clear-result="clearScanResult" :is-scanning="isScanning"
-                        :scan-result="scanResult" :event-id="currentEvent?.id" :scanner-id="currentScanner?.id"
-                        :is-online="isOnline" />
+                    <QRScanner
+:is-scanning="isScanning" :scan-result="scanResult" :event-id="currentEvent?.id"
+                        :scanner-id="currentScanner?.id" :is-online="isOnline" @qr-scanned="handleQRScan"
+                        @clear-result="clearScanResult" />
 
                     <!-- Info and Stats -->
                     <div class="mt-6 space-y-4">
@@ -131,7 +134,7 @@ const clearScanResult = () => {
 
 // Function to manage vibrations based on context
 const triggerScanVibration = (type) => {
-    if (!process.client || !('vibrate' in navigator) || !vibrationEnabled.value) return
+    if (!import.meta.client || !('vibrate' in navigator) || !vibrationEnabled.value) return
 
     try {
         switch (type) {
@@ -190,14 +193,14 @@ const formatTimeRemaining = (milliseconds) => {
 // Save preferences
 const toggleVibration = () => {
     vibrationEnabled.value = !vibrationEnabled.value
-    if (process.client) {
+    if (import.meta.client) {
         localStorage.setItem('scanner-vibration-enabled', JSON.stringify(vibrationEnabled.value))
     }
 }
 
 // PWA management and initialization
 onMounted(() => {
-    if (process.client) {
+    if (import.meta.client) {
         // Always force vibration off at startup
         vibrationEnabled.value = false
         localStorage.setItem('scanner-vibration-enabled', 'false')
@@ -224,7 +227,7 @@ onMounted(() => {
         }
     }
 
-    if (process.client && vibrationEnabled.value && 'vibrate' in navigator) {
+    if (import.meta.client && vibrationEnabled.value && 'vibrate' in navigator) {
         try {
             navigator.vibrate(100)
         } catch (e) {

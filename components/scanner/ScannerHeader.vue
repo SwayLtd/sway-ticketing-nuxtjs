@@ -31,11 +31,12 @@
 
                 <!-- Actions -->
                 <div class="flex items-center space-x-2">
-                    <button @click="showStats = !showStats" class="p-2 text-gray-400 hover:text-gray-600 rounded-md">
+                    <button class="p-2 text-gray-400 hover:text-gray-600 rounded-md" @click="showStats = !showStats">
                         <ChartBarIcon class="h-5 w-5" />
                     </button>
-                    <button @click="showSettings = !showSettings"
-                        class="p-2 text-gray-400 hover:text-gray-600 rounded-md">
+                    <button
+class="p-2 text-gray-400 hover:text-gray-600 rounded-md"
+                        @click="showSettings = !showSettings">
                         <CogIcon class="h-5 w-5" />
                     </button>
                 </div>
@@ -64,7 +65,7 @@
             </div>            <!-- Paramètres (collapsible) -->
             <div v-if="showSettings" class="border-t border-gray-200 pt-4 pb-4">
                 <div class="flex items-center justify-end">
-                    <button @click="logout" class="text-sm text-red-600 hover:text-red-800 font-medium">
+                    <button class="text-sm text-red-600 hover:text-red-800 font-medium" @click="logout">
                         Déconnexion
                     </button>
                 </div>

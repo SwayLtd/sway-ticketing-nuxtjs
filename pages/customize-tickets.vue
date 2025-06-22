@@ -26,35 +26,38 @@
                         <form @submit.prevent="updateTicket(ticket)">
                             <div class="form-group">
                                 <label for="firstName">First Name:</label>
-                                <input v-model="customizationInputs[ticket.id].firstName" id="firstName" type="text"
+                                <input
+id="firstName" v-model="customizationInputs[ticket.id].firstName" type="text"
                                     :disabled="ticket.customization_data !== null"
-                                    :class="{ disabled: ticket.customization_data !== null }" required />
+                                    :class="{ disabled: ticket.customization_data !== null }" required >
                             </div>
                             <div class="form-group">
                                 <label for="lastName">Last Name:</label>
-                                <input v-model="customizationInputs[ticket.id].lastName" id="lastName" type="text"
+                                <input
+id="lastName" v-model="customizationInputs[ticket.id].lastName" type="text"
                                     :disabled="ticket.customization_data !== null"
-                                    :class="{ disabled: ticket.customization_data !== null }" required />
+                                    :class="{ disabled: ticket.customization_data !== null }" required >
                             </div>
                             <div class="form-group">
                                 <label for="email">Email:</label>
-                                <input v-model="customizationInputs[ticket.id].email" id="email" type="email"
+                                <input
+id="email" v-model="customizationInputs[ticket.id].email" type="email"
                                     :disabled="ticket.customization_data !== null"
-                                    :class="{ disabled: ticket.customization_data !== null }" required />
+                                    :class="{ disabled: ticket.customization_data !== null }" required >
                             </div>
                             <button v-if="ticket.customization_data === null" type="submit" class="action-button save-button">
                                 Save Customization
                             </button>
                         </form>
-                        <div class="actions-group" v-if="ticket.customization_data !== null">
-                            <button @click="downloadTicket(ticket)" class="action-button download-button">
+                        <div v-if="ticket.customization_data !== null" class="actions-group">
+                            <button class="action-button download-button" @click="downloadTicket(ticket)">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="button-icon">
                                     <path d="M10.75 2.75a.75.75 0 00-1.5 0v8.614L6.295 8.235a.75.75 0 10-1.09 1.03l4.25 4.5a.75.75 0 001.09 0l4.25-4.5a.75.75 0 00-1.09-1.03l-2.955 3.129V2.75z" />
                                     <path d="M3.5 12.75a.75.75 0 00-1.5 0v2.5A2.75 2.75 0 004.75 18h10.5A2.75 2.75 0 0018 15.25v-2.5a.75.75 0 00-1.5 0v2.5c0 .69-.56 1.25-1.25 1.25H4.75c-.69 0-1.25-.56-1.25-1.25v-2.5z" />
                                 </svg>
                                 Download My Ticket
                             </button>
-                            <button @click="resendTicketEmail(ticket)" class="action-button resend-email-button">
+                            <button class="action-button resend-email-button" @click="resendTicketEmail(ticket)">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="button-icon">
                                     <path d="M3 4a2 2 0 00-2 2v1.161l8.441 4.221a1.25 1.25 0 001.118 0L19 7.162V6a2 2 0 00-2-2H3z" />
                                     <path d="M19 8.839l-7.77 3.885a2.75 2.75 0 01-2.46 0L1 8.839V14a2 2 0 002 2h14a2 2 0 002-2V8.839z" />
@@ -84,13 +87,13 @@
 
 <script setup lang="ts">
 // Désactiver SSR pour cette page pour éviter les problèmes avec jsPDF
-definePageMeta({
-    ssr: false
-})
-
 import { ref, reactive, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useSupabaseClient } from '#imports'
+
+definePageMeta({
+    ssr: false
+})
 
 const route = useRoute()
 const router = useRouter()

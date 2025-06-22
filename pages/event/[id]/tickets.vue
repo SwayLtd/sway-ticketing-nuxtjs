@@ -271,8 +271,9 @@ const goToLogin = () => {
                 <button type="button" class="counterButton" @click="updateQuantity(p.id, -1)">–</button>
                 <span class="quantityValue">{{ quantities[p.id] }}</span>
                 <!-- Désactiver le bouton plus si la limite est atteinte -->
-                <button type="button" class="counterButton" @click="updateQuantity(p.id, 1)"
-                  :disabled="p.max_per_order !== null && p.max_per_order !== undefined && quantities[p.id] >= p.max_per_order">
+                <button
+type="button" class="counterButton" :disabled="p.max_per_order !== null && p.max_per_order !== undefined && quantities[p.id] >= p.max_per_order"
+                  @click="updateQuantity(p.id, 1)">
                   +
                 </button>
               </div>
@@ -280,7 +281,7 @@ const goToLogin = () => {
           </div>
         </div>
         <!-- Order Summary (affiché si des tickets sont ajoutés) -->
-        <div class="orderSummary" v-if="selectedProducts.length > 0">
+        <div v-if="selectedProducts.length > 0" class="orderSummary">
           <h2>Order Summary</h2>
           <div v-for="p in selectedProducts" :key="p.id" class="summaryRow">
             <span>{{ p.name }} x {{ quantities[p.id] }}</span>
@@ -297,7 +298,7 @@ const goToLogin = () => {
 
           <!-- Champ email si non connecté -->
           <div v-if="!isLoggedIn" class="emailInput">
-            <input id="email" type="email" v-model="email" placeholder="example@mail.com" />
+            <input id="email" v-model="email" type="email" placeholder="example@mail.com" >
             <p v-if="emailError" class="error">{{ emailError }}</p>
           </div>
 

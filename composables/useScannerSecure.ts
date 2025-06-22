@@ -77,7 +77,7 @@ export const useScannerSecure = () => {
     const isAuthenticated = ref(false)
     const currentEvent = ref<Event | null>(null)
     const currentScanner = ref<Scanner | null>(null)
-    const isOnline = ref(process.client ? navigator.onLine : true)
+    const isOnline = ref(import.meta.client ? navigator.onLine : true)
     const isSyncing = ref(false)
     const isScanning = ref(false)
     const scanResult = ref<ScanResult | null>(null)
@@ -125,7 +125,7 @@ export const useScannerSecure = () => {
         scannerStats.offlineScans = 0
 
         // Nettoyer le localStorage
-        if (process.client) {
+        if (import.meta.client) {
             localStorage.removeItem('scanner_session')
             localStorage.removeItem('scanner_stats')
             localStorage.removeItem('offline_queue')
@@ -192,7 +192,7 @@ export const useScannerSecure = () => {
                 isScanning.value = true
 
                 // Sauvegarder en localStorage pour la persistance
-                if (process.client) {
+                if (import.meta.client) {
                     localStorage.setItem('scanner_session', JSON.stringify({
                         sessionToken: sessionToken.value,
                         expiresAt: sessionExpiresAt.value?.toISOString(),
@@ -335,7 +335,7 @@ export const useScannerSecure = () => {
 
     // Sauvegarde localStorage
     const saveToLocalStorage = () => {
-        if (!process.client) return
+        if (!import.meta.client) return
 
         try {
             localStorage.setItem('scanner_stats', JSON.stringify(scannerStats))
@@ -345,7 +345,7 @@ export const useScannerSecure = () => {
         }
     }    // Restaurer la session depuis localStorage
     const restoreSession = async () => {
-        if (!process.client) return
+        if (!import.meta.client) return
 
         try {
             const savedSession = localStorage.getItem('scanner_session')
@@ -426,7 +426,7 @@ export const useScannerSecure = () => {
 
     const hasOfflineQueue = computed(() => offlineQueue.value.length > 0)    // Lifecycle
     onMounted(async () => {
-        if (process.client) {
+        if (import.meta.client) {
             window.addEventListener('online', handleOnline)
             window.addEventListener('offline', handleOffline)
             await restoreSession()
@@ -434,7 +434,7 @@ export const useScannerSecure = () => {
     })
 
     onUnmounted(() => {
-        if (process.client) {
+        if (import.meta.client) {
             window.removeEventListener('online', handleOnline)
             window.removeEventListener('offline', handleOffline)
         }

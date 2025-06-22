@@ -2,20 +2,21 @@
     <div class="qr-scanner">
         <div class="camera-container relative bg-black rounded-lg overflow-hidden">
             <!-- Video stream -->
-            <video ref="videoElement" autoplay playsinline muted class="w-full h-64 object-cover"
-                :class="{ 'mirror': isFrontCamera }"></video>
+            <video
+ref="videoElement" autoplay playsinline muted class="w-full h-64 object-cover"
+                :class="{ 'mirror': isFrontCamera }"/>
 
             <!-- Canvas for processing (hidden) -->
-            <canvas ref="canvasElement" style="display: none;"></canvas>
+            <canvas ref="canvasElement" style="display: none;"/>
 
             <!-- Target overlay -->
             <div class="absolute inset-0 flex items-center justify-center">
                 <div class="scanner-overlay">
                     <div class="scan-area border-2 border-white rounded-lg relative">
-                        <div class="corner corner-tl"></div>
-                        <div class="corner corner-tr"></div>
-                        <div class="corner corner-bl"></div>
-                        <div class="corner corner-br"></div>
+                        <div class="corner corner-tl"/>
+                        <div class="corner corner-tr"/>
+                        <div class="corner corner-bl"/>
+                        <div class="corner corner-br"/>
                     </div>
                 </div>
             </div> <!-- Scan indicator -->
@@ -34,40 +35,48 @@
 
             <!-- Camera controls -->
             <div class="absolute bottom-4 right-4 flex gap-2">
-                <button @click="toggleCamera"
-                    class="bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-70">
+                <button
+class="bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-70"
+                    @click="toggleCamera">
                     <CameraIcon class="h-5 w-5" />
                 </button>
-                <button @click="toggleTorch" v-if="hasTorch"
-                    class="bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-70"
-                    :class="{ 'bg-yellow-500': torchEnabled }">
+                <button
+v-if="hasTorch" class="bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-70"
+                    :class="{ 'bg-yellow-500': torchEnabled }"
+                    @click="toggleTorch">
                     <BoltIcon class="h-5 w-5" />
                 </button>
             </div>
         </div> <!-- Integrated scan result -->
-        <div v-if="lastScanResult" class="scan-result mt-4 p-4 rounded-lg border-2 transition-all duration-300"
+        <div
+v-if="lastScanResult" class="scan-result mt-4 p-4 rounded-lg border-2 transition-all duration-300"
             :class="getScanResultClasses(lastScanResult).bg">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
                     <div class="flex-shrink-0">
-                        <div v-if="getScanResultType(lastScanResult) === 'success'"
+                        <div
+v-if="getScanResultType(lastScanResult) === 'success'"
                             class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
                             <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M5 13l4 4L19 7"></path>
+                                <path
+stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M5 13l4 4L19 7"/>
                             </svg>
                         </div>
-                        <div v-else-if="getScanResultType(lastScanResult) === 'warning'"
+                        <div
+v-else-if="getScanResultType(lastScanResult) === 'warning'"
                             class="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
                             <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                <path
+stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                             </svg>
                         </div>
                         <div v-else class="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center">
                             <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M6 18L18 6M6 6l12 12"></path>
+                                <path
+stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12"/>
                             </svg>
                         </div>
                     </div>
@@ -81,10 +90,9 @@
                         </div>
                     </div>
                 </div>
-                <button @click="clearScanResult" class="text-gray-400 hover:text-gray-600">
+                <button class="text-gray-400 hover:text-gray-600" @click="clearScanResult">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
-                        </path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
                 </button>
             </div>
@@ -93,23 +101,25 @@
         <!-- Manual input -->
         <div class="manual-input mt-4">
             <div class="flex gap-2">
-                <input v-model="manualQR" @keyup.enter="handleManualScan" placeholder="Or enter the code manually"
-                    class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                <button @click="handleManualScan" :disabled="!manualQR.trim()"
-                    class="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white px-4 py-2 rounded-md">
+                <input
+v-model="manualQR" placeholder="Or enter the code manually" class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    @keyup.enter="handleManualScan" >
+                <button
+:disabled="!manualQR.trim()" class="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white px-4 py-2 rounded-md"
+                    @click="handleManualScan">
                     Scan
                 </button>
             </div>
         </div> <!-- Error messages -->
         <div v-if="cameraError" class="mt-4 bg-red-50 border border-red-200 rounded-md p-3">
             <p class="text-sm text-red-600">{{ cameraError }}</p>
-            <button @click="startCamera" class="mt-2 text-sm text-red-700 underline hover:no-underline">
+            <button class="mt-2 text-sm text-red-700 underline hover:no-underline" @click="startCamera">
                 Retry
             </button>
         </div>
 
         <!-- HTTPS info for mobile -->
-        <div class="mt-4 bg-blue-50 border border-blue-200 rounded-md p-3" v-if="showHTTPSWarning">
+        <div v-if="showHTTPSWarning" class="mt-4 bg-blue-50 border border-blue-200 rounded-md p-3">
             <p class="text-sm text-blue-600">
                 📱 <strong>On mobile:</strong> Camera access requires HTTPS.
                 If you encounter issues, ask the organizer for the HTTPS link.
@@ -159,7 +169,7 @@ let scanningInterval = null
 
 // Detect if HTTPS is required
 const checkHTTPSRequirement = () => {
-    if (process.client) {
+    if (import.meta.client) {
         const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
         const isHTTP = window.location.protocol === 'http:'
         const isNotLocalhost = !window.location.hostname.includes('localhost') && !window.location.hostname.includes('127.0.0.1')

@@ -2,7 +2,7 @@
 <template>
   <div class="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
     <div class="sm:mx-auto sm:w-full sm:max-w-md">
-      <img class="mx-auto h-12 w-auto" src="/images/black_logotype.jpg" alt="Sway" />
+      <img class="mx-auto h-12 w-auto" src="/images/black_logotype.jpg" alt="Sway" >
       <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
         Connexion à votre compte
       </h2>
@@ -16,7 +16,8 @@
               Adresse email
             </label>
             <div class="mt-1">
-              <input id="email" v-model="email" name="email" type="email" autocomplete="email" required
+              <input
+id="email" v-model="email" name="email" type="email" autocomplete="email" required
                 placeholder="Votre email"
                 class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#FEBF1E] focus:border-[#FEBF1E] sm:text-sm">
             </div>
@@ -27,14 +28,16 @@
               Mot de passe
             </label>
             <div class="mt-1">
-              <input id="password" v-model="password" name="password" type="password" autocomplete="current-password"
+              <input
+id="password" v-model="password" name="password" type="password" autocomplete="current-password"
                 required placeholder="Votre mot de passe"
                 class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#FEBF1E] focus:border-[#FEBF1E] sm:text-sm">
             </div>
           </div>
 
           <div>
-            <button type="submit"
+            <button
+type="submit"
               class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-bold text-black bg-[#FEBF1E] hover:bg-yellow-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500">
               Se connecter
             </button>

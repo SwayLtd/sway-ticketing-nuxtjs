@@ -22,14 +22,14 @@ export default defineNuxtConfig({
       SUPABASE_URL: process.env.NUXT_PUBLIC_SUPABASE_URL,
       SUPABASE_ANON_KEY: process.env.NUXT_PUBLIC_SUPABASE_ANON_KEY,
     },
-  },
-  modules: [
+  },  modules: [
     '@nuxt/ui',
     '@nuxt/fonts',
     '@nuxt/icon',
     '@nuxt/image',
     '@unlok-co/nuxt-stripe',
-    '@nuxtjs/supabase'
+    '@nuxtjs/supabase',
+    '@nuxt/eslint'
   ],
 
   image: {

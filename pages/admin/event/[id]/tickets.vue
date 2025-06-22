@@ -821,27 +821,31 @@ onMounted(async () => {
           <h1 class="text-3xl font-bold text-gray-900 mb-1">Gestion des tickets</h1>
           <p class="text-sm text-gray-600">Ajoutez et gérez les types de tickets pour votre événement.</p>
         </div>
-        <div class="flex space-x-3"> <button @click="isTicketLimitReached ? handleDisabledClick() : openAddModal()"
-            :disabled="isTicketLimitReached"
+        <div class="flex space-x-3"> <button
+:disabled="isTicketLimitReached"
             :class="isTicketLimitReached ? 'bg-gray-400 hover:bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'"
             class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-            :title="isTicketLimitReached ? `Limite de ${MAX_TICKETS} types de tickets atteinte` : ''">
+            :title="isTicketLimitReached ? `Limite de ${MAX_TICKETS} types de tickets atteinte` : ''"
+            @click="isTicketLimitReached ? handleDisabledClick() : openAddModal()">
             <svg class="-ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
             </svg>
             Ajouter un ticket
           </button>
-          <button @click="exportTicketsData" :disabled="exportingData || !tickets.length"
-            class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed">
-            <svg v-if="exportingData" class="animate-spin -ml-1 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg"
+          <button
+:disabled="exportingData || !tickets.length" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            @click="exportTicketsData">
+            <svg
+v-if="exportingData" class="animate-spin -ml-1 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg"
               fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-              </path>
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+              <path
+class="opacity-75" fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
             </svg>
             <svg v-else class="-ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              <path
+stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
             {{ exportingData ? 'Export...' : 'Exporter CSV' }}
@@ -860,7 +864,8 @@ onMounted(async () => {
             </div>
             <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
               <svg class="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                <path
+stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 002 2h3a2 2 0 002-2V7a2 2 0 00-2-2H5zM5 11h3a2 2 0 002-2V7a2 2 0 00-2-2H5m12 0a2 2 0 00-2 2v3a2 2 0 002 2h3a2 2 0 002-2V7a2 2 0 00-2-2h-3zm0 4h3a2 2 0 002-2V7a2 2 0 00-2-2h-3" />
               </svg>
             </div>
@@ -876,7 +881,8 @@ onMounted(async () => {
             </div>
             <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
               <svg class="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                <path
+stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
               </svg>
             </div>
@@ -892,7 +898,8 @@ onMounted(async () => {
             </div>
             <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
               <svg class="w-5 h-5 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                <path
+stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
               </svg>
             </div>
@@ -909,7 +916,8 @@ onMounted(async () => {
             </div>
             <div class="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center">
               <svg class="w-5 h-5 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                <path
+stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
               </svg>
             </div>
@@ -922,7 +930,7 @@ onMounted(async () => {
           <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200 sticky top-8">
             <div class="flex items-center justify-between mb-6">
               <h2 class="text-lg font-semibold text-gray-800">Filtres avancés</h2>
-              <button @click="resetFilters" class="text-sm text-blue-600 hover:text-blue-700 font-medium">
+              <button class="text-sm text-blue-600 hover:text-blue-700 font-medium" @click="resetFilters">
                 Réinitialiser
               </button>
             </div>
@@ -933,16 +941,18 @@ onMounted(async () => {
                 <label class="block text-sm font-medium text-gray-700 mb-2">Statut</label>
                 <div class="space-y-2">
                   <label class="flex items-center">
-                    <input type="radio" v-model="filters.status" value="all" class="form-radio h-4 w-4 text-blue-600">
+                    <input v-model="filters.status" type="radio" value="all" class="form-radio h-4 w-4 text-blue-600">
                     <span class="ml-2 text-sm text-gray-700">Tous</span>
                   </label>
                   <label class="flex items-center">
-                    <input type="radio" v-model="filters.status" value="active"
+                    <input
+v-model="filters.status" type="radio" value="active"
                       class="form-radio h-4 w-4 text-blue-600">
                     <span class="ml-2 text-sm text-gray-700">Actifs</span>
                   </label>
                   <label class="flex items-center">
-                    <input type="radio" v-model="filters.status" value="inactive"
+                    <input
+v-model="filters.status" type="radio" value="inactive"
                       class="form-radio h-4 w-4 text-blue-600">
                     <span class="ml-2 text-sm text-gray-700">Inactifs</span>
                   </label>
@@ -954,20 +964,21 @@ onMounted(async () => {
                 <label class="block text-sm font-medium text-gray-700 mb-2">Stock</label>
                 <div class="space-y-2">
                   <label class="flex items-center">
-                    <input type="radio" v-model="filters.stock" value="all" class="form-radio h-4 w-4 text-blue-600">
+                    <input v-model="filters.stock" type="radio" value="all" class="form-radio h-4 w-4 text-blue-600">
                     <span class="ml-2 text-sm text-gray-700">Tous</span>
                   </label>
                   <label class="flex items-center">
-                    <input type="radio" v-model="filters.stock" value="unlimited"
+                    <input
+v-model="filters.stock" type="radio" value="unlimited"
                       class="form-radio h-4 w-4 text-blue-600">
                     <span class="ml-2 text-sm text-gray-700">Illimité</span>
                   </label>
                   <label class="flex items-center">
-                    <input type="radio" v-model="filters.stock" value="low" class="form-radio h-4 w-4 text-blue-600">
+                    <input v-model="filters.stock" type="radio" value="low" class="form-radio h-4 w-4 text-blue-600">
                     <span class="ml-2 text-sm text-gray-700">Stock faible (≤10)</span>
                   </label>
                   <label class="flex items-center">
-                    <input type="radio" v-model="filters.stock" value="out" class="form-radio h-4 w-4 text-blue-600">
+                    <input v-model="filters.stock" type="radio" value="out" class="form-radio h-4 w-4 text-blue-600">
                     <span class="ml-2 text-sm text-gray-700">Épuisé</span>
                   </label>
                 </div>
@@ -978,22 +989,26 @@ onMounted(async () => {
                 <!-- Range slider à deux points -->
                 <div class="relative mb-4">
                   <div class="flex items-center justify-between mb-2">
-                    <input type="number" v-model.number="filters.salesRange[0]" min="0" :max="filters.salesRange[1]"
+                    <input
+v-model.number="filters.salesRange[0]" type="number" min="0" :max="filters.salesRange[1]"
                       class="w-16 px-2 py-1 text-xs border rounded" @input="updateMinRange(filters.salesRange[0])">
                     <span class="text-xs text-gray-500">à</span>
-                    <input type="number" v-model.number="filters.salesRange[1]" :min="filters.salesRange[0]"
+                    <input
+v-model.number="filters.salesRange[1]" type="number" :min="filters.salesRange[0]"
                       :max="maxSalesRange" class="w-16 px-2 py-1 text-xs border rounded"
                       @input="updateMaxRange(filters.salesRange[1])">
                   </div>
                   <div class="relative h-6 flex items-center">
                     <!-- Track de fond -->
-                    <div class="w-full h-2 bg-gray-200 rounded-lg"></div>
+                    <div class="w-full h-2 bg-gray-200 rounded-lg"/>
                     <!-- Range min -->
-                    <input type="range" v-model.number="filters.salesRange[0]" min="0" :max="maxSalesRange"
+                    <input
+v-model.number="filters.salesRange[0]" type="range" min="0" :max="maxSalesRange"
                       class="absolute w-full h-2 bg-transparent appearance-none cursor-pointer slider-thumb"
                       @input="updateMinRange(filters.salesRange[0])">
                     <!-- Range max -->
-                    <input type="range" v-model.number="filters.salesRange[1]" min="0" :max="maxSalesRange"
+                    <input
+v-model.number="filters.salesRange[1]" type="range" min="0" :max="maxSalesRange"
                       class="absolute w-full h-2 bg-transparent appearance-none cursor-pointer slider-thumb"
                       @input="updateMaxRange(filters.salesRange[1])">
                   </div>
@@ -1011,20 +1026,24 @@ onMounted(async () => {
                   <span class="text-sm font-normal text-gray-500">({{ tickets.length }}/{{ MAX_TICKETS }})</span>
                 </h2>
                 <div class="flex items-center space-x-4">
-                  <button @click="showFilterSidebar = true"
-                    class="xl:hidden inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                  <button
+class="xl:hidden inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                    @click="showFilterSidebar = true">
                     <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      <path
+stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.707A1 1 0 013 7V4z" />
                     </svg>
                     Filtres
                   </button>
                   <div class="relative">
-                    <input v-model="searchTerm" type="text" placeholder="Rechercher..."
+                    <input
+v-model="searchTerm" type="text" placeholder="Rechercher..."
                       class="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                       <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        <path
+stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                           d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                       </svg>
                     </div>
@@ -1035,7 +1054,7 @@ onMounted(async () => {
 
             <!-- Loading State -->
             <div v-if="loadingTickets" class="flex items-center justify-center py-24">
-              <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
+              <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"/>
               <p class="ml-4 text-lg text-gray-600">Chargement des tickets...</p>
             </div> <!-- Table -->
             <div v-else-if="tickets.length" class="overflow-hidden">
@@ -1043,88 +1062,115 @@ onMounted(async () => {
                 <table class="min-w-full divide-y divide-gray-200">
                   <thead class="bg-gray-50">
                     <tr>
-                      <th scope="col" @click="sortTable('name')"
-                        class="group px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 min-w-[120px] max-w-[200px]">
+                      <th
+scope="col" class="group px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 min-w-[120px] max-w-[200px]"
+                        @click="sortTable('name')">
                         <div class="flex items-center space-x-1">
                           <span>Nom</span>
-                          <svg v-if="sortBy === 'name'" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
+                          <svg
+v-if="sortBy === 'name'" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
-                            <path v-if="sortDirection === 'asc'" stroke-linecap="round" stroke-linejoin="round"
+                            <path
+v-if="sortDirection === 'asc'" stroke-linecap="round" stroke-linejoin="round"
                               stroke-width="2" d="M5 15l7-7 7 7" />
-                            <path v-else stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            <path
+v-else stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                               d="M19 9l-7 7-7-7" />
                           </svg>
-                          <svg v-else class="w-4 h-4 opacity-0 group-hover:opacity-50 transition-opacity" fill="none"
+                          <svg
+v-else class="w-4 h-4 opacity-0 group-hover:opacity-50 transition-opacity" fill="none"
                             viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            <path
+stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                               d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
                           </svg>
                         </div>
                       </th>
-                      <th scope="col" @click="sortTable('price')"
-                        class="group px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 w-24">
+                      <th
+scope="col" class="group px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 w-24"
+                        @click="sortTable('price')">
                         <div class="flex items-center space-x-1">
                           <span>Prix</span>
-                          <svg v-if="sortBy === 'price'" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
+                          <svg
+v-if="sortBy === 'price'" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
-                            <path v-if="sortDirection === 'asc'" stroke-linecap="round" stroke-linejoin="round"
+                            <path
+v-if="sortDirection === 'asc'" stroke-linecap="round" stroke-linejoin="round"
                               stroke-width="2" d="M5 15l7-7 7 7" />
-                            <path v-else stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            <path
+v-else stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                               d="M19 9l-7 7-7-7" />
                           </svg>
-                          <svg v-else class="w-4 h-4 opacity-0 group-hover:opacity-50 transition-opacity" fill="none"
+                          <svg
+v-else class="w-4 h-4 opacity-0 group-hover:opacity-50 transition-opacity" fill="none"
                             viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            <path
+stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                               d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
                           </svg>
                         </div>
                       </th>
-                      <th scope="col"
+                      <th
+scope="col"
                         class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-20">
                         Statut
                       </th>
-                      <th scope="col" @click="sortTable('stock')"
-                        class="group px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 w-20">
+                      <th
+scope="col" class="group px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 w-20"
+                        @click="sortTable('stock')">
                         <div class="flex items-center justify-center space-x-1">
                           <span>Stock</span>
-                          <svg v-if="sortBy === 'stock'" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
+                          <svg
+v-if="sortBy === 'stock'" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
-                            <path v-if="sortDirection === 'asc'" stroke-linecap="round" stroke-linejoin="round"
+                            <path
+v-if="sortDirection === 'asc'" stroke-linecap="round" stroke-linejoin="round"
                               stroke-width="2" d="M5 15l7-7 7 7" />
-                            <path v-else stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            <path
+v-else stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                               d="M19 9l-7 7-7-7" />
                           </svg>
-                          <svg v-else class="w-4 h-4 opacity-0 group-hover:opacity-50 transition-opacity" fill="none"
+                          <svg
+v-else class="w-4 h-4 opacity-0 group-hover:opacity-50 transition-opacity" fill="none"
                             viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            <path
+stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                               d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
                           </svg>
                         </div>
                       </th>
-                      <th scope="col"
+                      <th
+scope="col"
                         class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24 hidden sm:table-cell">
                         Max
                         /
                         Commande</th>
-                      <th scope="col" @click="sortTable('sold')"
-                        class="group px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 w-24">
+                      <th
+scope="col" class="group px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 w-24"
+                        @click="sortTable('sold')">
                         <div class="flex items-center justify-center space-x-1">
                           <span>Vendus</span>
-                          <svg v-if="sortBy === 'sold'" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
+                          <svg
+v-if="sortBy === 'sold'" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
-                            <path v-if="sortDirection === 'asc'" stroke-linecap="round" stroke-linejoin="round"
+                            <path
+v-if="sortDirection === 'asc'" stroke-linecap="round" stroke-linejoin="round"
                               stroke-width="2" d="M5 15l7-7 7 7" />
-                            <path v-else stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            <path
+v-else stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                               d="M19 9l-7 7-7-7" />
                           </svg>
-                          <svg v-else class="w-4 h-4 opacity-0 group-hover:opacity-50 transition-opacity" fill="none"
+                          <svg
+v-else class="w-4 h-4 opacity-0 group-hover:opacity-50 transition-opacity" fill="none"
                             viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            <path
+stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                               d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
                           </svg>
                         </div>
                       </th>
-                      <th scope="col"
+                      <th
+scope="col"
                         class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
                         Actions
                       </th>
@@ -1141,12 +1187,12 @@ onMounted(async () => {
                                 ticket.description }}
                             </div>
                             <!-- Tooltip pour la description complète -->
-                            <div v-if="ticket.description.length > 30"
+                            <div
+v-if="ticket.description.length > 30"
                               class="absolute z-10 invisible group-hover:visible bg-gray-900 text-white text-xs rounded-lg px-3 py-2 bottom-full left-0 mb-2 min-w-max max-w-xs shadow-lg">
                               {{ ticket.description }}
                               <div
-                                class="absolute top-full left-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900">
-                              </div>
+                                class="absolute top-full left-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"/>
                             </div>
                           </div>
                         </div>
@@ -1154,11 +1200,13 @@ onMounted(async () => {
                       <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{{ formatCurrency(ticket.price,
                         ticket.currency) }}</td>
                       <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
-                        <span v-if="ticket.active !== false"
+                        <span
+v-if="ticket.active !== false"
                           class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                           Actif
                         </span>
-                        <span v-else
+                        <span
+v-else
                           class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
                           Inactif
                         </span>
@@ -1181,51 +1229,62 @@ onMounted(async () => {
                       </td>
                       <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
                         <div class="flex items-center justify-center space-x-1">
-                          <button @click="toggleTicketStatus(ticket)"
-                            :class="ticket.active !== false ? 'text-orange-600 hover:text-orange-900' : 'text-green-600 hover:text-green-900'"
+                          <button
+:class="ticket.active !== false ? 'text-orange-600 hover:text-orange-900' : 'text-green-600 hover:text-green-900'"
                             class="transition-colors duration-200 p-1"
-                            :title="ticket.active !== false ? 'Désactiver' : 'Activer'">
-                            <svg v-if="ticket.active !== false" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                            :title="ticket.active !== false ? 'Désactiver' : 'Activer'"
+                            @click="toggleTicketStatus(ticket)">
+                            <svg
+v-if="ticket.active !== false" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
                               stroke="currentColor">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              <path
+stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18.364 5.636M5.636 18.364l12.728-12.728" />
                             </svg>
                             <svg v-else class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              <path
+stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M5 13l4 4L19 7" />
                             </svg>
                           </button>
-                          <button @click="startStockManagement(ticket)"
-                            class="text-purple-600 hover:text-purple-900 transition-colors duration-200 p-1"
-                            title="Gérer le stock">
+                          <button
+class="text-purple-600 hover:text-purple-900 transition-colors duration-200 p-1"
+                            title="Gérer le stock"
+                            @click="startStockManagement(ticket)">
                             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              <path
+stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                             </svg>
                           </button>
-                          <button @click="startEditTicket(ticket)"
-                            class="text-blue-600 hover:text-blue-900 transition-colors duration-200 p-1"
-                            title="Modifier">
+                          <button
+class="text-blue-600 hover:text-blue-900 transition-colors duration-200 p-1"
+                            title="Modifier"
+                            @click="startEditTicket(ticket)">
                             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              <path
+stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                             </svg>
                           </button> <button
-                            @click="isTicketLimitReached ? handleDisabledClick() : duplicateTicket(ticket)"
                             :disabled="isTicketLimitReached"
                             :class="isTicketLimitReached ? 'text-gray-400 cursor-not-allowed' : 'text-green-600 hover:text-green-900'"
                             class="transition-colors duration-200 p-1 hidden sm:block"
-                            :title="isTicketLimitReached ? `Limite de ${MAX_TICKETS} types de tickets atteinte` : 'Dupliquer'">
+                            :title="isTicketLimitReached ? `Limite de ${MAX_TICKETS} types de tickets atteinte` : 'Dupliquer'"
+                            @click="isTicketLimitReached ? handleDisabledClick() : duplicateTicket(ticket)">
                             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              <path
+stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                             </svg>
                           </button>
-                          <button @click="startDeleteTicket(ticket)"
-                            class="text-red-600 hover:text-red-900 transition-colors duration-200 p-1"
-                            title="Supprimer">
+                          <button
+class="text-red-600 hover:text-red-900 transition-colors duration-200 p-1"
+                            title="Supprimer"
+                            @click="startDeleteTicket(ticket)">
                             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              <path
+stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                             </svg>
                           </button>
@@ -1238,23 +1297,27 @@ onMounted(async () => {
             </div><!-- No Tickets Found -->
             <div v-else-if="tickets.length && !filteredTickets.length" class="text-center py-24 px-6">
               <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                <path
+stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
               <h3 class="mt-2 text-sm font-medium text-gray-900">Aucun résultat</h3>
               <p class="mt-1 text-sm text-gray-500">Aucun ticket ne correspond à vos critères de recherche et filtres.
               </p>
-              <button @click="resetFilters"
-                class="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200">
+              <button
+class="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200"
+                @click="resetFilters">
                 Réinitialiser les filtres
               </button>
             </div>
 
             <!-- No Tickets at all -->
             <div v-else class="text-center py-24 px-6">
-              <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+              <svg
+class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                 aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                <path
+stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 002 2h3a2 2 0 002-2V7a2 2 0 00-2-2H5zM5 11h3a2 2 0 002-2V7a2 2 0 00-2-2H5m12 0a2 2 0 00-2 2v3a2 2 0 002 2h3a2 2 0 002-2V7a2 2 0 00-2-2h-3zm0 4h3a2 2 0 002-2V7a2 2 0 00-2-2h-3" />
               </svg>
               <h3 class="mt-2 text-sm font-medium text-gray-900">Aucun ticket</h3>
@@ -1264,30 +1327,33 @@ onMounted(async () => {
           </div>
         </div>
       </div> <!-- Modal d'ajout de ticket -->
-      <div v-if="showAddModal"
+      <div
+v-if="showAddModal"
         class="fixed inset-0 bg-gray-500/30 overflow-y-auto h-full w-full z-50 flex items-center justify-center"
         @click.self="closeAddModal">
         <div class="relative mx-auto p-5 border w-full max-w-lg shadow-lg rounded-md bg-white m-4" @click.stop>
           <div class="mt-3">
             <div class="flex items-center justify-between mb-4">
               <h3 class="text-lg font-medium text-gray-900">Ajouter un type de ticket</h3>
-              <button @click="closeAddModal" class="text-gray-400 hover:text-gray-600">
+              <button class="text-gray-400 hover:text-gray-600" @click="closeAddModal">
                 <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
-            <form @submit.prevent="addTicketTypeModal" class="space-y-4">
+            <form class="space-y-4" @submit.prevent="addTicketTypeModal">
               <div>
                 <label for="modalTicketName" class="block text-sm font-medium text-gray-700">Nom du ticket</label>
-                <input id="modalTicketName" v-model="ticketName" type="text" placeholder="Ex: Billet Standard" required
+                <input
+id="modalTicketName" v-model="ticketName" type="text" placeholder="Ex: Billet Standard" required
                   class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
               </div>
               <div>
                 <label for="modalTicketDescription" class="block text-sm font-medium text-gray-700">Description</label>
-                <textarea id="modalTicketDescription" v-model="ticketDescription" placeholder="Description (optionnel)"
+                <textarea
+id="modalTicketDescription" v-model="ticketDescription" placeholder="Description (optionnel)"
                   rows="3" maxlength="240"
-                  class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"></textarea>
+                  class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"/>
                 <p class="text-xs text-gray-500 mt-1">{{ ticketDescription.length }}/240 caractères</p>
               </div>
               <div class="grid grid-cols-2 gap-4">
@@ -1295,11 +1361,12 @@ onMounted(async () => {
                   <label for="modalTicketPrice" class="block text-sm font-medium text-gray-700">Prix (€)</label> <input
                     id="modalTicketPrice" type="number" step="1" min="0" placeholder="25.00" required
                     class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                    @input="formatPriceInput('add')" :value="formatPrice(ticketPrice)">
+                    :value="formatPrice(ticketPrice)" @input="formatPriceInput('add')">
                 </div>
                 <div>
                   <label for="modalCurrency" class="block text-sm font-medium text-gray-700">Devise</label>
-                  <select id="modalCurrency" v-model="currency"
+                  <select
+id="modalCurrency" v-model="currency"
                     class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
                     <option>EUR</option>
                     <option>USD</option>
@@ -1310,36 +1377,42 @@ onMounted(async () => {
               <div>
                 <label for="modalMaxPerOrder" class="block text-sm font-medium text-gray-700">Quantité max par
                   commande</label>
-                <input id="modalMaxPerOrder" v-model.number="maxPerOrder" type="number" placeholder="Optionnel"
+                <input
+id="modalMaxPerOrder" v-model.number="maxPerOrder" type="number" placeholder="Optionnel"
                   class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
               </div>
               <div>
                 <label for="modalTicketStock" class="block text-sm font-medium text-gray-700">Stock disponible</label>
-                <input id="modalTicketStock" v-model.number="ticketStock" type="number" placeholder="Illimité si vide"
+                <input
+id="modalTicketStock" v-model.number="ticketStock" type="number" placeholder="Illimité si vide"
                   class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
                 <p class="text-xs text-gray-500 mt-1">Laissez vide pour un stock illimité</p>
               </div>
               <div>
                 <label for="modalTicketActive" class="block text-sm font-medium text-gray-700">Statut</label>
-                <select id="modalTicketActive" v-model="ticketActive"
+                <select
+id="modalTicketActive" v-model="ticketActive"
                   class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
                   <option :value="true">Actif</option>
                   <option :value="false">Inactif</option>
                 </select>
               </div>
               <div class="flex justify-end space-x-3 pt-4">
-                <button type="button" @click="closeAddModal"
-                  class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                <button
+type="button" class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  @click="closeAddModal">
                   Annuler
                 </button>
-                <button type="submit" :disabled="addingTicket"
+                <button
+type="submit" :disabled="addingTicket"
                   class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed">
-                  <svg v-if="addingTicket" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                  <svg
+v-if="addingTicket" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
                     xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                    </path>
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                    <path
+class="opacity-75" fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
                   </svg> {{ addingTicket ? 'Ajout en cours…' : 'Ajouter le ticket' }}
                 </button>
               </div>
@@ -1347,22 +1420,25 @@ onMounted(async () => {
           </div>
         </div>
       </div> <!-- Modal d'édition -->
-      <div v-if="showEditModal"
+      <div
+v-if="showEditModal"
         class="fixed inset-0 bg-gray-500/30 overflow-y-auto h-full w-full z-50 flex items-center justify-center"
         @click.self="cancelEdit">
         <div class="relative mx-auto p-5 border w-full max-w-lg shadow-lg rounded-md bg-white m-4" @click.stop>
           <div class="mt-3">
             <h3 class="text-lg font-medium text-gray-900 mb-4">Modifier le ticket</h3>
-            <form @submit.prevent="updateTicket" class="space-y-4">
+            <form class="space-y-4" @submit.prevent="updateTicket">
               <div>
                 <label for="editTicketName" class="block text-sm font-medium text-gray-700">Nom du ticket</label>
-                <input id="editTicketName" v-model="editingTicket.name" type="text" required
+                <input
+id="editTicketName" v-model="editingTicket.name" type="text" required
                   class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
               </div>
               <div>
                 <label for="editTicketDescription" class="block text-sm font-medium text-gray-700">Description</label>
-                <textarea id="editTicketDescription" v-model="editingTicket.description" rows="3" maxlength="240"
-                  class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"></textarea>
+                <textarea
+id="editTicketDescription" v-model="editingTicket.description" rows="3" maxlength="240"
+                  class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"/>
                 <p class="text-xs text-gray-500 mt-1">{{ (editingTicket.description || '').length }}/240 caractères</p>
               </div>
               <div class="grid grid-cols-2 gap-4">
@@ -1370,11 +1446,12 @@ onMounted(async () => {
                   <label for="editTicketPrice" class="block text-sm font-medium text-gray-700">Prix (€)</label> <input
                     id="editTicketPrice" type="number" step="1" min="0" required
                     class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                    @input="formatPriceInput('edit')" :value="formatPrice(editingTicket.price)">
+                    :value="formatPrice(editingTicket.price)" @input="formatPriceInput('edit')">
                 </div>
                 <div>
                   <label for="editCurrency" class="block text-sm font-medium text-gray-700">Devise</label>
-                  <select id="editCurrency" v-model="editingTicket.currency"
+                  <select
+id="editCurrency" v-model="editingTicket.currency"
                     class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
                     <option>EUR</option>
                     <option>USD</option>
@@ -1385,29 +1462,34 @@ onMounted(async () => {
               <div>
                 <label for="editMaxPerOrder" class="block text-sm font-medium text-gray-700">Quantité max par
                   commande</label>
-                <input id="editMaxPerOrder" v-model.number="editingTicket.max_per_order" type="number"
+                <input
+id="editMaxPerOrder" v-model.number="editingTicket.max_per_order" type="number"
                   class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
               </div>
               <div>
                 <label for="editStock" class="block text-sm font-medium text-gray-700">Stock disponible</label>
-                <input id="editStock" v-model.number="editingTicket.stock" type="number" placeholder="Illimité si vide"
+                <input
+id="editStock" v-model.number="editingTicket.stock" type="number" placeholder="Illimité si vide"
                   class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
                 <p class="text-xs text-gray-500 mt-1">Laissez vide pour un stock illimité</p>
               </div>
               <div>
                 <label for="editActive" class="block text-sm font-medium text-gray-700">Statut</label>
-                <select id="editActive" v-model="editingTicket.active"
+                <select
+id="editActive" v-model="editingTicket.active"
                   class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
                   <option :value="true">Actif</option>
                   <option :value="false">Inactif</option>
                 </select>
               </div>
               <div class="flex justify-end space-x-3 pt-4">
-                <button type="button" @click="cancelEdit"
-                  class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                <button
+type="button" class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  @click="cancelEdit">
                   Annuler
                 </button>
-                <button type="submit"
+                <button
+type="submit"
                   class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                   Sauvegarder
                 </button>
@@ -1416,15 +1498,18 @@ onMounted(async () => {
           </div>
         </div>
       </div> <!-- Modal de suppression -->
-      <div v-if="showDeleteModal"
+      <div
+v-if="showDeleteModal"
         class="fixed inset-0 bg-gray-500/30 overflow-y-auto h-full w-full z-50 flex items-center justify-center"
         @click.self="cancelDelete">
         <div class="relative mx-auto p-5 border w-full max-w-md shadow-lg rounded-md bg-white m-4" @click.stop>
           <div class="mt-3 text-center">
             <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
-              <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+              <svg
+class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                 aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                <path
+stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
               </svg>
             </div>
@@ -1436,12 +1521,14 @@ onMounted(async () => {
               </p>
             </div>
             <div class="flex justify-center space-x-3 pt-4">
-              <button type="button" @click="cancelDelete"
-                class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+              <button
+type="button" class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                @click="cancelDelete">
                 Annuler
               </button>
-              <button type="button" @click="deleteTicket"
-                class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+              <button
+type="button" class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                @click="deleteTicket">
                 Supprimer
               </button>
             </div>
@@ -1451,32 +1538,38 @@ onMounted(async () => {
 
       <!-- Notifications -->
       <div class="fixed top-4 right-4 z-50 space-y-4">
-        <AdminNotification v-for="notification in notifications" :key="notification.id" :type="notification.type"
+        <AdminNotification
+v-for="notification in notifications" :key="notification.id" :type="notification.type"
           :title="notification.title" :message="notification.message" @close="removeNotification(notification.id)" />
       </div> <!-- Modal de gestion des stocks -->
-      <div v-if="showStockModal"
+      <div
+v-if="showStockModal"
         class="fixed inset-0 bg-gray-500/30 overflow-y-auto h-full w-full z-50 flex items-center justify-center"
         @click.self="cancelStock">
         <div class="relative mx-auto p-5 border w-full max-w-md shadow-lg rounded-md bg-white m-4" @click.stop>
           <div class="mt-3">
             <h3 class="text-lg font-medium text-gray-900 mb-4">Gestion du stock</h3>
-            <form @submit.prevent="updateStock" class="space-y-4">
+            <form class="space-y-4" @submit.prevent="updateStock">
               <div>
                 <label for="stockTicketName" class="block text-sm font-medium text-gray-700">Nom du ticket</label>
-                <input id="stockTicketName" v-model="stockTicket.name" type="text" disabled
+                <input
+id="stockTicketName" v-model="stockTicket.name" type="text" disabled
                   class="mt-1 block w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
               </div>
               <div>
                 <label for="newStock" class="block text-sm font-medium text-gray-700">Nouveau stock</label>
-                <input id="newStock" v-model.number="newStock" type="number" placeholder="0"
+                <input
+id="newStock" v-model.number="newStock" type="number" placeholder="0"
                   class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
               </div>
               <div class="flex justify-end space-x-3 pt-4">
-                <button type="button" @click="cancelStock"
-                  class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                <button
+type="button" class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  @click="cancelStock">
                   Annuler
                 </button>
-                <button type="submit"
+                <button
+type="submit"
                   class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                   Sauvegarder
                 </button>
@@ -1485,7 +1578,8 @@ onMounted(async () => {
           </div>
         </div>
       </div> <!-- Modal des filtres pour mobile -->
-      <div v-if="showFilterSidebar"
+      <div
+v-if="showFilterSidebar"
         class="xl:hidden fixed inset-0 bg-gray-500/30 z-50 flex items-end justify-center sm:items-center"
         @click.self="showFilterSidebar = false">
         <div
@@ -1495,10 +1589,10 @@ onMounted(async () => {
             <div class="flex items-center justify-between mb-6">
               <h2 class="text-lg font-semibold text-gray-800">Filtres avancés</h2>
               <div class="flex items-center space-x-2">
-                <button @click="resetFilters" class="text-sm text-blue-600 hover:text-blue-700 font-medium">
+                <button class="text-sm text-blue-600 hover:text-blue-700 font-medium" @click="resetFilters">
                   Réinitialiser
                 </button>
-                <button @click="showFilterSidebar = false" class="text-gray-400 hover:text-gray-600">
+                <button class="text-gray-400 hover:text-gray-600" @click="showFilterSidebar = false">
                   <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                   </svg>
@@ -1512,16 +1606,18 @@ onMounted(async () => {
                 <label class="block text-sm font-medium text-gray-700 mb-2">Statut</label>
                 <div class="space-y-2">
                   <label class="flex items-center">
-                    <input type="radio" v-model="filters.status" value="all" class="form-radio h-4 w-4 text-blue-600">
+                    <input v-model="filters.status" type="radio" value="all" class="form-radio h-4 w-4 text-blue-600">
                     <span class="ml-2 text-sm text-gray-700">Tous</span>
                   </label>
                   <label class="flex items-center">
-                    <input type="radio" v-model="filters.status" value="active"
+                    <input
+v-model="filters.status" type="radio" value="active"
                       class="form-radio h-4 w-4 text-blue-600">
                     <span class="ml-2 text-sm text-gray-700">Actifs</span>
                   </label>
                   <label class="flex items-center">
-                    <input type="radio" v-model="filters.status" value="inactive"
+                    <input
+v-model="filters.status" type="radio" value="inactive"
                       class="form-radio h-4 w-4 text-blue-600">
                     <span class="ml-2 text-sm text-gray-700">Inactifs</span>
                   </label>
@@ -1533,20 +1629,21 @@ onMounted(async () => {
                 <label class="block text-sm font-medium text-gray-700 mb-2">Stock</label>
                 <div class="space-y-2">
                   <label class="flex items-center">
-                    <input type="radio" v-model="filters.stock" value="all" class="form-radio h-4 w-4 text-blue-600">
+                    <input v-model="filters.stock" type="radio" value="all" class="form-radio h-4 w-4 text-blue-600">
                     <span class="ml-2 text-sm text-gray-700">Tous</span>
                   </label>
                   <label class="flex items-center">
-                    <input type="radio" v-model="filters.stock" value="unlimited"
+                    <input
+v-model="filters.stock" type="radio" value="unlimited"
                       class="form-radio h-4 w-4 text-blue-600">
                     <span class="ml-2 text-sm text-gray-700">Illimité</span>
                   </label>
                   <label class="flex items-center">
-                    <input type="radio" v-model="filters.stock" value="low" class="form-radio h-4 w-4 text-blue-600">
+                    <input v-model="filters.stock" type="radio" value="low" class="form-radio h-4 w-4 text-blue-600">
                     <span class="ml-2 text-sm text-gray-700">Stock faible (≤10)</span>
                   </label>
                   <label class="flex items-center">
-                    <input type="radio" v-model="filters.stock" value="out" class="form-radio h-4 w-4 text-blue-600">
+                    <input v-model="filters.stock" type="radio" value="out" class="form-radio h-4 w-4 text-blue-600">
                     <span class="ml-2 text-sm text-gray-700">Épuisé</span>
                   </label>
                 </div>
@@ -1560,22 +1657,26 @@ onMounted(async () => {
                     Nombre de ventes : {{ filters.salesRange[0] }} - {{ filters.salesRange[1] }}
                   </label>
                   <div class="flex items-center justify-between mb-2">
-                    <input type="number" v-model.number="filters.salesRange[0]" min="0" :max="filters.salesRange[1]"
+                    <input
+v-model.number="filters.salesRange[0]" type="number" min="0" :max="filters.salesRange[1]"
                       class="w-16 px-2 py-1 text-xs border rounded" @input="updateMinRange(filters.salesRange[0])">
                     <span class="text-xs text-gray-500">à</span>
-                    <input type="number" v-model.number="filters.salesRange[1]" :min="filters.salesRange[0]"
+                    <input
+v-model.number="filters.salesRange[1]" type="number" :min="filters.salesRange[0]"
                       :max="maxSalesRange" class="w-16 px-2 py-1 text-xs border rounded"
                       @input="updateMaxRange(filters.salesRange[1])">
                   </div>
                   <div class="relative h-6 flex items-center">
                     <!-- Track de fond -->
-                    <div class="w-full h-2 bg-gray-200 rounded-lg"></div>
+                    <div class="w-full h-2 bg-gray-200 rounded-lg"/>
                     <!-- Range min -->
-                    <input type="range" v-model.number="filters.salesRange[0]" min="0" :max="maxSalesRange"
+                    <input
+v-model.number="filters.salesRange[0]" type="range" min="0" :max="maxSalesRange"
                       class="absolute w-full h-2 bg-transparent appearance-none cursor-pointer slider-thumb"
                       @input="updateMinRange(filters.salesRange[0])">
                     <!-- Range max -->
-                    <input type="range" v-model.number="filters.salesRange[1]" min="0" :max="maxSalesRange"
+                    <input
+v-model.number="filters.salesRange[1]" type="range" min="0" :max="maxSalesRange"
                       class="absolute w-full h-2 bg-transparent appearance-none cursor-pointer slider-thumb"
                       @input="updateMaxRange(filters.salesRange[1])">
                   </div>
@@ -1583,8 +1684,9 @@ onMounted(async () => {
               </div>
 
               <div class="pt-4">
-                <button @click="showFilterSidebar = false"
-                  class="w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                <button
+class="w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  @click="showFilterSidebar = false">
                   Appliquer les filtres
                 </button>
               </div>

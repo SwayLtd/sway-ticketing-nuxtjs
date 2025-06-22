@@ -37,7 +37,7 @@
               <td>{{ prom.name }}</td>
               <td>{{ prom.stripe_account_id }}</td>
               <td>
-                <button @click="linkPromoterToEvent(prom.id, prom.stripe_account_id)" :disabled="updating">
+                <button :disabled="updating" @click="linkPromoterToEvent(prom.id, prom.stripe_account_id)">
                   {{ updating ? 'Mise à jour…' : 'Lier ce promoteur' }}
                 </button>
               </td>

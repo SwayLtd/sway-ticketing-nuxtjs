@@ -115,7 +115,7 @@ function navigateToOrder(orderId) {
 
       <!-- Loading State -->
       <div v-if="loadingOrders" class="flex items-center justify-center py-24">
-        <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
+        <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"/>
         <p class="ml-4 text-lg text-gray-600">Chargement des commandes...</p>
       </div>
 
@@ -123,7 +123,8 @@ function navigateToOrder(orderId) {
       <div v-else-if="error" class="bg-red-100 border-l-4 border-red-500 text-red-700 p-6 rounded-r-lg shadow-md">
         <div class="flex items-center">
           <svg class="h-8 w-8 text-red-500 mr-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            <path
+stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <div>
@@ -153,26 +154,31 @@ function navigateToOrder(orderId) {
               </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
-              <tr v-for="order in paginatedOrders" :key="order.id"
-                @click="navigateToOrder(order.id)"
-                class="hover:bg-gray-50 transition-colors duration-200 cursor-pointer">
+              <tr
+v-for="order in paginatedOrders" :key="order.id"
+                class="hover:bg-gray-50 transition-colors duration-200 cursor-pointer"
+                @click="navigateToOrder(order.id)">
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-700">
                   <div class="relative group flex items-center">
                     <span :title="order.id">{{ order.id }}</span>
-                    <button @click.stop="copyToClipboard(order.id, order.id)"
-                      class="ml-2 p-1 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                      :aria-label="`Copier l'ID ${order.id}`">
+                    <button
+class="ml-2 p-1 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                      :aria-label="`Copier l'ID ${order.id}`"
+                      @click.stop="copyToClipboard(order.id, order.id)">
                       <span v-if="copiedValue === order.id" class="text-green-600 text-xs font-semibold">Copié!</span>
-                      <svg v-else class="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                      <svg
+v-else class="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                         title="Copier l'ID complet">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        <path
+stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                           d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                       </svg>
                     </button>
                   </div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <span :class="{
+                  <span
+:class="{
                     'px-2.5 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full': true,
                     'bg-green-100 text-green-800': ['succeeded', 'paid'].includes(order.status),
                     'bg-yellow-100 text-yellow-800': ['pending'].includes(order.status),
@@ -185,14 +191,18 @@ function navigateToOrder(orderId) {
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   <div v-if="order.buyer_email" class="relative group flex items-center">
                     <span>{{ order.buyer_email }}</span>
-                    <button @click.stop="copyToClipboard(order.buyer_email, order.buyer_email)"
-                      class="ml-2 p-1 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                      :aria-label="`Copier l'email ${order.buyer_email}`">
-                      <span v-if="copiedValue === order.buyer_email"
+                    <button
+class="ml-2 p-1 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                      :aria-label="`Copier l'email ${order.buyer_email}`"
+                      @click.stop="copyToClipboard(order.buyer_email, order.buyer_email)">
+                      <span
+v-if="copiedValue === order.buyer_email"
                         class="text-green-600 text-xs font-semibold">Copié!</span>
-                      <svg v-else class="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                      <svg
+v-else class="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"
                         title="Copier l'email">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        <path
+stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                           d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                       </svg>
                     </button>
@@ -208,15 +218,18 @@ function navigateToOrder(orderId) {
         </div>
 
         <!-- Pagination -->
-        <div v-if="totalPages > 1"
+        <div
+v-if="totalPages > 1"
           class="flex items-center justify-between bg-white px-4 py-3 sm:px-6 border-t border-gray-200">
           <div class="flex-1 flex justify-between sm:hidden">
-            <button @click="prevPage" :disabled="currentPage === 1"
-              class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+            <button
+:disabled="currentPage === 1" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              @click="prevPage">
               Précédent
             </button>
-            <button @click="nextPage" :disabled="currentPage === totalPages"
-              class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+            <button
+:disabled="currentPage === totalPages" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              @click="nextPage">
               Suivant
             </button>
           </div>
@@ -234,22 +247,28 @@ function navigateToOrder(orderId) {
             </div>
             <div>
               <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                <button @click="prevPage" :disabled="currentPage === 1"
-                  class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                <button
+:disabled="currentPage === 1" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  @click="prevPage">
                   <span class="sr-only">Précédent</span>
-                  <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
+                  <svg
+class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
                     aria-hidden="true">
-                    <path fill-rule="evenodd"
+                    <path
+fill-rule="evenodd"
                       d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
                       clip-rule="evenodd" />
                   </svg>
                 </button>
-                <button @click="nextPage" :disabled="currentPage === totalPages"
-                  class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                <button
+:disabled="currentPage === totalPages" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  @click="nextPage">
                   <span class="sr-only">Suivant</span>
-                  <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
+                  <svg
+class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
                     aria-hidden="true">
-                    <path fill-rule="evenodd"
+                    <path
+fill-rule="evenodd"
                       d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
                       clip-rule="evenodd" />
                   </svg>
@@ -262,9 +281,11 @@ function navigateToOrder(orderId) {
 
       <!-- No Orders Found -->
       <div v-else class="text-center py-24">
-        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+        <svg
+class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"
           aria-hidden="true">
-          <path vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          <path
+vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
             d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h10l4 4v10a2 2 0 01-2 2H4a2 2 0 01-2-2z" />
         </svg>
         <h3 class="mt-2 text-sm font-medium text-gray-900">Aucune commande</h3>

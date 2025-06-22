@@ -11,7 +11,7 @@ export const useScannerSound = () => {
 
   // Initialiser le contexte audio
   const initAudioContext = () => {
-    if (!process.client || audioContext) return
+    if (!import.meta.client || audioContext) return
 
     try {
       audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
@@ -22,7 +22,7 @@ export const useScannerSound = () => {
 
   // Charger les préférences depuis localStorage
   const loadSoundPreferences = () => {
-    if (!process.client) return
+    if (!import.meta.client) return
 
     const savedSound = localStorage.getItem('scanner-sound-enabled')
     if (savedSound !== null) {
@@ -32,7 +32,7 @@ export const useScannerSound = () => {
 
   // Sauvegarder les préférences
   const saveSoundPreferences = () => {
-    if (!process.client) return
+    if (!import.meta.client) return
     localStorage.setItem('scanner-sound-enabled', JSON.stringify(soundEnabled.value))
   }
 

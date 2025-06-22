@@ -3,10 +3,11 @@
         <div class="flex items-center space-x-2">
             <!-- Indicateur de connexion -->
             <div class="flex items-center space-x-1">
-                <div :class="[
+                <div
+:class="[
                     'w-2 h-2 rounded-full',
                     isOnline ? 'bg-green-500' : 'bg-red-500'
-                ]"></div>
+                ]"/>
                 <span class="text-xs font-medium text-gray-600">
                     {{ isOnline ? 'En ligne' : 'Hors ligne' }}
                 </span>
@@ -14,7 +15,7 @@
 
             <!-- Indicateur de synchronisation -->
             <div v-if="isSyncing" class="flex items-center space-x-1">
-                <div class="animate-spin w-3 h-3 border border-blue-500 border-t-transparent rounded-full"></div>
+                <div class="animate-spin w-3 h-3 border border-blue-500 border-t-transparent rounded-full"/>
                 <span class="text-xs text-blue-600">Synchronisation...</span>
             </div>
         </div>

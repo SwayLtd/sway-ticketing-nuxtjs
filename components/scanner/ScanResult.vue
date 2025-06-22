@@ -40,12 +40,14 @@
 
             <!-- Actions -->
             <div class="mt-6 flex justify-center space-x-3">
-                <button @click="$emit('close')"
-                    class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                <button
+class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                    @click="$emit('close')">
                     Close
                 </button>
-                <button v-if="result.valid" @click="$emit('next-scan')"
-                    class="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700">
+                <button
+v-if="result.valid" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700"
+                    @click="$emit('next-scan')">
                     Next scan
                 </button>
             </div>

@@ -43,8 +43,9 @@
                 <span>{{ successRate }}%</span>
             </div>
             <div class="w-full bg-gray-200 rounded-full h-2">
-                <div class="bg-green-600 h-2 rounded-full transition-all duration-300"
-                    :style="{ width: `${successRate}%` }"></div>
+                <div
+class="bg-green-600 h-2 rounded-full transition-all duration-300"
+                    :style="{ width: `${successRate}%` }"/>
             </div>
         </div>
 
@@ -52,15 +53,15 @@
         <div class="mt-4 flex items-center justify-between text-sm">
             <div class="flex items-center space-x-4">
                 <div class="flex items-center">
-                    <div class="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                    <div class="w-2 h-2 bg-green-500 rounded-full mr-2"/>
                     <span class="text-gray-600">Accepted</span>
                 </div>
                 <div class="flex items-center">
-                    <div class="w-2 h-2 bg-red-500 rounded-full mr-2"></div>
+                    <div class="w-2 h-2 bg-red-500 rounded-full mr-2"/>
                     <span class="text-gray-600">Rejected</span>
                 </div>
                 <div class="flex items-center">
-                    <div class="w-2 h-2 bg-orange-500 rounded-full mr-2"></div>
+                    <div class="w-2 h-2 bg-orange-500 rounded-full mr-2"/>
                     <span class="text-gray-600">Pending</span>
                 </div>
             </div>

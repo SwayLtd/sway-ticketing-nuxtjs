@@ -82,16 +82,18 @@ onMounted(async () => {
 
       <!-- Loading State -->
       <div v-if="loading" class="flex items-center justify-center py-24">
-        <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
+        <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"/>
         <p class="ml-4 text-lg text-gray-600">Chargement des détails...</p>
       </div>
 
       <!-- Not Authorized -->
-      <div v-else-if="notAuthorized"
+      <div
+v-else-if="notAuthorized"
         class="bg-red-100 border-l-4 border-red-500 text-red-700 p-6 rounded-r-lg shadow-md">
         <div class="flex items-center">
           <svg class="h-8 w-8 text-red-500 mr-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            <path
+stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
           </svg>
           <div>
@@ -166,19 +168,22 @@ onMounted(async () => {
         <!-- Sidebar -->
         <div class="space-y-8">
           <!-- Event Image Card -->
-          <div v-if="eventDetails.image_url"
+          <div
+v-if="eventDetails.image_url"
             class="bg-white shadow-lg rounded-xl border border-gray-200 overflow-hidden">
             <div class="px-6 py-5 bg-gray-50">
               <h2 class="text-xl font-semibold text-gray-900">Image de l'événement</h2>
             </div>
             <div class="p-6">
-              <img :src="eventDetails.image_url" alt="Image de l'événement"
+              <img
+:src="eventDetails.image_url" alt="Image de l'événement"
                 class="w-full h-auto rounded-lg shadow-md border border-gray-200">
             </div>
           </div>
 
           <!-- Metadata Card -->
-          <div v-if="eventDetails.metadata"
+          <div
+v-if="eventDetails.metadata"
             class="bg-white shadow-lg rounded-xl border border-gray-200 overflow-hidden">
             <div class="px-6 py-5 bg-gray-50">
               <h2 class="text-xl font-semibold text-gray-900">Métadonnées</h2>

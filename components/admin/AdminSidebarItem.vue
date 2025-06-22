@@ -1,33 +1,37 @@
 <template>
-    <button v-if="!item.disabled" :class="[
+    <button
+v-if="!item.disabled" :class="[
         'flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 w-full text-left',
         getItemClasses(item)
     ]" @click="handleClick">
         <!-- Icône -->
-        <component v-if="item.icon" :is="getIconComponent(item.icon)" class="h-5 w-5 mr-3 flex-shrink-0" />
+        <component :is="getIconComponent(item.icon)" v-if="item.icon" class="h-5 w-5 mr-3 flex-shrink-0" />
 
         <!-- Label -->
         <span class="truncate">{{ item.label }}</span>
 
         <!-- Badge pour les éléments principaux -->
-        <span v-if="item.isMainItem"
+        <span
+v-if="item.isMainItem"
             class="ml-auto px-2 py-1 text-xs font-semibold bg-gray-700 text-gray-300 rounded-full">
             Main
         </span>
     </button>
 
-    <span v-else :class="[
+    <span
+v-else :class="[
         'flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200',
         getItemClasses(item)
     ]">
         <!-- Icône -->
-        <component v-if="item.icon" :is="getIconComponent(item.icon)" class="h-5 w-5 mr-3 flex-shrink-0" />
+        <component :is="getIconComponent(item.icon)" v-if="item.icon" class="h-5 w-5 mr-3 flex-shrink-0" />
 
         <!-- Label -->
         <span class="truncate">{{ item.label }}</span>
 
         <!-- Badge pour les éléments principaux -->
-        <span v-if="item.isMainItem"
+        <span
+v-if="item.isMainItem"
             class="ml-auto px-2 py-1 text-xs font-semibold bg-gray-700 text-gray-300 rounded-full">
             Main
         </span>

@@ -15,18 +15,22 @@
                 </div>
             </div>
             <div class="flex space-x-2">
-                <button @click="$emit('sync-now')" :disabled="!canSync || isSyncing"
-                    class="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-orange-700 bg-orange-100 hover:bg-orange-200 disabled:opacity-50 disabled:cursor-not-allowed">
-                    <ArrowPathIcon :class="[
+                <button
+:disabled="!canSync || isSyncing" class="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-orange-700 bg-orange-100 hover:bg-orange-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                    @click="$emit('sync-now')">
+                    <ArrowPathIcon
+:class="[
                         'w-3 h-3 mr-1',
                         isSyncing ? 'animate-spin' : ''
                     ]" />
                     {{ isSyncing ? 'Synchronisation...' : 'Synchroniser' }}
                 </button>
-                <button @click="showDetails = !showDetails"
-                    class="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-orange-700 bg-orange-100 hover:bg-orange-200">
+                <button
+class="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-orange-700 bg-orange-100 hover:bg-orange-200"
+                    @click="showDetails = !showDetails">
                     {{ showDetails ? 'Masquer' : 'Détails' }}
-                    <ChevronDownIcon :class="[
+                    <ChevronDownIcon
+:class="[
                         'w-3 h-3 ml-1 transform transition-transform',
                         showDetails ? 'rotate-180' : ''
                     ]" />
@@ -38,7 +42,8 @@
         <div v-if="showDetails" class="mt-4">
             <div class="bg-white rounded-md shadow overflow-hidden">
                 <ul class="divide-y divide-gray-200">
-                    <li v-for="(item, index) in queueItems" :key="index"
+                    <li
+v-for="(item, index) in queueItems" :key="index"
                         class="p-3 flex items-center justify-between text-sm">
                         <div>
                             <div class="font-medium text-gray-900">
@@ -49,7 +54,8 @@
                             </div>
                         </div>
                         <div class="flex items-center space-x-2">
-                            <span :class="[
+                            <span
+:class="[
                                 'inline-flex items-center px-2 py-1 rounded-full text-xs font-medium',
                                 item.attempts > 0
                                     ? 'bg-red-100 text-red-800'
@@ -57,8 +63,9 @@
                             ]">
                                 {{ item.attempts > 0 ? `${item.attempts} tentative(s)` : 'En attente' }}
                             </span>
-                            <button @click="$emit('remove-item', index)" class="text-red-600 hover:text-red-800"
-                                title="Supprimer de la queue">
+                            <button
+class="text-red-600 hover:text-red-800" title="Supprimer de la queue"
+                                @click="$emit('remove-item', index)">
                                 <XMarkIcon class="w-4 h-4" />
                             </button>
                         </div>

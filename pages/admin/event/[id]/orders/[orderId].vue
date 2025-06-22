@@ -199,10 +199,12 @@ function handleOrderUpdate(updatedOrder) {
             <!-- Header -->
             <div class="flex items-center justify-between mb-8 print-hidden">
                 <div>
-                    <button @click="goBack"
-                        class="inline-flex items-center text-sm text-gray-500 hover:text-gray-700 mb-2 transition-colors duration-200">
+                    <button
+class="inline-flex items-center text-sm text-gray-500 hover:text-gray-700 mb-2 transition-colors duration-200"
+                        @click="goBack">
                         <svg class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            <path
+stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                         </svg>
                         Retour aux commandes
@@ -214,16 +216,18 @@ function handleOrderUpdate(updatedOrder) {
 
             <!-- Loading State -->
             <div v-if="loading" class="flex items-center justify-center py-24">
-                <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
+                <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"/>
                 <p class="ml-4 text-lg text-gray-600">Chargement des détails de la commande...</p>
             </div>
 
             <!-- Not Authorized -->
-            <div v-else-if="notAuthorized"
+            <div
+v-else-if="notAuthorized"
                 class="bg-red-100 border-l-4 border-red-500 text-red-700 p-6 rounded-r-lg shadow-md">
                 <div class="flex items-center">
                     <svg class="h-8 w-8 text-red-500 mr-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        <path
+stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
                     </svg>
                     <div>
@@ -238,7 +242,8 @@ function handleOrderUpdate(updatedOrder) {
             <div v-else-if="error" class="bg-red-100 border-l-4 border-red-500 text-red-700 p-6 rounded-r-lg shadow-md">
                 <div class="flex items-center">
                     <svg class="h-8 w-8 text-red-500 mr-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        <path
+stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     <div>
@@ -263,14 +268,18 @@ function handleOrderUpdate(updatedOrder) {
                                     <div class="relative group flex items-center">
                                         <span class="text-lg font-mono text-gray-900" :title="orderDetails.id">{{
                                             orderDetails.id }}</span>
-                                        <button @click="copyToClipboard(orderDetails.id, orderDetails.id)"
-                                            class="ml-2 p-1 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                                            :aria-label="`Copier l'ID ${orderDetails.id}`">
-                                            <span v-if="copiedValue === orderDetails.id"
+                                        <button
+class="ml-2 p-1 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                                            :aria-label="`Copier l'ID ${orderDetails.id}`"
+                                            @click="copyToClipboard(orderDetails.id, orderDetails.id)">
+                                            <span
+v-if="copiedValue === orderDetails.id"
                                                 class="text-green-600 text-xs font-semibold">Copié!</span>
-                                            <svg v-else class="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24"
+                                            <svg
+v-else class="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24"
                                                 stroke="currentColor" title="Copier l'ID complet">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                <path
+stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                     d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                                             </svg>
                                         </button>
@@ -278,7 +287,8 @@ function handleOrderUpdate(updatedOrder) {
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-500 mb-1">Statut</label>
-                                    <span :class="{
+                                    <span
+:class="{
                                         'px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full': true,
                                         'bg-green-100 text-green-800': ['succeeded', 'paid'].includes(orderDetails.status),
                                         'bg-yellow-100 text-yellow-800': ['pending'].includes(orderDetails.status),
@@ -297,14 +307,17 @@ function handleOrderUpdate(updatedOrder) {
                                     <div class="relative group flex items-center">
                                         <span class="text-base text-gray-900">{{ orderDetails.buyer_email }}</span>
                                         <button
-                                            @click="copyToClipboard(orderDetails.buyer_email, orderDetails.buyer_email)"
                                             class="ml-2 p-1 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                                            :aria-label="`Copier l'email ${orderDetails.buyer_email}`">
-                                            <span v-if="copiedValue === orderDetails.buyer_email"
+                                            :aria-label="`Copier l'email ${orderDetails.buyer_email}`"
+                                            @click="copyToClipboard(orderDetails.buyer_email, orderDetails.buyer_email)">
+                                            <span
+v-if="copiedValue === orderDetails.buyer_email"
                                                 class="text-green-600 text-xs font-semibold">Copié!</span>
-                                            <svg v-else class="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24"
+                                            <svg
+v-else class="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24"
                                                 stroke="currentColor" title="Copier l'email">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                <path
+stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                     d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                                             </svg>
                                         </button>
@@ -330,14 +343,16 @@ function handleOrderUpdate(updatedOrder) {
                                         }}</p>
                                 </div>
                             </div>
-                            <div v-if="orderDetails.payment_provider"
+                            <div
+v-if="orderDetails.payment_provider"
                                 class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
                                 <div>
                                     <label class="block text-sm font-medium text-gray-500 mb-1">Fournisseur de
                                         paiement</label>
                                     <div class="flex items-center space-x-2">
                                         <!-- Provider logo/icon -->
-                                        <div v-if="orderDetails.payment_provider.toLowerCase().includes('stripe')"
+                                        <div
+v-if="orderDetails.payment_provider.toLowerCase().includes('stripe')"
                                             class="flex items-center">
                                             <div
                                                 class="w-6 h-6 bg-blue-600 rounded flex items-center justify-center mr-2">
@@ -345,7 +360,8 @@ function handleOrderUpdate(updatedOrder) {
                                             </div>
                                             <span class="text-base text-gray-800">Stripe</span>
                                         </div>
-                                        <div v-else-if="orderDetails.payment_provider.toLowerCase().includes('paypal')"
+                                        <div
+v-else-if="orderDetails.payment_provider.toLowerCase().includes('paypal')"
                                             class="flex items-center">
                                             <div
                                                 class="w-6 h-6 bg-blue-500 rounded flex items-center justify-center mr-2">
@@ -366,12 +382,15 @@ function handleOrderUpdate(updatedOrder) {
                                 </div>
                             </div>
 
-                            <div v-if="orderDetails.refunded_at"
+                            <div
+v-if="orderDetails.refunded_at"
                                 class="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                                 <div class="flex items-center">
-                                    <svg class="h-5 w-5 text-yellow-600 mr-2" fill="none" viewBox="0 0 24 24"
+                                    <svg
+class="h-5 w-5 text-yellow-600 mr-2" fill="none" viewBox="0 0 24 24"
                                         stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        <path
+stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L3.732 16.5c-.77.833-.23 2.5 1.732 2.5z" />
                                     </svg>
                                     <span class="text-sm font-medium text-yellow-800">
@@ -383,7 +402,8 @@ function handleOrderUpdate(updatedOrder) {
                     </div>
 
                     <!-- Products Table -->
-                    <div v-if="orderProducts.length"
+                    <div
+v-if="orderProducts.length"
                         class="bg-white shadow-lg rounded-xl border border-gray-200 overflow-hidden">
                         <div class="px-6 py-5 bg-gray-50">
                             <h2 class="text-xl font-semibold text-gray-900">Produits commandés</h2>
@@ -392,19 +412,24 @@ function handleOrderUpdate(updatedOrder) {
                             <table class="min-w-full divide-y divide-gray-200">
                                 <thead class="bg-gray-50">
                                     <tr>
-                                        <th scope="col"
+                                        <th
+scope="col"
                                             class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             Produit</th>
-                                        <th scope="col"
+                                        <th
+scope="col"
                                             class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             Type</th>
-                                        <th scope="col"
+                                        <th
+scope="col"
                                             class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             Quantité</th>
-                                        <th scope="col"
+                                        <th
+scope="col"
                                             class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             Prix unitaire</th>
-                                        <th scope="col"
+                                        <th
+scope="col"
                                             class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             Total</th>
                                     </tr>
@@ -457,9 +482,11 @@ function handleOrderUpdate(updatedOrder) {
                             <h2 class="text-xl font-semibold text-gray-900">Produits commandés</h2>
                         </div>
                         <div class="text-center py-12">
-                            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24"
+                            <svg
+class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24"
                                 stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                <path
+stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2 2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
                             </svg>
                             <h3 class="mt-2 text-sm font-medium text-gray-900">Aucun produit</h3>
@@ -476,30 +503,36 @@ function handleOrderUpdate(updatedOrder) {
                             <h3 class="text-lg font-semibold text-gray-900">Actions</h3>
                         </div>
                         <div class="p-6 space-y-3">
-                            <button @click="window.print()"
-                                class="w-full flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            <button
+class="w-full flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                @click="window.print()">
                                 <svg class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    <path
+stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                                 </svg>
                                 Imprimer
                             </button>
-                            <a :href="`/api/admin/orders/${orderId}/export-pdf?eventId=${eventId}`" target="_blank"
+                            <a
+:href="`/api/admin/orders/${orderId}/export-pdf?eventId=${eventId}`" target="_blank"
                                 class="w-full flex items-center justify-center px-4 py-2 border border-blue-300 rounded-md shadow-sm bg-white text-sm font-medium text-blue-700 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                                 <svg class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    <path
+stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                 </svg>
                                 Exporter PDF
                             </a>
                         </div>
                     </div> <!-- Action Panel -->
-                    <OrderActionPanel :order="orderDetails" :event-id="eventId" @order-updated="handleOrderUpdate"
+                    <OrderActionPanel
+:order="orderDetails" :event-id="eventId" @order-updated="handleOrderUpdate"
                         @show-notification="showNotification" />
                 </div>
             </div> <!-- Notifications -->
             <div class="fixed top-4 right-4 z-50 space-y-2">
-                <AdminNotification v-for="notification in notifications" :key="notification.id"
+                <AdminNotification
+v-for="notification in notifications" :key="notification.id"
                     :type="notification.type" :message="notification.message"
                     @close="removeNotification(notification.id)" />
             </div>
