@@ -484,13 +484,28 @@ function getPermissionLevelColor(level) {
     <!-- Main Content -->
     <div v-else class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <!-- Header -->
-      <div class="flex flex-wrap justify-between items-center gap-4 mb-8">        <div>
+      <div class="flex flex-wrap justify-between items-center gap-4 mb-8">
+        <div>
           <h1 class="text-3xl font-bold text-gray-900 mb-1">Gestion des permissions</h1>
           <p class="text-sm text-gray-600">Gérez les permissions d'accès pour cet événement.</p>
         </div>
-        <div class="flex gap-3">          <button
+        <div class="flex gap-3">
+          <button
+            v-if="currentUserPermission >= 2"
             class="btn btn-primary"
-            @click="openAddModal">
+            @click="openAddModal"
+          >
+            <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Ajouter un utilisateur
+          </button>
+          <button
+            v-else
+            class="btn btn-primary btn-disabled opacity-50 cursor-not-allowed"
+            disabled
+            aria-disabled="true"
+          >
             <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
             </svg>

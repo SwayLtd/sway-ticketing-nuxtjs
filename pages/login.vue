@@ -53,12 +53,14 @@ type="submit"
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
+import { decodeRedirect, isSafeRedirect } from '~/utils/redirect'
 
 const email = ref('')
 const password = ref('')
 const errorMessage = ref('')
 const router = useRouter()
+const route = useRoute()
 
 const supabase = useSupabaseClient()
 
@@ -75,6 +77,15 @@ const signIn = async () => {
     errorMessage.value = error.message
   } else if (data.session) {
     console.log('Connexion réussie, session :', data.session)
+    // Gestion de la redirection post-login
+    const redirectParam = route.query.redirect as string | undefined
+    if (redirectParam) {
+      const decoded = decodeRedirect(redirectParam)
+      if (isSafeRedirect(decoded)) {
+        router.push(decoded)
+        return
+      }
+    }
     router.push('/admin')
   } else {
     console.warn('Aucune session retournée. Vérifiez vos identifiants.')

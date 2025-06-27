@@ -37,7 +37,11 @@
               <td>{{ prom.name }}</td>
               <td>{{ prom.stripe_account_id }}</td>
               <td>
-                <button :disabled="updating" @click="linkPromoterToEvent(prom.id, prom.stripe_account_id)">
+                <button
+                  :disabled="updating || currentUserPermission < 2"
+                  :class="[updating || currentUserPermission < 2 ? 'opacity-50 cursor-not-allowed' : '', 'transition-all']"
+                  @click="currentUserPermission >= 2 && linkPromoterToEvent(prom.id, prom.stripe_account_id)"
+                >
                   {{ updating ? 'Mise à jour…' : 'Lier ce promoteur' }}
                 </button>
               </td>
@@ -58,6 +62,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useSupabaseClient, useSupabaseUser } from '#imports'
 import { format } from 'date-fns'
+import { useEntityPermission } from '~/composables/useEntityPermission'
 
 // Utilisation du layout admin (défini dans layouts/admin.vue ou admin-event.vue)
 definePageMeta({
@@ -82,6 +87,10 @@ const loadingPromoters = ref(true)
 const updating = ref(false)
 const message = ref('')
 const messageColor = ref('green')
+
+// Permission logic
+const { currentUserPermission, fetchPermission } = useEntityPermission(eventId, 'event')
+const notAuthorized = ref(false)
 
 // Formatage de la date
 const formatDate = (dateStr: string) => format(new Date(dateStr), 'EEEE dd MMM yyyy, HH:mm')
@@ -147,6 +156,37 @@ async function fetchPromoters() {
   loadingPromoters.value = false;
 }
 
+// Récupérer le niveau de permission pour l'événement courant
+async function fetchUserPermission() {
+  if (!user.value) {
+    notAuthorized.value = true
+    return
+  }
+  // Récupérer l'ID interne utilisateur
+  const { data: userData, error: userError } = await supabase
+    .from('users')
+    .select('id')
+    .eq('supabase_id', user.value.id)
+    .single()
+  if (userError || !userData) {
+    notAuthorized.value = true
+    return
+  }
+  userIdInt.value = userData.id
+  // Vérifier la permission pour cet event
+  const { data: permData, error: permError } = await supabase
+    .from('user_permissions')
+    .select('permission_level')
+    .eq('user_id', userIdInt.value)
+    .eq('entity_type', 'event')
+    .eq('entity_id', eventId)
+    .single()
+  if (permError || !permData) {
+    notAuthorized.value = true
+    return
+  }
+  currentUserPermission.value = permData.permission_level
+}
 
 // Fonction pour lier un promoteur à l'événement
 async function linkPromoterToEvent(promoterId: number, promoterStripeAccountId: string) {
@@ -171,8 +211,10 @@ async function linkPromoterToEvent(promoterId: number, promoterStripeAccountId: 
 }
 
 onMounted(async () => {
+  await fetchPermission()
   await fetchEvent()
   await fetchUserInternalId()
+  await fetchUserPermission()
   await fetchPromoters()
 })
 </script>

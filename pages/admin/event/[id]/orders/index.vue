@@ -3,6 +3,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useSupabaseClient } from '#imports'
+import { useEntityPermission } from '~/composables/useEntityPermission'
 
 definePageMeta({
   layout: 'admin-event'
@@ -45,6 +46,9 @@ function prevPage() {
   }
 }
 
+// Gestion permission centralisée
+const { currentUserPermission, fetchPermission } = useEntityPermission(eventId, 'event')
+
 async function fetchOrders() {
   loadingOrders.value = true
   error.value = null
@@ -68,7 +72,10 @@ async function fetchOrders() {
   }
 }
 
-onMounted(fetchOrders)
+onMounted(async () => {
+  await fetchPermission()
+  await fetchOrders()
+})
 
 function copyToClipboard(text, value) {
   navigator.clipboard.writeText(text).then(() => {
@@ -108,134 +115,137 @@ function navigateToOrder(orderId) {
   <div class="min-h-screen bg-white">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <!-- Header -->
-      <div class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-900 mb-1">Commandes</h1>
-        <p class="text-sm text-gray-600">Liste des commandes pour l'événement.</p>
+      <div class="mb-8 flex flex-wrap justify-between items-center gap-4">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900 mb-1">Commandes</h1>
+          <p class="text-sm text-gray-600">Liste des commandes pour l'événement.</p>
+        </div>
+        <!-- Bouton d'export visible pour tous les niveaux de permission -->
+        <button
+          aria-label="Exporter les commandes"
+          class="btn btn-secondary"
+        >
+          Exporter
+        </button>
       </div>
 
       <!-- Loading State -->
       <div v-if="loadingOrders" class="flex items-center justify-center py-24">
-        <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"/>
+        <span class="loading loading-spinner loading-lg text-primary" aria-label="Chargement" />
         <p class="ml-4 text-lg text-gray-600">Chargement des commandes...</p>
       </div>
 
       <!-- Error Message -->
-      <div v-else-if="error" class="bg-red-100 border-l-4 border-red-500 text-red-700 p-6 rounded-r-lg shadow-md">
-        <div class="flex items-center">
-          <svg class="h-8 w-8 text-red-500 mr-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path
-stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <div>
-            <h3 class="text-lg font-semibold text-red-800">Une erreur est survenue</h3>
-            <p class="text-red-700 mt-1">{{ error }}</p>
-          </div>
+      <div v-else-if="error" class="alert alert-error flex items-center gap-4">
+        <svg class="h-8 w-8 text-error" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <div>
+          <h3 class="text-lg font-semibold">Une erreur est survenue</h3>
+          <p class="text-red-700 mt-1">{{ error }}</p>
         </div>
       </div>
 
       <!-- Orders Table -->
-      <div v-else-if="orders.length" class="bg-white shadow-lg rounded-xl border border-gray-200 overflow-hidden">
+      <div v-else-if="orders.length" class="card bg-base-100 shadow-xl border border-base-200 overflow-hidden">
         <div class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50">
+          <table class="table w-full">
+            <thead>
               <tr>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  ID Commande</th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Statut</th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Email Acheteur
-                </th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Total</th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Date</th>
+                <th>ID Commande</th>
+                <th>Statut</th>
+                <th>Email Acheteur</th>
+                <th>Total</th>
+                <th>Date</th>
               </tr>
             </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
+            <tbody>
               <tr
-v-for="order in paginatedOrders" :key="order.id"
-                class="hover:bg-gray-50 transition-colors duration-200 cursor-pointer"
-                @click="navigateToOrder(order.id)">
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-700">
+                v-for="order in paginatedOrders"
+                :key="order.id"
+                :class="['hover:bg-base-200 cursor-pointer transition-colors duration-200']"
+                aria-disabled="currentUserPermission < 2"
+                tabindex="0"
+                @click="navigateToOrder(order.id)"
+              >
+                <td class="font-mono">
                   <div class="relative group flex items-center">
                     <span :title="order.id">{{ order.id }}</span>
                     <button
-class="ml-2 p-1 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
                       :aria-label="`Copier l'ID ${order.id}`"
-                      @click.stop="copyToClipboard(order.id, order.id)">
-                      <span v-if="copiedValue === order.id" class="text-green-600 text-xs font-semibold">Copié!</span>
-                      <svg
-v-else class="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                        title="Copier l'ID complet">
-                        <path
-stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                      </svg>
+                      :disabled="currentUserPermission < 2"
+                      :tabindex="currentUserPermission < 2 ? -1 : 0"
+                      class="btn btn-xs btn-ghost ml-2"
+                      @click.stop="copyToClipboard(order.id, order.id)"
+                    >
+                      <span v-if="copiedValue === order.id" class="text-success text-xs font-semibold">Copié!</span>
+                      <span v-else class="icon-[mdi--content-copy] w-4 h-4 text-base-content" />
                     </button>
                   </div>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap">
+                <td>
                   <span
-:class="{
-                    'px-2.5 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full': true,
-                    'bg-green-100 text-green-800': ['succeeded', 'paid'].includes(order.status),
-                    'bg-yellow-100 text-yellow-800': ['pending'].includes(order.status),
-                    'bg-red-100 text-red-800': ['failed', 'canceled'].includes(order.status),
-                    'bg-gray-100 text-gray-800': !['succeeded', 'paid', 'pending', 'failed', 'canceled'].includes(order.status)
-                  }">
+                    class="badge"
+                    :class="{
+                      'badge-success': ['succeeded', 'paid'].includes(order.status),
+                      'badge-warning': ['pending'].includes(order.status),
+                      'badge-error': ['failed', 'canceled'].includes(order.status),
+                      'badge-ghost': !['succeeded', 'paid', 'pending', 'failed', 'canceled'].includes(order.status)
+                    }"
+                  >
                     {{ order.status }}
                   </span>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <td>
                   <div v-if="order.buyer_email" class="relative group flex items-center">
                     <span>{{ order.buyer_email }}</span>
                     <button
-class="ml-2 p-1 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
                       :aria-label="`Copier l'email ${order.buyer_email}`"
-                      @click.stop="copyToClipboard(order.buyer_email, order.buyer_email)">
-                      <span
-v-if="copiedValue === order.buyer_email"
-                        class="text-green-600 text-xs font-semibold">Copié!</span>
-                      <svg
-v-else class="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                        title="Copier l'email">
-                        <path
-stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                      </svg>
+                      :disabled="currentUserPermission < 2"
+                      :tabindex="currentUserPermission < 2 ? -1 : 0"
+                      class="btn btn-xs btn-ghost ml-2"
+                      @click.stop="copyToClipboard(order.buyer_email, order.buyer_email)"
+                    >
+                      <span v-if="copiedValue === order.buyer_email" class="text-success text-xs font-semibold">Copié!</span>
+                      <span v-else class="icon-[mdi--content-copy] w-4 h-4 text-base-content" />
                     </button>
                   </div>
                   <span v-else>-</span>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{
-                  formatCurrency(order.total_amount, order.currency) }}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ formatDate(order.created_at) }}</td>
+                <td>{{ formatCurrency(order.total_amount, order.currency) }}</td>
+                <td>{{ formatDate(order.created_at) }}</td>
               </tr>
             </tbody>
           </table>
         </div>
-
         <!-- Pagination -->
         <div
-v-if="totalPages > 1"
-          class="flex items-center justify-between bg-white px-4 py-3 sm:px-6 border-t border-gray-200">
+          v-if="totalPages > 1"
+          class="flex items-center justify-between bg-base-100 px-4 py-3 border-t border-base-200"
+        >
           <div class="flex-1 flex justify-between sm:hidden">
             <button
-:disabled="currentPage === 1" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-              @click="prevPage">
+              :disabled="currentPage === 1"
+              class="btn btn-outline"
+              @click="prevPage"
+            >
               Précédent
             </button>
             <button
-:disabled="currentPage === totalPages" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-              @click="nextPage">
+              :disabled="currentPage === totalPages"
+              class="btn btn-outline ml-3"
+              @click="nextPage"
+            >
               Suivant
             </button>
           </div>
           <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
             <div>
-              <p class="text-sm text-gray-700">
+              <p class="text-sm text-base-content">
                 Affichage de
                 <span class="font-medium">{{ (currentPage - 1) * itemsPerPage + 1 }}</span>
                 à
@@ -248,30 +258,20 @@ v-if="totalPages > 1"
             <div>
               <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
                 <button
-:disabled="currentPage === 1" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                  @click="prevPage">
+                  :disabled="currentPage === 1"
+                  class="btn btn-square btn-outline"
+                  @click="prevPage"
+                >
                   <span class="sr-only">Précédent</span>
-                  <svg
-class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
-                    aria-hidden="true">
-                    <path
-fill-rule="evenodd"
-                      d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
-                      clip-rule="evenodd" />
-                  </svg>
+                  <span class="icon-[mdi--chevron-left] w-5 h-5" aria-hidden="true" />
                 </button>
                 <button
-:disabled="currentPage === totalPages" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                  @click="nextPage">
+                  :disabled="currentPage === totalPages"
+                  class="btn btn-square btn-outline"
+                  @click="nextPage"
+                >
                   <span class="sr-only">Suivant</span>
-                  <svg
-class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
-                    aria-hidden="true">
-                    <path
-fill-rule="evenodd"
-                      d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                      clip-rule="evenodd" />
-                  </svg>
+                  <span class="icon-[mdi--chevron-right] w-5 h-5" aria-hidden="true" />
                 </button>
               </nav>
             </div>
@@ -281,15 +281,9 @@ fill-rule="evenodd"
 
       <!-- No Orders Found -->
       <div v-else class="text-center py-24">
-        <svg
-class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-          aria-hidden="true">
-          <path
-vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h10l4 4v10a2 2 0 01-2 2H4a2 2 0 01-2-2z" />
-        </svg>
-        <h3 class="mt-2 text-sm font-medium text-gray-900">Aucune commande</h3>
-        <p class="mt-1 text-sm text-gray-500">Aucune commande n'a été trouvée pour cet événement.</p>
+        <span class="icon-[mdi--file-document-outline] mx-auto h-12 w-12 text-base-content/40" aria-hidden="true" />
+        <h3 class="mt-2 text-sm font-medium text-base-content">Aucune commande</h3>
+        <p class="mt-1 text-sm text-base-content/60">Aucune commande n'a été trouvée pour cet événement.</p>
       </div>
     </div>
   </div>

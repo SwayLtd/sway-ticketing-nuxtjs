@@ -9,8 +9,10 @@
             <div class="space-y-3">
                 <div v-if="canRefund">
                     <button
-:disabled="!!loading" class="w-full flex items-center justify-center px-4 py-2 border border-red-300 rounded-md shadow-sm bg-white text-sm font-medium text-red-700 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                        @click="showConfirmModal('refund')">
+:disabled="!!loading || props.userPermission < 2"
+                        class="w-full flex items-center justify-center px-4 py-2 border border-red-300 rounded-md shadow-sm bg-white text-sm font-medium text-red-700 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                        :class="props.userPermission < 2 ? 'opacity-50 cursor-not-allowed text-gray-400 hover:text-gray-400 border-gray-200 bg-gray-50' : ''"
+                        @click="props.userPermission >= 2 && showConfirmModal('refund')">
                         <svg class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path
 stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -22,8 +24,10 @@ stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
 
                 <div v-if="canCancel">
                     <button
-:disabled="!!loading" class="w-full flex items-center justify-center px-4 py-2 border border-red-300 rounded-md shadow-sm bg-white text-sm font-medium text-red-700 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                        @click="showConfirmModal('cancel')">
+:disabled="!!loading || props.userPermission < 2"
+                        class="w-full flex items-center justify-center px-4 py-2 border border-red-300 rounded-md shadow-sm bg-white text-sm font-medium text-red-700 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                        :class="props.userPermission < 2 ? 'opacity-50 cursor-not-allowed text-gray-400 hover:text-gray-400 border-gray-200 bg-gray-50' : ''"
+                        @click="props.userPermission >= 2 && showConfirmModal('cancel')">
                         <svg class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path
 stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -97,8 +101,10 @@ stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     </div>
                     <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
                         <button
-:disabled="!!loading" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                            @click="confirmAction">
+:disabled="!!loading || props.userPermission < 2"
+                            class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                            :class="props.userPermission < 2 ? 'opacity-50 cursor-not-allowed bg-red-300 hover:bg-red-300' : ''"
+                            @click="props.userPermission >= 2 && confirmAction()">
                             {{ loading ? 'Traitement...' : 'Confirmer' }}
                         </button>
                         <button
@@ -125,6 +131,7 @@ interface Order {
 interface Props {
     order: Order
     eventId: string
+    userPermission: number // Ajout de la prop userPermission
 }
 
 const props = defineProps<Props>()
@@ -159,10 +166,9 @@ const canCancel = computed(() => {
 })
 
 function showConfirmModal(action: string) {
-    console.log('Showing modal for action:', action)
+    if (props.userPermission < 2) return // Protection JS
     pendingAction.value = action
     showModal.value = true
-    console.log('Modal should be visible:', showModal.value)
 }
 
 function hideModal() {
@@ -171,6 +177,7 @@ function hideModal() {
 }
 
 async function confirmAction() {
+    if (props.userPermission < 2) return // Protection JS
     await performAction(pendingAction.value)
     hideModal()
 }

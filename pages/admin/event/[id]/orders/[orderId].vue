@@ -3,6 +3,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useSupabaseClient, useSupabaseUser } from '#imports'
+import { useEntityPermission } from '~/composables/useEntityPermission'
 
 // Import print styles
 import '~/assets/css/print-orders.css'
@@ -34,6 +35,8 @@ const notifications = ref([])
 
 // Pour obtenir l'ID interne de l'utilisateur (integer) depuis la table "users"
 const userIdInt = ref(null)
+
+const { currentUserPermission, fetchPermission } = useEntityPermission(eventId, 'event')
 
 async function fetchOrderDetails() {
     loading.value = true
@@ -115,7 +118,10 @@ async function fetchOrderDetails() {
     }
 }
 
-onMounted(fetchOrderDetails)
+onMounted(async () => {
+    await fetchPermission()
+    await fetchOrderDetails()
+})
 
 function goBack() {
     router.push(`/admin/event/${eventId}/orders`)
@@ -526,7 +532,10 @@ stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         </div>
                     </div> <!-- Action Panel -->
                     <OrderActionPanel
-:order="orderDetails" :event-id="eventId" @order-updated="handleOrderUpdate"
+:order="orderDetails"
+                        :event-id="eventId"
+                        :user-permission="currentUserPermission"
+                        @order-updated="handleOrderUpdate"
                         @show-notification="showNotification" />
                 </div>
             </div> <!-- Notifications -->

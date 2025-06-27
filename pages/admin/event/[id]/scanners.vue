@@ -40,10 +40,13 @@
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-2xl font-semibold text-gray-800">Liste des Scanners</h2>
                 <button
-class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-2.5 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 flex items-center gap-2"
-                    @click="showAddModal = true">
-                    <PlusIcon class="h-5 w-5" />
-                    Ajouter un Scanner
+                  class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-2.5 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 flex items-center gap-2"
+                  @click="currentUserPermission >= 2 && (showAddModal = true)"
+                  :disabled="currentUserPermission < 2"
+                  :class="currentUserPermission < 2 ? 'opacity-50 cursor-not-allowed' : ''"
+                >
+                  <PlusIcon class="h-5 w-5" />
+                  Ajouter un Scanner
                 </button>
             </div>
 
@@ -120,22 +123,34 @@ v-else
                     <div class="bg-gray-50 px-5 py-3 rounded-b-xl">
                         <div class="flex items-center justify-end gap-3">
                             <button
-title="Générer l'URL de scan" class="text-gray-500 hover:text-blue-600 transition-colors"
-                                @click="generateScannerUrl(scanner)">
-                                <LinkIcon class="h-5 w-5" />
+                          title="Générer l'URL de scan"
+                          :disabled="false"
+                          :class="''"
+                          class="text-gray-500 hover:text-blue-600 transition-colors"
+                          @click="generateScannerUrl(scanner)"
+                        >
+                          <LinkIcon class="h-5 w-5" />
+                        </button>
+                            <button
+                              :title="scanner.status === 'active' ? 'Désactiver' : 'Activer'"
+                              class="transition-colors"
+                              :class="currentUserPermission < 2 ? 'opacity-50 cursor-not-allowed text-gray-400 hover:text-gray-400' : 'hover:text-green-600 text-gray-500'"
+                              :disabled="currentUserPermission < 2"
+                              :aria-disabled="currentUserPermission < 2"
+                              @click="currentUserPermission >= 2 && toggleScannerStatus(scanner)"
+                            >
+                              <PowerIcon class="h-5 w-5" />
                             </button>
                             <button
-:title="scanner.status === 'active' ? 'Désactiver' : 'Activer'"
-                                class="transition-colors"
-                                :class="scanner.status === 'active' ? 'text-gray-500 hover:text-yellow-600' : 'text-gray-500 hover:text-green-600'"
-                                @click="toggleScannerStatus(scanner)">
-                                <PowerIcon class="h-5 w-5" />
-                            </button>
-                            <button
-title="Supprimer le scanner" class="text-gray-500 hover:text-red-600 transition-colors"
-                                @click="deleteScanner(scanner.id)">
-                                <TrashIcon class="h-5 w-5" />
-                            </button>
+                          title="Supprimer le scanner"
+                          class="transition-colors"
+                          :class="currentUserPermission < 2 ? 'opacity-50 cursor-not-allowed text-gray-400 hover:text-gray-400' : 'hover:text-red-600 text-gray-500'"
+                          :disabled="currentUserPermission < 2"
+                          :aria-disabled="currentUserPermission < 2"
+                          @click="currentUserPermission >= 2 && deleteScanner(scanner.id)"
+                        >
+                          <TrashIcon class="h-5 w-5" />
+                        </button>
                         </div>
                     </div>
                 </div>
@@ -193,10 +208,23 @@ class="w-full px-4 py-2 text-sm font-medium text-white bg-gray-700 rounded-lg ho
 <script setup>
 import { ref, onMounted } from 'vue'
 import { PlusIcon, QrCodeIcon, LinkIcon, PowerIcon, TrashIcon } from '@heroicons/vue/24/outline'
+import { useSupabaseClient, useSupabaseUser } from '#imports'
+import { useEntityPermission } from '~/composables/useEntityPermission'
 
 // Props et router
 const route = useRoute()
 const eventId = route.params.id
+const supabase = useSupabaseClient()
+const user = useSupabaseUser()
+
+// Permissions centralisées
+const { currentUserPermission, fetchPermission } = useEntityPermission(eventId, 'event')
+
+onMounted(async () => {
+  await fetchPermission()
+  fetchScanners()
+  fetchEventDetails()
+})
 
 // État reactif
 const scanners = ref([])
@@ -258,7 +286,7 @@ const copyToClipboard = async () => {
         setTimeout(() => {
             copySuccess.value = false
         }, 2000);
-        console.log('URL copiée dans le presse-papier')
+        console.log('URL copiée dans le presse-papiers')
     } catch (error) {
         console.error('Erreur copie:', error)
     }
@@ -325,6 +353,7 @@ const formatDate = (dateString) => {
 
 // Cycle de vie
 onMounted(() => {
+    fetchPermission()
     fetchScanners()
     fetchEventDetails()
 })
