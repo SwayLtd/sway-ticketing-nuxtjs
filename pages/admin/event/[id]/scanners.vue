@@ -40,13 +40,12 @@
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-2xl font-semibold text-gray-800">Liste des Scanners</h2>
                 <button
-                  class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-2.5 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 flex items-center gap-2"
-                  @click="currentUserPermission >= 2 && (showAddModal = true)"
-                  :disabled="currentUserPermission < 2"
-                  :class="currentUserPermission < 2 ? 'opacity-50 cursor-not-allowed' : ''"
-                >
-                  <PlusIcon class="h-5 w-5" />
-                  Ajouter un Scanner
+                    class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-2.5 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 flex items-center gap-2"
+                    :disabled="currentUserPermission < 2"
+                    :class="currentUserPermission < 2 ? 'opacity-50 cursor-not-allowed' : ''"
+                    @click="currentUserPermission >= 2 && (showAddModal = true)">
+                    <PlusIcon class="h-5 w-5" />
+                    Ajouter un scanner
                 </button>
             </div>
 
@@ -57,44 +56,39 @@
                     <div class="p-5">
                         <div class="flex items-start justify-between">
                             <div class="flex items-center">
-                                <div class="h-12 w-12 rounded-full bg-gray-200"/>
+                                <div class="h-12 w-12 rounded-full bg-gray-200" />
                                 <div class="ml-4">
-                                    <div class="h-4 w-32 bg-gray-200 rounded"/>
-                                    <div class="h-3 w-48 bg-gray-200 rounded mt-2"/>
+                                    <div class="h-4 w-32 bg-gray-200 rounded" />
+                                    <div class="h-3 w-48 bg-gray-200 rounded mt-2" />
                                 </div>
                             </div>
-                            <div class="h-6 w-16 bg-gray-200 rounded-full"/>
+                            <div class="h-6 w-16 bg-gray-200 rounded-full" />
                         </div>
                     </div>
                     <div class="bg-gray-50 px-5 py-3 mt-4">
-                        <div class="h-4 w-24 bg-gray-200 rounded ml-auto"/>
+                        <div class="h-4 w-24 bg-gray-200 rounded ml-auto" />
                     </div>
                 </div>
             </div>
 
             <div v-else-if="scanners.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div
-v-for="scanner in scanners" :key="scanner.id"
+                <div v-for="scanner in scanners" :key="scanner.id"
                     class="bg-white rounded-xl shadow-sm border border-gray-200 flex flex-col justify-between transition-transform duration-300 hover:shadow-lg hover:-translate-y-1">
                     <div class="p-5">
                         <div class="flex items-start justify-between mb-4">
                             <div class="flex items-center">
-                                <div
-class="flex-shrink-0 h-12 w-12 rounded-full flex items-center justify-center"
+                                <div class="flex-shrink-0 h-12 w-12 rounded-full flex items-center justify-center"
                                     :class="scanner.status === 'active' ? 'bg-green-100' : 'bg-gray-100'">
-                                    <QrCodeIcon
-class="h-7 w-7"
+                                    <QrCodeIcon class="h-7 w-7"
                                         :class="scanner.status === 'active' ? 'text-green-600' : 'text-gray-400'" />
                                 </div>
                                 <div class="ml-4">
                                     <p class="text-lg font-bold text-gray-900">{{ scanner.name }}</p>
-                                    <span
-v-if="scanner.status === 'active'"
+                                    <span v-if="scanner.status === 'active'"
                                         class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                                         Actif
                                     </span>
-                                    <span
-v-else
+                                    <span v-else
                                         class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
                                         Inactif
                                     </span>
@@ -122,35 +116,24 @@ v-else
                     </div>
                     <div class="bg-gray-50 px-5 py-3 rounded-b-xl">
                         <div class="flex items-center justify-end gap-3">
-                            <button
-                          title="Générer l'URL de scan"
-                          :disabled="false"
-                          :class="''"
-                          class="text-gray-500 hover:text-blue-600 transition-colors"
-                          @click="generateScannerUrl(scanner)"
-                        >
-                          <LinkIcon class="h-5 w-5" />
-                        </button>
-                            <button
-                              :title="scanner.status === 'active' ? 'Désactiver' : 'Activer'"
-                              class="transition-colors"
-                              :class="currentUserPermission < 2 ? 'opacity-50 cursor-not-allowed text-gray-400 hover:text-gray-400' : 'hover:text-green-600 text-gray-500'"
-                              :disabled="currentUserPermission < 2"
-                              :aria-disabled="currentUserPermission < 2"
-                              @click="currentUserPermission >= 2 && toggleScannerStatus(scanner)"
-                            >
-                              <PowerIcon class="h-5 w-5" />
+                            <button title="Générer l'URL de scan" :disabled="false" :class="''"
+                                class="text-gray-500 hover:text-blue-600 transition-colors"
+                                @click="generateScannerUrl(scanner)">
+                                <LinkIcon class="h-5 w-5" />
                             </button>
-                            <button
-                          title="Supprimer le scanner"
-                          class="transition-colors"
-                          :class="currentUserPermission < 2 ? 'opacity-50 cursor-not-allowed text-gray-400 hover:text-gray-400' : 'hover:text-red-600 text-gray-500'"
-                          :disabled="currentUserPermission < 2"
-                          :aria-disabled="currentUserPermission < 2"
-                          @click="currentUserPermission >= 2 && deleteScanner(scanner.id)"
-                        >
-                          <TrashIcon class="h-5 w-5" />
-                        </button>
+                            <button :title="scanner.status === 'active' ? 'Désactiver' : 'Activer'"
+                                class="transition-colors"
+                                :class="currentUserPermission < 2 ? 'opacity-50 cursor-not-allowed text-gray-400 hover:text-gray-400' : 'hover:text-green-600 text-gray-500'"
+                                :disabled="currentUserPermission < 2" :aria-disabled="currentUserPermission < 2"
+                                @click="currentUserPermission >= 2 && toggleScannerStatus(scanner)">
+                                <PowerIcon class="h-5 w-5" />
+                            </button>
+                            <button title="Supprimer le scanner" class="transition-colors"
+                                :class="currentUserPermission < 2 ? 'opacity-50 cursor-not-allowed text-gray-400 hover:text-gray-400' : 'hover:text-red-600 text-gray-500'"
+                                :disabled="currentUserPermission < 2" :aria-disabled="currentUserPermission < 2"
+                                @click="currentUserPermission >= 2 && deleteScanner(scanner.id)">
+                                <TrashIcon class="h-5 w-5" />
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -164,14 +147,12 @@ v-else
         </div>
 
         <!-- Modal d'ajout -->
-        <ScannerAddModal
-v-if="showAddModal" :event-id="eventId" @close="showAddModal = false"
+        <ScannerAddModal v-if="showAddModal" :event-id="eventId" @close="showAddModal = false"
             @scanner-added="refreshScanners" />
 
         <!-- Modal URL -->
-        <div
-v-if="showUrlModal"
-            class="fixed inset-0 bg-gray-800 bg-opacity-60 overflow-y-auto h-full w-full z-50 flex items-center justify-center">
+        <div v-if="showUrlModal"
+            class="fixed inset-0 bg-gray-500/30 overflow-y-auto h-full w-full z-50 flex items-center justify-center">
             <div class="relative mx-auto p-6 border w-full max-w-md shadow-xl rounded-2xl bg-white">
                 <div class="mt-3 text-center">
                     <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-100">
@@ -180,21 +161,23 @@ v-if="showUrlModal"
                     <h3 class="text-xl font-bold text-gray-900 my-3">URL de Scanner</h3>
                     <div class="mb-4 text-left">
                         <label class="block text-sm font-medium text-gray-700 mb-2">URL d'accès unique :</label>
-                        <div class="flex rounded-md shadow-sm">
-                            <input
-v-model="generatedUrl" readonly
-                                class="flex-1 px-3 py-2 border border-gray-300 rounded-l-md text-sm bg-gray-50" >
+                        <div class="flex rounded-md shadow-sm mb-4">
+                            <input v-model="generatedUrl" readonly
+                                class="flex-1 px-3 py-2 border border-gray-300 rounded-l-md text-sm bg-gray-50">
                             <button
-class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-r-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-r-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                                 @click="copyToClipboard">
                                 Copier
                             </button>
+                        </div>
+                        <div class="flex justify-center my-4">
+                            <QrCode :value="generatedUrl" :size="160" />
                         </div>
                         <p v-if="copySuccess" class="text-green-600 text-sm mt-2">Copié dans le presse-papiers !</p>
                     </div>
                     <div class="mt-4">
                         <button
-class="w-full px-4 py-2 text-sm font-medium text-white bg-gray-700 rounded-lg hover:bg-gray-800"
+                            class="w-full px-4 py-2 text-sm font-medium text-white bg-gray-700 rounded-lg hover:bg-gray-800"
                             @click="showUrlModal = false">
                             Fermer
                         </button>
@@ -221,9 +204,9 @@ const user = useSupabaseUser()
 const { currentUserPermission, fetchPermission } = useEntityPermission(eventId, 'event')
 
 onMounted(async () => {
-  await fetchPermission()
-  fetchScanners()
-  fetchEventDetails()
+    await fetchPermission()
+    fetchScanners()
+    fetchEventDetails()
 })
 
 // État reactif

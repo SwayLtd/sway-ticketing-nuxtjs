@@ -109,6 +109,39 @@ function formatDate(dateString) {
 function navigateToOrder(orderId) {
   return navigateTo(`/admin/event/${eventId}/orders/${orderId}`)
 }
+
+function exportOrdersToCSV() {
+  if (!orders.value.length) return;
+  const headers = [
+    'ID Commande',
+    'Statut',
+    'Email Acheteur',
+    'Total',
+    'Devise',
+    'Date'
+  ];
+  const rows = orders.value.map(order => [
+    order.id,
+    order.status,
+    order.buyer_email || '',
+    order.total_amount,
+    order.currency,
+    order.created_at
+  ]);
+  const csvContent = [
+    headers.join(','),
+    ...rows.map(row => row.map(field => `"${String(field).replace(/"/g, '""')}"`).join(','))
+  ].join('\r\n');
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.setAttribute('download', `commandes_event_${eventId}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
 </script>
 
 <template>
@@ -122,10 +155,15 @@ function navigateToOrder(orderId) {
         </div>
         <!-- Bouton d'export visible pour tous les niveaux de permission -->
         <button
-          aria-label="Exporter les commandes"
-          class="btn btn-secondary"
+          aria-label="Exporter les commandes en CSV"
+          class="btn flex items-center gap-2"
+          @click="exportOrdersToCSV"
         >
-          Exporter
+          <svg class="w-5 h-5 text-base-content" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v12m0 0l-4-4m4 4l4-4" />
+            <rect x="4" y="18" width="16" height="2" rx="1" />
+          </svg>
+          Exporter CSV
         </button>
       </div>
 
@@ -179,11 +217,13 @@ function navigateToOrder(orderId) {
                       :aria-label="`Copier l'ID ${order.id}`"
                       :disabled="currentUserPermission < 2"
                       :tabindex="currentUserPermission < 2 ? -1 : 0"
-                      class="btn btn-xs btn-ghost ml-2"
+                      class="btn btn-xs btn-ghost ml-2 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto focus-within:opacity-100 transition-opacity duration-200"
                       @click.stop="copyToClipboard(order.id, order.id)"
                     >
                       <span v-if="copiedValue === order.id" class="text-success text-xs font-semibold">Copié!</span>
-                      <span v-else class="icon-[mdi--content-copy] w-4 h-4 text-base-content" />
+                      <span v-else>
+                        <svg class="w-4 h-4 text-base-content" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
+                      </span>
                     </button>
                   </div>
                 </td>
@@ -194,7 +234,8 @@ function navigateToOrder(orderId) {
                       'badge-success': ['succeeded', 'paid'].includes(order.status),
                       'badge-warning': ['pending'].includes(order.status),
                       'badge-error': ['failed', 'canceled'].includes(order.status),
-                      'badge-ghost': !['succeeded', 'paid', 'pending', 'failed', 'canceled'].includes(order.status)
+                      'badge-info': ['refunded'].includes(order.status),
+                      'badge-ghost': !['succeeded', 'paid', 'pending', 'failed', 'canceled', 'refunded'].includes(order.status)
                     }"
                   >
                     {{ order.status }}
@@ -207,11 +248,13 @@ function navigateToOrder(orderId) {
                       :aria-label="`Copier l'email ${order.buyer_email}`"
                       :disabled="currentUserPermission < 2"
                       :tabindex="currentUserPermission < 2 ? -1 : 0"
-                      class="btn btn-xs btn-ghost ml-2"
+                      class="btn btn-xs btn-ghost ml-2 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto focus-within:opacity-100 transition-opacity duration-200"
                       @click.stop="copyToClipboard(order.buyer_email, order.buyer_email)"
                     >
                       <span v-if="copiedValue === order.buyer_email" class="text-success text-xs font-semibold">Copié!</span>
-                      <span v-else class="icon-[mdi--content-copy] w-4 h-4 text-base-content" />
+                      <span v-else>
+                        <svg class="w-4 h-4 text-base-content" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
+                      </span>
                     </button>
                   </div>
                   <span v-else>-</span>
@@ -256,14 +299,14 @@ function navigateToOrder(orderId) {
               </p>
             </div>
             <div>
-              <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+              <nav class="relative z-0 inline-flex rounded-md shadow-sm gap-2" aria-label="Pagination">
                 <button
                   :disabled="currentPage === 1"
                   class="btn btn-square btn-outline"
                   @click="prevPage"
                 >
                   <span class="sr-only">Précédent</span>
-                  <span class="icon-[mdi--chevron-left] w-5 h-5" aria-hidden="true" />
+                  <svg class="w-5 h-5 text-base-content" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
                 </button>
                 <button
                   :disabled="currentPage === totalPages"
@@ -271,7 +314,7 @@ function navigateToOrder(orderId) {
                   @click="nextPage"
                 >
                   <span class="sr-only">Suivant</span>
-                  <span class="icon-[mdi--chevron-right] w-5 h-5" aria-hidden="true" />
+                  <svg class="w-5 h-5 text-base-content" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
                 </button>
               </nav>
             </div>

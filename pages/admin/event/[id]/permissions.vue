@@ -413,6 +413,18 @@ function closeEditModal() {
   }
 }
 
+const confirmDeleteInput = ref('')
+
+const isDeleteAdmin = computed(() => {
+  const admin = permissions.value.find(p => p.user_id === deleteForm.value.userId)
+  return admin && admin.permission_level === 3
+})
+
+const canConfirmDelete = computed(() => {
+  if (!isDeleteAdmin.value) return true
+  return confirmDeleteInput.value === deleteForm.value.userName
+})
+
 function openDeleteModal(permission) {
   if (!canManageLevel(permission.permission_level)) return
   // Empêcher de supprimer sa propre permission
@@ -665,9 +677,8 @@ function getPermissionLevelColor(level) {
         </div>
       </div>
     </div>    <!-- Add User Modal -->
-    <div v-if="showAddModal" class="modal modal-open">
-      <div class="modal-backdrop bg-black/50" @click="closeAddModal" />
-      <div class="modal-box bg-white max-w-4xl p-0">
+    <div v-if="showAddModal" class="fixed inset-0 bg-gray-500/30 z-50 flex items-center justify-center">
+      <div class="bg-white rounded-xl shadow-xl max-w-4xl w-full relative z-60">
         <div class="p-6 border-b border-gray-200">
           <h3 class="font-bold text-xl text-gray-900">Ajouter un utilisateur</h3>
           <p class="text-sm text-gray-500 mt-1">Recherchez un utilisateur et assignez-lui un rôle pour cet événement.</p>
@@ -677,17 +688,12 @@ function getPermissionLevelColor(level) {
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
             <!-- Left Column: User Search & Selection -->
             <div class="flex flex-col h-full">
-              <div class="form-control">
-                <label class="label">
-                  <span class="label-text text-gray-700 font-semibold">Rechercher un utilisateur</span>
-                </label>
-                <input
-                  v-model="userSearchTerm"
-                  type="text"
-                  placeholder="Tapez un nom ou un email..."
-                  class="input input-bordered w-full bg-white"
-                >
-              </div>
+              <input
+                v-model="userSearchTerm"
+                type="text"
+                placeholder="Tapez un nom ou un email..."
+                class="input input-bordered w-full bg-white"
+              >
               <div class="mt-4 flex-grow overflow-y-auto bg-gray-50 rounded-lg p-2 min-h-[200px] border">
                 <!-- Prompt to search -->
                 <div v-if="!userSearchTerm" class="flex flex-col items-center justify-center h-full text-gray-500">
@@ -703,7 +709,7 @@ function getPermissionLevelColor(level) {
 
                 <!-- Results -->
                 <ul v-else class="space-y-2">
-                  <li v-for="userOption in availableUsersForAdd.slice(0, 5)" :key="userOption.id">
+                  <li v-for="userOption in availableUsersForAdd.slice(0, 4)" :key="userOption.id">
                     <label
                       :class="['p-3 rounded-lg flex items-center gap-3 cursor-pointer transition-colors', addUserForm.selectedUserId === userOption.id ? 'bg-primary text-primary-content shadow' : 'hover:bg-gray-200']"
                     >
@@ -721,32 +727,27 @@ function getPermissionLevelColor(level) {
                   </li>
                 </ul>
               </div>
-              <div v-if="userSearchTerm && availableUsersForAdd.length > 5" class="text-xs text-gray-500 mt-2">
-                Les 5 premiers résultats sont affichés. Affinez votre recherche.
+              <div v-if="userSearchTerm && availableUsersForAdd.length > 4" class="text-xs text-gray-500 mt-2">
+                Les 4 premiers résultats sont affichés. Affinez votre recherche.
               </div>
             </div>
 
             <!-- Right Column: Permission Level -->
             <div class="flex flex-col">
-              <label class="label">
-                <span class="label-text text-gray-700 font-semibold">Niveau de permission</span>
-              </label>
               <div class="space-y-3">
                 <div v-for="(level, key) in permissionLevels" :key="key">
-                  <label :class="['p-4 rounded-lg border transition-all', addUserForm.permissionLevel == key ? 'border-primary shadow' : 'border-gray-300', !canManageLevel(parseInt(key)) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:border-primary-focus']">
-                    <div class="flex items-center">
-                      <input 
-                        v-model="addUserForm.permissionLevel"
-                        type="radio" 
-                        name="permissionLevel" 
-                        :value="parseInt(key)" 
-                        :disabled="!canManageLevel(parseInt(key))"
-                        class="radio radio-primary mr-4"
-                      >
-                      <div>
-                        <div class="font-bold text-gray-800">{{ level.name }}</div>
-                        <p class="text-sm text-gray-600">{{ level.description }}</p>
-                      </div>
+                  <label :class="['p-4 rounded-lg border transition-all flex items-center gap-3', addUserForm.permissionLevel == key ? 'border-primary ring-2 ring-primary bg-base-100' : 'border-base-200', !canManageLevel(parseInt(key)) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:border-primary hover:bg-base-200']">
+                    <input 
+                      v-model="addUserForm.permissionLevel"
+                      type="radio" 
+                      name="permissionLevel" 
+                      :value="parseInt(key)" 
+                      :disabled="!canManageLevel(parseInt(key))"
+                      class="radio radio-primary mr-4"
+                    >
+                    <div>
+                      <div class="font-bold text-gray-800">{{ level.name }}</div>
+                      <p class="text-sm text-gray-600">{{ level.description }}</p>
                     </div>
                   </label>
                 </div>
@@ -763,35 +764,30 @@ function getPermissionLevelColor(level) {
     </div>
 
     <!-- Edit Permission Modal -->
-    <div v-if="showEditModal" class="modal modal-open">
-      <div class="modal-backdrop bg-black/50" @click="closeEditModal" />
-      <div class="modal-box bg-white max-w-lg">
+    <div v-if="showEditModal" class="fixed inset-0 bg-gray-500/30 z-50 flex items-center justify-center">
+      <div class="bg-white rounded-xl shadow-xl max-w-lg w-full relative z-60 p-6">
         <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" @click="closeEditModal">✕</button>
         <h3 class="font-bold text-xl mb-2 text-gray-900">Modifier la permission</h3>
         <p class="mb-6 text-gray-600">Modification pour l'utilisateur : <strong class="font-semibold text-gray-800">{{ editForm.userName }}</strong></p>
-        
         <form @submit.prevent="updateUserPermission">
           <div class="space-y-3 mb-6">
             <div v-for="(level, key) in permissionLevels" :key="key">
-              <label :class="['p-4 rounded-lg border transition-all', editForm.permissionLevel == key ? 'border-primary shadow' : 'border-gray-300', !canManageLevel(parseInt(key)) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:border-primary-focus']">
-                <div class="flex items-center">
-                  <input 
-                    v-model="editForm.permissionLevel"
-                    type="radio" 
-                    name="editPermissionLevel" 
-                    :value="parseInt(key)" 
-                    :disabled="!canManageLevel(parseInt(key))"
-                    class="radio radio-primary mr-4"
-                  >
-                  <div>
-                    <div class="font-bold text-gray-800">{{ level.name }}</div>
-                    <p class="text-sm text-gray-600">{{ level.description }}</p>
-                  </div>
+              <label :class="['p-4 rounded-lg border transition-all flex items-center gap-3', editForm.permissionLevel == key ? 'border-primary ring-2 ring-primary bg-base-100' : 'border-base-200', !canManageLevel(parseInt(key)) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:border-primary hover:bg-base-200']">
+                <input 
+                  v-model="editForm.permissionLevel"
+                  type="radio" 
+                  name="editPermissionLevel" 
+                  :value="parseInt(key)" 
+                  :disabled="!canManageLevel(parseInt(key))"
+                  class="radio radio-primary mr-4"
+                >
+                <div>
+                  <div class="font-bold text-gray-800">{{ level.name }}</div>
+                  <p class="text-sm text-gray-600">{{ level.description }}</p>
                 </div>
               </label>
             </div>
           </div>
-
           <div class="modal-action">
             <button type="button" class="btn btn-ghost" @click="closeEditModal">Annuler</button>
             <button type="submit" class="btn btn-primary">Enregistrer</button>
@@ -817,10 +813,19 @@ function getPermissionLevelColor(level) {
             <p class="font-bold my-1 text-gray-800">{{ deleteForm.userName }}</p>
             <p>à cet événement ? Cette action est irréversible.</p>
           </div>
+          <div v-if="isDeleteAdmin" class="mt-4">
+            <p class="text-sm text-error font-semibold mb-2">Pour confirmer la suppression d'un administrateur, veuillez saisir le nom d'utilisateur exact :</p>
+            <input
+              v-model="confirmDeleteInput"
+              type="text"
+              class="input input-bordered w-full max-w-xs mx-auto"
+              :placeholder="deleteForm.userName"
+            >
+          </div>
         </div>
         <div class="modal-action bg-gray-50 px-6 py-4">
           <button class="btn btn-ghost" @click="closeDeleteModal">Annuler</button>
-          <button class="btn btn-error" @click="removeUserPermission">Oui, supprimer</button>
+          <button class="btn btn-error" :disabled="!canConfirmDelete" @click="removeUserPermission">Oui, supprimer</button>
         </div>
       </div>
     </div>

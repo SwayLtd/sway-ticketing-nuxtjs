@@ -13,7 +13,7 @@ v-if="!item.disabled" :class="[
         <!-- Badge pour les éléments principaux -->
         <span
 v-if="item.isMainItem"
-            class="ml-auto px-2 py-1 text-xs font-semibold bg-gray-700 text-gray-300 rounded-full">
+            class="ml-auto px-2 py-1 text-xs font-semibold bg-primary/10 text-primary rounded-full">
             Main
         </span>
     </button>
@@ -32,7 +32,7 @@ v-else :class="[
         <!-- Badge pour les éléments principaux -->
         <span
 v-if="item.isMainItem"
-            class="ml-auto px-2 py-1 text-xs font-semibold bg-gray-700 text-gray-300 rounded-full">
+            class="ml-auto px-2 py-1 text-xs font-semibold bg-primary/10 text-primary rounded-full">
             Main
         </span>
     </span>
@@ -106,19 +106,19 @@ const getItemClasses = (item) => {
 
     if (item.disabled) {
         baseClasses.push(
-            'text-gray-500 cursor-not-allowed bg-transparent'
+            'text-base-content/40 cursor-not-allowed bg-transparent'
         )
     } else if (isActive.value) {
         baseClasses.push(
-            'bg-blue-600 text-white shadow-md'
+            'bg-primary text-primary-content shadow-md'
         )
     } else if (item.isMainItem) {
         baseClasses.push(
-            'bg-gray-800 text-white hover:bg-gray-700 border border-gray-700'
+            'bg-base-300 text-base-content border border-base-200 hover:bg-base-200'
         )
     } else {
         baseClasses.push(
-            'text-gray-300 hover:bg-gray-800 hover:text-white'
+            'text-base-content hover:bg-base-300 hover:text-base-content'
         )
     }
 

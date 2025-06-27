@@ -4,7 +4,7 @@
             <!-- Bouton burger fixe en bas à gauche, par-dessus le contenu -->
             <div class="fixed bottom-6 left-6 z-50">
                 <button
-                    class="bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 rounded-full p-4 shadow-lg transition-colors duration-200"
+                    class="btn btn-square btn-ghost bg-base-100 text-base-content border border-base-200 hover:bg-base-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-50 shadow-lg transition-colors duration-200"
                     :aria-label="isOpen ? 'Fermer le menu' : 'Ouvrir le menu'" @click="toggleSidebar">
                     <Transition enter-active-class="transition-transform duration-200 ease-in-out"
                         leave-active-class="transition-transform duration-200 ease-in-out"
@@ -21,7 +21,7 @@
         <div class="hidden lg:block">
             <div class="fixed top-6 left-6 z-50">
                 <button
-                    class="bg-gray-800 text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50 rounded-lg p-3 shadow-lg transition-colors duration-200"
+                    class="btn btn-square btn-ghost bg-base-100 text-base-content border border-base-200 hover:bg-base-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-50 shadow-lg transition-colors duration-200"
                     aria-label="Toggle menu" @click="toggleSidebar">
                     <Bars3Icon class="h-5 w-5" />
                 </button>
@@ -30,19 +30,19 @@
         <Transition enter-active-class="transition-opacity ease-linear duration-300" enter-from-class="opacity-0"
             enter-to-class="opacity-100" leave-active-class="transition-opacity ease-linear duration-300"
             leave-from-class="opacity-100" leave-to-class="opacity-0">
-            <div v-if="isOpen" class="fixed inset-0 z-40 bg-gray-600 bg-opacity-75" @click="closeSidebar" />
+            <div v-if="isOpen" class="fixed inset-0 z-40 bg-gray-500/30" @click="closeSidebar" />
         </Transition> <!-- Sidebar -->
         <Transition enter-active-class="transition ease-in-out duration-300 transform"
             enter-from-class="-translate-x-full" enter-to-class="translate-x-0"
             leave-active-class="transition ease-in-out duration-300 transform" leave-from-class="translate-x-0"
             leave-to-class="-translate-x-full">
             <aside v-if="isOpen"
-                class="fixed inset-y-0 left-0 z-45 w-full bg-gray-900 text-white overflow-y-auto lg:w-80 flex flex-col"
+                class="fixed inset-y-0 left-0 z-45 w-full bg-base-100 text-base-content overflow-y-auto lg:w-80 flex flex-col"
                 @keydown.esc="closeSidebar"> <!-- Header desktop avec bouton fermer -->
-                <div class="hidden lg:block p-6 border-b border-gray-700">
+                <div class="hidden lg:block p-6 border-b border-base-200">
                     <div class="flex items-center justify-between">
-                        <h1 v-if="title" class="text-xl font-bold text-white">{{ title }}</h1>
-                        <button class="text-gray-400 hover:text-white transition-colors duration-200"
+                        <h1 v-if="title" class="text-xl font-bold">{{ title }}</h1>
+                        <button class="text-base-content/60 hover:text-base-content transition-colors duration-200"
                             aria-label="Fermer le menu" @click="closeSidebar">
                             <XMarkIcon class="h-6 w-6" />
                         </button>
@@ -50,8 +50,8 @@
                 </div>
 
                 <!-- Header mobile avec titre uniquement -->
-                <div class="lg:hidden p-4 border-b border-gray-700">
-                    <h2 v-if="title" class="text-lg font-semibold text-white text-center">{{ title }}</h2>
+                <div class="lg:hidden p-4 border-b border-base-200">
+                    <h2 v-if="title" class="text-lg font-semibold text-center">{{ title }}</h2>
                 </div> <!-- Navigation -->
                 <nav class="p-4 flex-1">
                     <ul class="space-y-2">
