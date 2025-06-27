@@ -40,6 +40,8 @@ Ce projet utilise **Nuxt 3** avec **Tailwind CSS v4** et **daisyUI** pour le sty
 
 ### Thèmes et Dark Mode
 - Utiliser les variables CSS daisyUI pour les couleurs
+- **Imposer le thème daisyUI `light` par défaut** (via `data-theme="light"` sur `<html>` ou `useHead` dans `app.vue`)
+- Toujours vérifier le contraste texte/fond pour garantir l’accessibilité en mode clair (fond blanc)
 - Respecter les thèmes configurés
 - Tester la compatibilité dark/light mode
 
