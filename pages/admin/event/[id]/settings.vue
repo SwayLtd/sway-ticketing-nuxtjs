@@ -42,8 +42,8 @@
               id="eventName"
               v-model="mainForm.title"
               class="input input-bordered w-full"
-              :disabled="isReadOnly"
-              :aria-disabled="isReadOnly"
+              :disabled="isActionDisabled"
+              :aria-disabled="isActionDisabled"
               required
             >
           </div>
@@ -53,9 +53,10 @@
             <div class="flex items-center justify-between mb-2">
               <span class="font-semibold">Organisateurs</span>
               <button
-                :disabled="isReadOnly"
-                :aria-disabled="isReadOnly"
+                :disabled="isActionDisabled"
+                :aria-disabled="isActionDisabled"
                 class="btn btn-sm btn-primary"
+                :class="isActionDisabled ? 'btn-disabled opacity-50 cursor-not-allowed' : ''"
                 type="button"
                 @click="openPromoterModal"
               >
@@ -66,10 +67,22 @@
             <ul>
               <li v-for="prom in mainForm.promoters" :key="prom.id" class="flex items-center justify-between py-1">
                 <span>{{ prom.name }}</span>
+                <div class="tooltip" v-if="mainForm.promoters.length === 1" data-tip="Il doit rester au moins 1 organisateur assigné.">
+                  <button
+                    :disabled="true"
+                    aria-disabled="true"
+                    class="btn btn-xs btn-error btn-disabled opacity-50 cursor-not-allowed"
+                    type="button"
+                  >
+                    Retirer
+                  </button>
+                </div>
                 <button
-                  :disabled="isReadOnly"
-                  :aria-disabled="isReadOnly"
+                  v-else
+                  :disabled="isActionDisabled"
+                  :aria-disabled="isActionDisabled"
                   class="btn btn-xs btn-error"
+                  :class="isActionDisabled ? 'btn-disabled opacity-50 cursor-not-allowed' : ''"
                   type="button"
                   @click="removePromoter(prom.id)"
                 >
@@ -84,9 +97,10 @@
             <div class="flex items-center justify-between mb-2">
               <span class="font-semibold">Lieux</span>
               <button
-                :disabled="isReadOnly"
-                :aria-disabled="isReadOnly"
+                :disabled="isActionDisabled"
+                :aria-disabled="isActionDisabled"
                 class="btn btn-sm btn-primary"
+                :class="isActionDisabled ? 'btn-disabled opacity-50 cursor-not-allowed' : ''"
                 type="button"
                 @click="openVenueModal"
               >
@@ -97,10 +111,22 @@
             <ul>
               <li v-for="venue in mainForm.venues" :key="venue.id" class="flex items-center justify-between py-1">
                 <span>{{ venue.name }}</span>
+                <div class="tooltip" v-if="mainForm.venues.length === 1" data-tip="Il doit rester au moins 1 lieu assigné.">
+                  <button
+                    :disabled="true"
+                    aria-disabled="true"
+                    class="btn btn-xs btn-error btn-disabled opacity-50 cursor-not-allowed"
+                    type="button"
+                  >
+                    Retirer
+                  </button>
+                </div>
                 <button
-                  :disabled="isReadOnly"
-                  :aria-disabled="isReadOnly"
+                  v-else
+                  :disabled="isActionDisabled"
+                  :aria-disabled="isActionDisabled"
                   class="btn btn-xs btn-error"
+                  :class="isActionDisabled ? 'btn-disabled opacity-50 cursor-not-allowed' : ''"
                   type="button"
                   @click="removeVenue(venue.id)"
                 >
@@ -112,9 +138,10 @@
 
           <div class="flex justify-end">
             <button
-              :disabled="isReadOnly || mainLoading"
-              :aria-disabled="isReadOnly || mainLoading"
+              :disabled="isActionDisabled || mainLoading"
+              :aria-disabled="isActionDisabled || mainLoading"
               class="btn btn-primary"
+              :class="isActionDisabled || mainLoading ? 'btn-disabled opacity-50 cursor-not-allowed' : ''"
               type="submit"
             >
               {{ mainLoading ? 'Enregistrement…' : 'Save changes' }}
@@ -450,7 +477,9 @@ const event = ref<Event | null>(null)
 const loadingEvent = ref(true)
 
 const { currentUserPermission, fetchPermission } = useEntityPermission(eventId, 'event')
+const permissionLoading = ref(true)
 const isReadOnly = computed(() => currentUserPermission.value === 1)
+const isActionDisabled = computed(() => permissionLoading.value || isReadOnly.value)
 
 const notification = ref({
   show: false,
@@ -649,12 +678,13 @@ async function searchVenues() {
 }
 
 onMounted(async () => {
+  permissionLoading.value = true
   await fetchPermission()
+  permissionLoading.value = false
   await fetchUserInternalId()
   await fetchUserPromoterIds()
   await fetchEvent()
   await fetchAllPromoters()
-
   // eslint-disable-next-line no-console
   console.log('[PAGE] settings.vue mounted, route:', route.path)
 })
