@@ -55,8 +55,17 @@
                 </div> <!-- Navigation -->
                 <nav class="p-4 flex-1">
                     <ul class="space-y-2">
-                        <li v-for="item in menuItems" :key="item.path || item.label">
-                            <AdminSidebarItem :item="item" :current-path="currentPath" @click="handleItemClick" />
+                        <li v-for="item in menuItemsWithTickets" :key="item.path || item.label">
+                          <span v-if="item.key === 'tickets'" style="font-size:10px;color:#c00;">
+                            [DEBUG] ticketsEnabled transmis: {{ item.ticketsEnabled }}
+                          </span>
+                          <AdminSidebarItem
+                            :item="item"
+                            :current-path="currentPath"
+                            :tickets-enabled="item.ticketsEnabled === true"
+                            :metadata-loading="sidebarLoading"
+                            @click="handleItemClick"
+                          />
                         </li>
                     </ul>
                 </nav>
@@ -74,9 +83,9 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { Bars3Icon, XMarkIcon } from '@heroicons/vue/24/outline'
-import { useSupabaseClient, navigateTo } from '#imports'
+import { useSupabaseClient, navigateTo, useRoute } from '#imports'
 
 // Props
 const props = defineProps({
@@ -92,15 +101,81 @@ const props = defineProps({
     currentPath: {
         type: String,
         default: ''
+    },
+    event: {
+        type: Object,
+        default: null
     }
 })
 
 // État réactif
 const isOpen = ref(false)
 const screenWidth = ref(0)
+const route = useRoute()
+const supabase = useSupabaseClient()
 
-// Computed
-const isMobile = computed(() => screenWidth.value < 1024)
+// Event local à la sidebar
+const sidebarEvent = ref(null)
+const sidebarLoading = ref(true)
+
+// Fetch event metadata autonome
+async function fetchSidebarEvent() {
+  sidebarLoading.value = true
+  // On cherche un id numérique dans l'URL (ex: /admin/event/51/...)
+  const id = Number(route.params.id)
+  if (!id || isNaN(id)) {
+    // eslint-disable-next-line no-console
+    console.warn('[SIDEBAR] Impossible de déterminer l\'event id depuis la route:', route.params.id)
+    sidebarEvent.value = null
+    sidebarLoading.value = false
+    return
+  }
+  const { data, error } = await supabase.from('events').select('*').eq('id', id).single()
+  if (error) {
+    // eslint-disable-next-line no-console
+    console.error('[SIDEBAR] Erreur fetch event:', error)
+    sidebarEvent.value = null
+  } else {
+    sidebarEvent.value = data
+    // eslint-disable-next-line no-console
+    console.log('[SIDEBAR] event chargé:', data)
+    // eslint-disable-next-line no-console
+    console.log('[SIDEBAR] metadata:', data?.metadata)
+  }
+  sidebarLoading.value = false
+}
+
+onMounted(() => {
+  updateScreenWidth()
+  window.addEventListener('resize', updateScreenWidth)
+  document.addEventListener('keydown', handleKeydown)
+  isOpen.value = false
+  fetchSidebarEvent()
+})
+
+// Si on change d'event dans l'URL, refetch
+watch(() => route.params.id, () => {
+  fetchSidebarEvent()
+})
+
+// Helper pour ticketsEnabled (désactivé par défaut)
+const ticketsEnabled = computed(() => {
+  if (sidebarLoading.value) return false; // Désactive tant que loading
+  const meta = sidebarEvent.value?.metadata
+  // Désactive par défaut, n'active que si sway_tickets === true
+  return meta?.sway_tickets === true
+})
+
+// Injection de ticketsEnabled dans chaque item du menu
+const menuItemsWithTickets = computed(() => {
+  return props.menuItems.map(item => {
+    if (item.key === 'tickets') {
+      // ticketsEnabled: false par défaut, true uniquement si sway_tickets === true
+      return { ...item, ticketsEnabled: ticketsEnabled.value === true }
+    }
+    return item
+  })
+})
 
 // Méthodes
 const toggleSidebar = () => {
@@ -143,6 +218,12 @@ onMounted(() => {
 
     // La sidebar commence toujours fermée pour une expérience cohérente
     isOpen.value = false
+
+    // Log debug pour vérifier la prop event et metadata
+
+    console.log('[SIDEBAR][onMounted] event:', props.event)
+
+    console.log('[SIDEBAR][onMounted] event.metadata:', props.event?.metadata)
 })
 
 onUnmounted(() => {
@@ -150,3 +231,11 @@ onUnmounted(() => {
     document.removeEventListener('keydown', handleKeydown)
 })
 </script>
+
+/**
+* Props:
+* - menuItems: Array d'items du menu
+* - title: Titre affiché
+* - currentPath: Chemin courant
+* - event: (optionnel) objet event avec metadata pour ticketsEnabled
+*/

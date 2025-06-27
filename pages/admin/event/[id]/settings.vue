@@ -11,55 +11,74 @@
 
       <!-- Tabs daisyUI -->
       <div role="tablist" class="tabs tabs-boxed bg-base-200 mb-6">
-        <button
-          v-for="tab in tabs"
-          :key="tab.key"
-          role="tab"
+        <button v-for="tab in tabs" :key="tab.key" role="tab"
           :class="['tab', activeTab === tab.key ? 'tab-active' : '', 'focus:outline-none']"
-          :aria-selected="activeTab === tab.key"
-          @click="activeTab = tab.key"
-        >
+          :aria-selected="activeTab === tab.key" @click="activeTab = tab.key">
           {{ tab.label }}
         </button>
       </div>
 
       <!-- Notifications -->
-      <AdminNotification
-        v-if="notification.show"
-        :type="notification.type"
-        :message="notification.message"
-        :description="notification.description"
-        :duration="notification.duration"
-        @close="notification.show = false"
-      />
+      <AdminNotification v-if="notification.show" :type="notification.type" :message="notification.message"
+        :description="notification.description" :duration="notification.duration" @close="notification.show = false" />
 
       <!-- Onglet Main -->
       <div v-if="activeTab === 'main'">
         <form class="space-y-6" @submit.prevent="saveMain">
           <div class="card bg-base-100 shadow p-4">
             <label class="block font-semibold mb-1" for="eventName">Nom de l'événement</label>
-            <input
-              id="eventName"
-              v-model="mainForm.title"
-              class="input input-bordered w-full"
-              :disabled="isActionDisabled"
-              :aria-disabled="isActionDisabled"
-              required
-            >
+            <input id="eventName" v-model="mainForm.title" class="input input-bordered w-full"
+              :disabled="isActionDisabled" :aria-disabled="isActionDisabled" required>
+          </div>
+
+          <!-- Timetable switch -->
+          <div class="card bg-base-100 shadow p-4 flex flex-col gap-2">
+            <label class="font-semibold mb-1">Timetable</label>
+            <div class="flex items-center gap-4">
+              <input v-model="mainForm.metadata.timetable" type="checkbox" class="toggle toggle-primary"
+                :disabled="isActionDisabled" :aria-disabled="isActionDisabled">
+              <span class="text-xs text-gray-400">Activer ou désactiver l'affichage du timetable sur la page
+                event</span>
+            </div>
+          </div>
+
+          <!-- Ticket link & Sway Tickets -->
+          <div class="card bg-base-100 shadow p-4 flex flex-col gap-2">
+            <label class="block font-semibold mb-1">Lien de billetterie externe</label>
+            <div class="relative group">
+              <input v-model="mainForm.metadata.ticket_link"
+                class="input input-bordered w-full pr-12 cursor-pointer group-hover:bg-base-200 transition"
+                :readonly="mainForm.metadata.sway_tickets" :disabled="isActionDisabled"
+                :aria-readonly="mainForm.metadata.sway_tickets" :aria-disabled="isActionDisabled"
+                placeholder="https://..." @click="copyTicketLink" @mouseenter="hoverTicketLink = true"
+                @mouseleave="hoverTicketLink = false">
+              <button type="button"
+                class="absolute right-2 top-1/2 -translate-y-1/2 btn btn-xs btn-ghost opacity-70 group-hover:opacity-100"
+                :title="hoverTicketLink ? 'Copier le lien' : ''" tabindex="-1" @click.prevent="copyTicketLink">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                  stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M8 16h8M8 12h8m-8-4h8m-2 8v2a2 2 0 002 2h4a2 2 0 002-2V6a2 2 0 00-2-2h-4a2 2 0 00-2 2v2" />
+                </svg>
+              </button>
+              <span v-if="hoverTicketLink"
+                class="absolute right-12 top-1/2 -translate-y-1/2 text-xs bg-base-200 px-2 py-1 rounded shadow">Copier
+                le lien</span>
+            </div>
+            <div class="flex items-center gap-2 mt-2">
+              <input v-model="mainForm.metadata.sway_tickets" type="checkbox" class="toggle toggle-primary"
+                :disabled="isActionDisabled" :aria-disabled="isActionDisabled">
+              <span class="font-semibold">Utiliser Sway Tickets</span>
+            </div>
           </div>
 
           <!-- Organizers (Promoters) -->
           <div class="card bg-base-100 shadow p-4">
             <div class="flex items-center justify-between mb-2">
               <span class="font-semibold">Organisateurs</span>
-              <button
-                :disabled="isActionDisabled"
-                :aria-disabled="isActionDisabled"
-                class="btn btn-sm btn-primary"
-                :class="isActionDisabled ? 'btn-disabled opacity-50 cursor-not-allowed' : ''"
-                type="button"
-                @click="openPromoterModal"
-              >
+              <button :disabled="isActionDisabled" :aria-disabled="isActionDisabled" class="btn btn-sm btn-primary"
+                :class="isActionDisabled ? 'btn-disabled opacity-50 cursor-not-allowed' : ''" type="button"
+                @click="openPromoterModal">
                 Ajouter un organisateur
               </button>
             </div>
@@ -67,25 +86,17 @@
             <ul>
               <li v-for="prom in mainForm.promoters" :key="prom.id" class="flex items-center justify-between py-1">
                 <span>{{ prom.name }}</span>
-                <div class="tooltip" v-if="mainForm.promoters.length === 1" data-tip="Il doit rester au moins 1 organisateur assigné.">
-                  <button
-                    :disabled="true"
-                    aria-disabled="true"
-                    class="btn btn-xs btn-error btn-disabled opacity-50 cursor-not-allowed"
-                    type="button"
-                  >
+                <div v-if="mainForm.promoters.length === 1" class="tooltip"
+                  data-tip="Il doit rester au moins 1 organisateur assigné.">
+                  <button :disabled="true" aria-disabled="true"
+                    class="btn btn-xs btn-error btn-disabled opacity-50 cursor-not-allowed" type="button">
                     Retirer
                   </button>
                 </div>
-                <button
-                  v-else
-                  :disabled="isActionDisabled"
-                  :aria-disabled="isActionDisabled"
+                <button v-else :disabled="isActionDisabled" :aria-disabled="isActionDisabled"
                   class="btn btn-xs btn-error"
-                  :class="isActionDisabled ? 'btn-disabled opacity-50 cursor-not-allowed' : ''"
-                  type="button"
-                  @click="removePromoter(prom.id)"
-                >
+                  :class="isActionDisabled ? 'btn-disabled opacity-50 cursor-not-allowed' : ''" type="button"
+                  @click="removePromoter(prom.id)">
                   Retirer
                 </button>
               </li>
@@ -96,14 +107,9 @@
           <div class="card bg-base-100 shadow p-4">
             <div class="flex items-center justify-between mb-2">
               <span class="font-semibold">Lieux</span>
-              <button
-                :disabled="isActionDisabled"
-                :aria-disabled="isActionDisabled"
-                class="btn btn-sm btn-primary"
-                :class="isActionDisabled ? 'btn-disabled opacity-50 cursor-not-allowed' : ''"
-                type="button"
-                @click="openVenueModal"
-              >
+              <button :disabled="isActionDisabled" :aria-disabled="isActionDisabled" class="btn btn-sm btn-primary"
+                :class="isActionDisabled ? 'btn-disabled opacity-50 cursor-not-allowed' : ''" type="button"
+                @click="openVenueModal">
                 Ajouter un lieu
               </button>
             </div>
@@ -111,39 +117,45 @@
             <ul>
               <li v-for="venue in mainForm.venues" :key="venue.id" class="flex items-center justify-between py-1">
                 <span>{{ venue.name }}</span>
-                <div class="tooltip" v-if="mainForm.venues.length === 1" data-tip="Il doit rester au moins 1 lieu assigné.">
-                  <button
-                    :disabled="true"
-                    aria-disabled="true"
-                    class="btn btn-xs btn-error btn-disabled opacity-50 cursor-not-allowed"
-                    type="button"
-                  >
+                <div v-if="mainForm.venues.length === 1" class="tooltip"
+                  data-tip="Il doit rester au moins 1 lieu assigné.">
+                  <button :disabled="true" aria-disabled="true"
+                    class="btn btn-xs btn-error btn-disabled opacity-50 cursor-not-allowed" type="button">
                     Retirer
                   </button>
                 </div>
-                <button
-                  v-else
-                  :disabled="isActionDisabled"
-                  :aria-disabled="isActionDisabled"
+                <button v-else :disabled="isActionDisabled" :aria-disabled="isActionDisabled"
                   class="btn btn-xs btn-error"
-                  :class="isActionDisabled ? 'btn-disabled opacity-50 cursor-not-allowed' : ''"
-                  type="button"
-                  @click="removeVenue(venue.id)"
-                >
+                  :class="isActionDisabled ? 'btn-disabled opacity-50 cursor-not-allowed' : ''" type="button"
+                  @click="removeVenue(venue.id)">
                   Retirer
                 </button>
               </li>
             </ul>
           </div>
 
+          <!-- Genres (multi-select) -->
+          <div class="card bg-base-100 shadow p-4">
+            <div class="flex items-center justify-between mb-2">
+              <span class="font-semibold">Genres</span>
+              <button type="button" class="btn btn-sm btn-primary" :disabled="isActionDisabled"
+                :aria-disabled="isActionDisabled" @click="openGenreModal">Ajouter un genre</button>
+            </div>
+            <div v-if="mainForm.genres.length === 0" class="text-gray-400">Aucun genre sélectionné.</div>
+            <div class="flex flex-wrap gap-2">
+              <span v-for="genre in mainForm.genres" :key="genre.id" class="badge badge-primary gap-1 items-center">
+                {{ genre.name }}
+                <button v-if="!isActionDisabled" type="button" class="btn btn-xs btn-circle btn-ghost ml-1"
+                  aria-label="Supprimer le genre" @click="removeGenre(genre.id)">✕</button>
+              </span>
+            </div>
+          </div>
+
           <div class="flex justify-end">
-            <button
-              :disabled="isActionDisabled || mainLoading"
-              :aria-disabled="isActionDisabled || mainLoading"
+            <button :disabled="isActionDisabled || mainLoading" :aria-disabled="isActionDisabled || mainLoading"
               class="btn btn-primary"
               :class="isActionDisabled || mainLoading ? 'btn-disabled opacity-50 cursor-not-allowed' : ''"
-              type="submit"
-            >
+              type="submit">
               {{ mainLoading ? 'Enregistrement…' : 'Save changes' }}
             </button>
           </div>
@@ -156,88 +168,48 @@
           <div class="card bg-base-100 shadow p-4">
             <label class="block font-semibold mb-1">Date et heure de début</label>
             <div class="flex flex-wrap gap-2 items-center">
-              <input
-                v-model="datesForm.startDate"
-                class="input input-bordered"
-                type="date"
-                :disabled="isReadOnly"
-                :aria-disabled="isReadOnly"
-                required
-              >
+              <input v-model="datesForm.startDate" class="input input-bordered" type="date" :disabled="isReadOnly"
+                :aria-disabled="isReadOnly" required>
               <div class="flex items-center gap-1">
-                <input
-                  v-model.number="datesForm.startHour"
-                  class="input input-bordered w-16 text-center"
-                  type="number"
-                  min="0" max="23"
-                  :disabled="isReadOnly"
-                  :aria-disabled="isReadOnly"
-                  required
-                  @change="onHourChange('startHour')"
-                  @blur="onHourBlur('startHour')"
-                >
+                <input v-model.number="datesForm.startHour" class="input input-bordered w-16 text-center" type="number"
+                  min="0" max="23" :disabled="isReadOnly" :aria-disabled="isReadOnly" required
+                  @change="onHourChange('startHour')" @blur="onHourBlur('startHour')">
                 <span class="font-mono">:</span>
-                <input
-                  v-model.number="datesForm.startMinute"
-                  class="input input-bordered w-16 text-center"
-                  type="number"
-                  min="0" max="59"
-                  :disabled="isReadOnly"
-                  :aria-disabled="isReadOnly"
-                  required
-                  @change="onMinuteChange('startMinute')"
-                  @blur="onMinuteBlur('startMinute')"
-                >
+                <input v-model.number="datesForm.startMinute" class="input input-bordered w-16 text-center"
+                  type="number" min="0" max="59" :disabled="isReadOnly" :aria-disabled="isReadOnly" required
+                  @change="onMinuteChange('startMinute')" @blur="onMinuteBlur('startMinute')">
               </div>
             </div>
-            <div class="text-xs text-gray-400 mt-1">Set date and time when your event begin. This information could be visible on tickets.</div>
+            <div class="text-xs text-gray-400 mt-1">Set date and time when your event begin. This information could be
+              visible on tickets.</div>
           </div>
           <div class="card bg-base-100 shadow p-4">
-            <label class="block font-semibold mb-1">Date et heure de fin</label>
+            <div class="flex items-center gap-2 mb-1">
+              <label class="block font-semibold" for="endDate">Date et heure de fin <span
+                  class="text-xs text-gray-400">(optionnel)</span></label>
+              <button type="button" class="btn btn-xs btn-circle btn-ghost" :disabled="isReadOnly"
+                :aria-disabled="isReadOnly" title="Supprimer la date de fin" @click="clearEndDate"><span
+                  aria-hidden="true">✕</span></button>
+            </div>
             <div class="flex flex-wrap gap-2 items-center">
-              <input
-                v-model="datesForm.endDate"
-                class="input input-bordered"
-                type="date"
-                :disabled="isReadOnly"
-                :aria-disabled="isReadOnly"
-                required
-              >
+              <input id="endDate" v-model="datesForm.endDate" class="input input-bordered" type="date"
+                :disabled="isReadOnly" :aria-disabled="isReadOnly">
               <div class="flex items-center gap-1">
-                <input
-                  v-model.number="datesForm.endHour"
-                  class="input input-bordered w-16 text-center"
-                  type="number"
-                  min="0" max="23"
-                  :disabled="isReadOnly"
-                  :aria-disabled="isReadOnly"
-                  required
-                  @change="onHourChange('endHour')"
-                  @blur="onHourBlur('endHour')"
-                >
+                <input v-model.number="datesForm.endHour" class="input input-bordered w-16 text-center" type="number"
+                  min="0" max="23" :disabled="isReadOnly" :aria-disabled="isReadOnly" @change="onHourChange('endHour')"
+                  @blur="onHourBlur('endHour')">
                 <span class="font-mono">:</span>
-                <input
-                  v-model.number="datesForm.endMinute"
-                  class="input input-bordered w-16 text-center"
-                  type="number"
-                  min="0" max="59"
-                  :disabled="isReadOnly"
-                  :aria-disabled="isReadOnly"
-                  required
-                  @change="onMinuteChange('endMinute')"
-                  @blur="onMinuteBlur('endMinute')"
-                >
+                <input v-model.number="datesForm.endMinute" class="input input-bordered w-16 text-center" type="number"
+                  min="0" max="59" :disabled="isReadOnly" :aria-disabled="isReadOnly"
+                  @change="onMinuteChange('endMinute')" @blur="onMinuteBlur('endMinute')">
               </div>
             </div>
-            <div class="text-xs text-gray-400 mt-1">Set date and time when your event ends. This information could be visible on tickets.</div>
+            <div class="text-xs text-gray-400 mt-1">Set date and time when your event ends. This information could be
+              visible on tickets.</div>
           </div>
           <div class="flex justify-end">
-            <button
-              :disabled="isReadOnly || datesLoading"
-              :aria-disabled="isReadOnly || datesLoading"
-              class="btn btn-primary"
-              type="submit"
-            >
+            <button :disabled="isReadOnly || datesLoading" :aria-disabled="isReadOnly || datesLoading"
+              class="btn btn-primary" type="submit">
               {{ datesLoading ? 'Enregistrement…' : 'Save changes' }}
             </button>
           </div>
@@ -248,15 +220,15 @@
       <div v-else-if="activeTab === 'banner'">
         <div class="card bg-base-100 shadow p-4 flex flex-col items-center">
           <div v-if="event && event.image_url" class="mb-4">
-            <img :src="event.image_url" alt="Event image" class="max-h-48 rounded-lg shadow" >
+            <img :src="event.image_url" alt="Event image" class="max-h-48 rounded-lg shadow">
           </div>
           <div class="w-full flex flex-col items-center">
             <div
               class="w-full max-w-md h-32 flex items-center justify-center bg-gray-200 rounded-lg border-2 border-dashed border-gray-400 text-gray-400 cursor-not-allowed relative group"
-              :aria-disabled="true"
-            >
+              :aria-disabled="true">
               <span>Importer une nouvelle image</span>
-              <div class="absolute inset-0 bg-gray-200 bg-opacity-60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+              <div
+                class="absolute inset-0 bg-gray-200 bg-opacity-60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
                 <span class="text-gray-500">Feature will be implemented later</span>
               </div>
             </div>
@@ -275,23 +247,14 @@
         <div class="card bg-base-100 shadow p-4">
           <div class="mb-4">
             <span class="font-semibold">Adresse permanente :</span>
-            <a
-              :href="permalink"
-              class="link link-primary break-all ml-2"
-              target="_blank"
-              rel="noopener"
-            >
+            <a :href="permalink" class="link link-primary break-all ml-2" target="_blank" rel="noopener">
               {{ permalink }}
             </a>
           </div>
           <div class="mb-2">
             <label class="block font-semibold mb-1">Adresse personnalisée</label>
-            <input
-              disabled
-              aria-disabled="true"
-              class="input input-bordered w-full cursor-not-allowed bg-gray-100"
-              placeholder="Feature will be implemented later"
-            >
+            <input disabled aria-disabled="true" class="input input-bordered w-full cursor-not-allowed bg-gray-100"
+              placeholder="Feature will be implemented later">
           </div>
           <div class="text-xs text-gray-400">Feature will be implemented later</div>
           <div class="flex justify-end mt-4">
@@ -301,14 +264,19 @@
       </div>
 
       <!-- Onglet Payouts -->
-      <div v-else-if="activeTab === 'payouts'">
+      <div v-else-if="activeTab === 'payouts' && event && event.metadata && event.metadata.sway_tickets === true">
         <div class="card bg-base-100 shadow p-4">
           <h2 class="font-semibold text-lg mb-4">Gestion des payouts promoteurs</h2>
           <div v-if="event && event.promoter_stripe_account_id" class="mb-2">
-            <span class="badge badge-info">Stripe Account ID lié à l'événement : <span class="font-mono">{{ event.promoter_stripe_account_id }}</span></span>
+            <span class="badge badge-info">Stripe Account ID lié à l'événement : <span class="font-mono">{{
+              event.promoter_stripe_account_id }}</span></span>
           </div>
           <div class="alert alert-info mb-4 flex items-center gap-2 text-sm">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 stroke-current shrink-0" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 20a8 8 0 100-16 8 8 0 000 16z"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 stroke-current shrink-0" fill="none"
+              viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M13 16h-1v-4h-1m1-4h.01M12 20a8 8 0 100-16 8 8 0 000 16z" />
+            </svg>
             <span>Only one promoter can be linked for payouts. To change, unlink the current promoter first.</span>
           </div>
           <table class="table w-full">
@@ -325,11 +293,8 @@
                 <td>{{ currentLinkedPromoter.name }}</td>
                 <td>{{ currentLinkedPromoter.stripe_account_id }}</td>
                 <td>
-                  <button
-                    v-if="!isReadOnly"
-                    class="btn btn-error btn-sm"
-                    @click="unlinkPromoterStripe(currentLinkedPromoter)"
-                  >Unlink</button>
+                  <button v-if="!isReadOnly" class="btn btn-error btn-sm"
+                    @click="unlinkPromoterStripe(currentLinkedPromoter)">Unlink</button>
                   <span v-else class="text-gray-400">—</span>
                 </td>
               </tr>
@@ -338,14 +303,10 @@
                 <td>{{ prom.name }}</td>
                 <td>{{ prom.stripe_account_id || '—' }}</td>
                 <td>
-                  <span v-if="!prom.stripe_account_id || event.promoter_stripe_account_id" class="text-gray-400">—</span>
-                  <button
-                    v-else
-                    class="btn btn-primary btn-sm"
-                    :disabled="isReadOnly"
-                    :aria-disabled="isReadOnly"
-                    @click="linkPromoterStripe(prom)"
-                  >
+                  <span v-if="!prom.stripe_account_id || event.promoter_stripe_account_id"
+                    class="text-gray-400">—</span>
+                  <button v-else class="btn btn-primary btn-sm" :disabled="isReadOnly" :aria-disabled="isReadOnly"
+                    @click="linkPromoterStripe(prom)">
                     Lier ce promoteur
                   </button>
                 </td>
@@ -354,33 +315,23 @@
           </table>
         </div>
       </div>
+      <!-- Si on tente d'accéder à payouts sans activation -->
+      <div v-else-if="activeTab === 'payouts' && (!event || !event.metadata || event.metadata.sway_tickets !== true)">
+        <div class="alert alert-warning mt-8">L’onglet Payouts n’est accessible que si Sway Tickets est activé et
+          sauvegardé.</div>
+      </div>
 
       <!-- Modal Ajout Organizer (multi) stylée -->
       <dialog id="promoterModal" class="modal" :open="showPromoterModal">
         <form class="modal-box max-w-lg" method="dialog" @submit.prevent="saveSelectedPromoters">
           <h3 class="font-bold text-lg mb-2">Ajouter des organisateurs</h3>
-          <input
-            v-model="promoterSearch"
-            :disabled="isReadOnly"
-            class="input input-bordered w-full mb-2"
-            placeholder="Rechercher un organisateur…"
-            @input="searchPromoters"
-          >
+          <input v-model="promoterSearch" :disabled="isReadOnly" class="input input-bordered w-full mb-2"
+            placeholder="Rechercher un organisateur…" @input="searchPromoters">
           <ul>
-            <li
-              v-for="prom in promoterResults"
-              :key="prom.id"
-              class="flex items-center justify-between py-1"
-            >
+            <li v-for="prom in promoterResults" :key="prom.id" class="flex items-center justify-between py-1">
               <span>{{ prom.name }}</span>
-              <input
-                v-model="selectedPromoters"
-                type="checkbox"
-                :value="prom"
-                :disabled="isReadOnly"
-                :aria-disabled="isReadOnly"
-                class="checkbox checkbox-primary checkbox-sm ml-2"
-              >
+              <input v-model="selectedPromoters" type="checkbox" :value="prom" :disabled="isReadOnly"
+                :aria-disabled="isReadOnly" class="checkbox checkbox-primary checkbox-sm ml-2">
             </li>
           </ul>
           <div class="modal-action flex gap-2">
@@ -396,28 +347,13 @@
       <dialog id="venueModal" class="modal" :open="showVenueModal">
         <form class="modal-box max-w-lg" method="dialog" @submit.prevent="saveSelectedVenues">
           <h3 class="font-bold text-lg mb-2">Ajouter des lieux</h3>
-          <input
-            v-model="venueSearch"
-            :disabled="isReadOnly"
-            class="input input-bordered w-full mb-2"
-            placeholder="Rechercher un lieu…"
-            @input="searchVenues"
-          >
+          <input v-model="venueSearch" :disabled="isReadOnly" class="input input-bordered w-full mb-2"
+            placeholder="Rechercher un lieu…" @input="searchVenues">
           <ul>
-            <li
-              v-for="venue in venueResults"
-              :key="venue.id"
-              class="flex items-center justify-between py-1"
-            >
+            <li v-for="venue in venueResults" :key="venue.id" class="flex items-center justify-between py-1">
               <span>{{ venue.name }}</span>
-              <input
-                v-model="selectedVenues"
-                type="checkbox"
-                :value="venue"
-                :disabled="isReadOnly"
-                :aria-disabled="isReadOnly"
-                class="checkbox checkbox-primary checkbox-sm ml-2"
-              >
+              <input v-model="selectedVenues" type="checkbox" :value="venue" :disabled="isReadOnly"
+                :aria-disabled="isReadOnly" class="checkbox checkbox-primary checkbox-sm ml-2">
             </li>
           </ul>
           <div class="modal-action flex gap-2">
@@ -429,12 +365,34 @@
           <button aria-label="Fermer" />
         </form>
       </dialog>
+      <!-- Modal Ajout Genre -->
+      <dialog id="genreModal" class="modal" :open="showGenreModal">
+        <form class="modal-box max-w-lg" method="dialog" @submit.prevent="saveSelectedGenres">
+          <h3 class="font-bold text-lg mb-2">Ajouter des genres</h3>
+          <input v-model="genreSearch" :disabled="isActionDisabled" class="input input-bordered w-full mb-2"
+            placeholder="Rechercher un genre…" @input="searchGenres">
+          <ul>
+            <li v-for="genre in genreResults" :key="genre.id" class="flex items-center justify-between py-1">
+              <span>{{ genre.name }}</span>
+              <input v-model="selectedGenres" type="checkbox" :value="genre" :disabled="isActionDisabled"
+                :aria-disabled="isActionDisabled" class="checkbox checkbox-primary checkbox-sm ml-2">
+            </li>
+          </ul>
+          <div class="modal-action flex gap-2">
+            <button class="btn btn-primary" type="submit" :disabled="isActionDisabled">Save</button>
+            <button class="btn" type="button" @click="closeGenreModal">Fermer</button>
+          </div>
+        </form>
+        <form class="modal-backdrop" method="dialog" @click="closeGenreModal">
+          <button aria-label="Fermer" />
+        </form>
+      </dialog>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRuntimeConfig } from 'nuxt/app'
 import { useSupabaseClient, useSupabaseUser } from '#imports'
 import { useEntityPermission } from '~/composables/useEntityPermission'
@@ -457,14 +415,16 @@ type Event = {
 
 type EventPromoterRow = { promoter_id: number; promoters: { name: string } }
 type EventVenueRow = { venue_id: number; venues: { name: string } }
+type EventGenreRow = { genre_id: number; genres: { name: string } }
 
-const tabs = [
+// Tabs dynamiques selon Sway Tickets
+const tabs = computed(() => [
   { key: 'main', label: 'Main' },
   { key: 'dates', label: 'Dates' },
   { key: 'banner', label: 'Banner' },
   { key: 'url', label: 'URL' },
-  { key: 'payouts', label: 'Payouts' }
-]
+  ...(event.value?.metadata?.sway_tickets === true ? [{ key: 'payouts', label: 'Payouts' }] : [])
+])
 const activeTab = ref('main')
 
 const supabase = useSupabaseClient()
@@ -479,7 +439,9 @@ const loadingEvent = ref(true)
 const { currentUserPermission, fetchPermission } = useEntityPermission(eventId, 'event')
 const permissionLoading = ref(true)
 const isReadOnly = computed(() => currentUserPermission.value === 1)
-const isActionDisabled = computed(() => permissionLoading.value || isReadOnly.value)
+const isActionDisabled = computed(() => {
+  return permissionLoading.value || isReadOnly.value || !isValidEventId(eventId)
+})
 
 const notification = ref({
   show: false,
@@ -488,14 +450,20 @@ const notification = ref({
   description: '',
   duration: 4000
 })
-function showNotif(type: 'success'|'error'|'info'|'warning', message: string, description = '') {
+function showNotif(type: 'success' | 'error' | 'info' | 'warning', message: string, description = '') {
   notification.value = { show: true, type, message, description, duration: 4000 }
 }
 
 const mainForm = ref({
   title: '',
   promoters: [] as Promoter[],
-  venues: [] as Venue[]
+  venues: [] as Venue[],
+  genres: [] as { id: number; name: string }[],
+  metadata: {
+    timetable: false,
+    ticket_link: '',
+    sway_tickets: false
+  } as Record<string, any>
 })
 const mainLoading = ref(false)
 
@@ -509,6 +477,11 @@ const venueSearch = ref('')
 const venueResults = ref<Venue[]>([])
 const selectedVenues = ref<Venue[]>([])
 const showVenueModal = ref(false)
+
+const genreSearch = ref('')
+const genreResults = ref<{ id: number, name: string }[]>([])
+const selectedGenres = ref<{ id: number, name: string }[]>([])
+const showGenreModal = ref(false)
 
 // Payouts
 const allPromoters = ref<Promoter[]>([])
@@ -582,6 +555,42 @@ function removeVenue(id: number) {
   mainForm.value.venues = mainForm.value.venues.filter(v => v.id !== id)
 }
 
+// Genres (multi-select)
+function openGenreModal() {
+  if (isActionDisabled.value) return
+  genreSearch.value = ''
+  genreResults.value = []
+  selectedGenres.value = []
+  showGenreModal.value = true
+  searchGenres()
+}
+function closeGenreModal() { showGenreModal.value = false }
+async function searchGenres() {
+  const { data: genres } = await supabase
+    .from('genres')
+    .select('id, name')
+  genreResults.value = (genres || [])
+    .filter((g: { id: number; name: string }) => !mainForm.value.genres.some(mg => mg.id === g.id) && (!genreSearch.value || g.name.toLowerCase().includes(genreSearch.value.toLowerCase())))
+    .slice(0, 8)
+}
+async function saveSelectedGenres() {
+  if (isActionDisabled.value) return
+  for (const genre of selectedGenres.value) {
+    if (!mainForm.value.genres.some((g) => g.id === genre.id)) {
+      // Ajout côté UI
+      mainForm.value.genres.push(genre)
+      // Ajout côté DB
+      await supabase.from('event_genre').insert({ event_id: eventId, genre_id: genre.id })
+    }
+  }
+  closeGenreModal()
+}
+async function removeGenre(id: number) {
+  if (isActionDisabled.value) return
+  mainForm.value.genres = mainForm.value.genres.filter(g => g.id !== id)
+  await supabase.from('event_genre').delete().eq('event_id', eventId).eq('genre_id', id)
+}
+
 // Dates tab
 const datesForm = ref({
   startDate: '',
@@ -589,11 +598,12 @@ const datesForm = ref({
   startMinute: 0,
   endDate: '',
   endHour: 0,
-  endMinute: 0
+  endMinute: 0,
+  noEndDate: false
 })
 const datesLoading = ref(false)
 
-const userIdInt = ref<number|null>(null)
+const userIdInt = ref<number | null>(null)
 const permalink = computed(() => {
   const base = config.public?.baseUrl || (typeof window !== 'undefined' ? window.location.origin : '')
   return `${base}/event/${eventId}/`
@@ -623,18 +633,54 @@ async function fetchEvent() {
       .select('venue_id, venues(name)')
       .eq('event_id', eventId)
     mainForm.value.venues = ((eventVenues || []) as any[]).map((ev: any) => ({ id: ev.venue_id, name: ev.venues?.name }))
+    // Genres liés à l'event
+    const { data: eventGenres } = await supabase
+      .from('event_genre')
+      .select('genre_id, genres(name)')
+      .eq('event_id', eventId)
+    mainForm.value.genres = ((eventGenres || []) as any[]).map((eg: any) => ({ id: eg.genre_id, name: eg.genres?.name }))
     // Dates
     if ((data as any).date_time) {
       const start = new Date((data as any).date_time)
-      datesForm.value.startDate = start.toISOString().slice(0,10)
+      datesForm.value.startDate = start.toISOString().slice(0, 10)
       datesForm.value.startHour = start.getHours()
       datesForm.value.startMinute = start.getMinutes()
     }
     if ((data as any).end_date_time) {
       const end = new Date((data as any).end_date_time)
-      datesForm.value.endDate = end.toISOString().slice(0,10)
+      datesForm.value.endDate = end.toISOString().slice(0, 10)
       datesForm.value.endHour = end.getHours()
       datesForm.value.endMinute = end.getMinutes()
+    }
+    // Charger metadata
+    try {
+      // Merge les metadata existantes avec les valeurs par défaut pour garantir la présence des clés attendues
+      const defaultMeta = { timetable: false, ticket_link: '', sway_tickets: false }
+      let loadedMeta: any = {}
+      if (typeof data.metadata === 'string') {
+        try {
+          loadedMeta = JSON.parse(data.metadata)
+        } catch (e) {
+
+          console.log('[DEBUG] Erreur parsing metadata:', e)
+          loadedMeta = {}
+        }
+      } else if (typeof data.metadata === 'object' && data.metadata !== null) {
+        loadedMeta = data.metadata
+      } else {
+        loadedMeta = {}
+      }
+      // Correction : forcer timetable à Boolean (pour la réactivité Vue)
+      if (typeof loadedMeta.timetable !== 'undefined') {
+        loadedMeta.timetable = Boolean(loadedMeta.timetable)
+      }
+      mainForm.value.metadata = { ...defaultMeta, ...loadedMeta }
+
+      console.log('[DEBUG] Metadata loaded (final):', mainForm.value.metadata)
+    } catch (err) {
+      mainForm.value.metadata = { timetable: false, ticket_link: '', sway_tickets: false }
+
+      console.log('[DEBUG] Metadata load failed, fallback to defaults', err)
     }
   }
   loadingEvent.value = false
@@ -657,15 +703,15 @@ async function searchPromoters() {
     .select('entity_id')
     .eq('user_id', userIdInt.value)
     .eq('entity_type', 'promoter')
-    .in('permission_level', [1,2,3])
-  const promoterIds = (perms || []).map((p: {entity_id: number}) => p.entity_id)
+    .in('permission_level', [1, 2, 3])
+  const promoterIds = (perms || []).map((p: { entity_id: number }) => p.entity_id)
   const { data: proms } = await supabase
     .from('promoters')
     .select('id, name')
     .in('id', promoterIds)
   promoterResults.value = (proms || [])
     .filter((p: Promoter) => !mainForm.value.promoters.some(mp => mp.id === p.id) && (!promoterSearch.value || p.name.toLowerCase().includes(promoterSearch.value.toLowerCase())))
-    .slice(0,5)
+    .slice(0, 5)
 }
 
 async function searchVenues() {
@@ -674,7 +720,7 @@ async function searchVenues() {
     .select('id, name')
   venueResults.value = (venues || [])
     .filter((v: Venue) => !mainForm.value.venues.some(mv => mv.id === v.id) && (!venueSearch.value || v.name.toLowerCase().includes(venueSearch.value.toLowerCase())))
-    .slice(0,5)
+    .slice(0, 5)
 }
 
 onMounted(async () => {
@@ -685,17 +731,37 @@ onMounted(async () => {
   await fetchUserPromoterIds()
   await fetchEvent()
   await fetchAllPromoters()
-  // eslint-disable-next-line no-console
+
   console.log('[PAGE] settings.vue mounted, route:', route.path)
 })
+
+// Helper pour valider l'eventId
+function isValidEventId(id: any) {
+  if (typeof id === 'number') return Number.isInteger(id) && id > 0
+  if (typeof id === 'string') return /^\d+$/.test(id) && Number(id) > 0
+  return false
+}
 
 // SAVE MAIN
 async function saveMain() {
   if (isReadOnly.value) return;
   mainLoading.value = true
-  // Update event title
+  // Vérifie que l'eventId est bien défini et valide
+  if (!isValidEventId(eventId)) {
+
+    console.error('[ERROR] saveMain appelé avec eventId invalide:', eventId)
+    showNotif('error', "Impossible de sauvegarder : eventId invalide.")
+    mainLoading.value = false
+    return
+  }
+  // On part du metadata complet chargé dans mainForm (qui contient toutes les clés, même inconnues de l'UI)
+  const fullMeta = { ...mainForm.value.metadata }
+  // Les champs édités dans l'UI sont déjà à jour dans mainForm.value.metadata
+  // Log le JSON complet qui va être sauvegardé
+
+  console.log('[DEBUG] Metadata to be saved:', JSON.stringify(fullMeta))
   const { error: err1 } = await (supabase.from('events') as any)
-    .update({ title: mainForm.value.title })
+    .update({ title: mainForm.value.title, metadata: fullMeta })
     .eq('id', eventId)
   // Update event_promoter
   const { data: currentProms } = await supabase
@@ -723,8 +789,21 @@ async function saveMain() {
   for (const v of toRemoveVenues) {
     await (supabase.from('event_venue') as any).delete().eq('event_id', eventId).eq('venue_id', v.venue_id)
   }
+  // Update event_genre
+  const { data: currentGenres } = await supabase
+    .from('event_genre')
+    .select('genre_id')
+    .eq('event_id', eventId)
+  const toAddGenres = mainForm.value.genres.filter(g => !(currentGenres as any[])?.some((cg: any) => cg.genre_id === g.id))
+  const toRemoveGenres = (currentGenres as any[])?.filter((cg: any) => !mainForm.value.genres.some(g => g.id === cg.genre_id)) || []
+  for (const g of toAddGenres) {
+    await (supabase.from('event_genre') as any).insert({ event_id: eventId, genre_id: g.id })
+  }
+  for (const g of toRemoveGenres) {
+    await (supabase.from('event_genre') as any).delete().eq('event_id', eventId).eq('genre_id', g.genre_id)
+  }
   if (err1) {
-    showNotif('error', "Erreur lors de l'enregistrement", err1.message)
+    showNotif('error', "Erreur lors de l'enregistrement", err1?.message)
   } else {
     showNotif('success', 'Modifications enregistrées')
     await fetchEvent()
@@ -737,8 +816,8 @@ async function saveDates() {
   if (isReadOnly.value) return;
   datesLoading.value = true
   // Compose ISO strings
-  const start = new Date(`${datesForm.value.startDate}T${String(datesForm.value.startHour).padStart(2,'0')}:${String(datesForm.value.startMinute).padStart(2,'0')}:00`)
-  const end = new Date(`${datesForm.value.endDate}T${String(datesForm.value.endHour).padStart(2,'0')}:${String(datesForm.value.endMinute).padStart(2,'0')}:00`)
+  const start = new Date(`${datesForm.value.startDate}T${String(datesForm.value.startHour).padStart(2, '0')}:${String(datesForm.value.startMinute).padStart(2, '0')}:00`)
+  const end = new Date(`${datesForm.value.endDate}T${String(datesForm.value.endHour).padStart(2, '0')}:${String(datesForm.value.endMinute).padStart(2, '0')}:00`)
   const { error } = await supabase
     .from('events')
     .update({ date_time: start.toISOString(), end_date_time: end.toISOString() })
@@ -769,24 +848,24 @@ async function fetchUserPromoterIds() {
     .select('entity_id')
     .eq('user_id', userIdInt.value)
     .eq('entity_type', 'promoter')
-    .in('permission_level', [1,2,3])
-  userPromoterIds.value = (perms || []).map((p: {entity_id: number}) => p.entity_id)
+    .in('permission_level', [1, 2, 3])
+  userPromoterIds.value = (perms || []).map((p: { entity_id: number }) => p.entity_id)
 }
 
 // Format affichage HH:MM toujours 2 chiffres
 function pad2(n: number) { return n.toString().padStart(2, '0') }
-function onHourChange(field: 'startHour'|'endHour') {
+function onHourChange(field: 'startHour' | 'endHour') {
   if (datesForm.value[field] > 23) datesForm.value[field] = 0
   if (datesForm.value[field] < 0) datesForm.value[field] = 23
 }
-function onMinuteChange(field: 'startMinute'|'endMinute') {
+function onMinuteChange(field: 'startMinute' | 'endMinute') {
   if (datesForm.value[field] > 59) datesForm.value[field] = 0
   if (datesForm.value[field] < 0) datesForm.value[field] = 59
 }
-function onHourBlur(field: 'startHour'|'endHour') {
+function onHourBlur(field: 'startHour' | 'endHour') {
   datesForm.value[field] = Number(pad2(datesForm.value[field]))
 }
-function onMinuteBlur(field: 'startMinute'|'endMinute') {
+function onMinuteBlur(field: 'startMinute' | 'endMinute') {
   datesForm.value[field] = Number(pad2(datesForm.value[field]))
 }
 
@@ -797,7 +876,7 @@ onMounted(async () => {
   await fetchEvent()
   await fetchAllPromoters()
 
-  // eslint-disable-next-line no-console
+
   console.log('[PAGE] settings.vue mounted, route:', route.path)
 })
 
@@ -818,12 +897,59 @@ const filteredAllowedPromoters = computed(() => {
   if (!event.value || !event.value.promoter_stripe_account_id) return allowedPromoters.value
   return allowedPromoters.value.filter(p => p.stripe_account_id !== event.value.promoter_stripe_account_id)
 })
+
+const hoverTicketLink = ref(false)
+const previousTicketLink = ref<string | null>(null)
+
+// Génère dynamiquement le lien Sway Tickets avec BASE_URL ou window.location.origin
+function getSwayTicketsUrl() {
+  const base = config.public?.baseUrl || (typeof window !== 'undefined' ? window.location.origin : '')
+  return `${base}/event/${eventId}/tickets`
+}
+
+// Quand Sway Tickets est activé, force le lien dans le champ ticket_link, sinon restaure l'ancien lien
+watch(() => mainForm.value.metadata.sway_tickets, (val, oldVal) => {
+  if (val) {
+    previousTicketLink.value = mainForm.value.metadata.ticket_link
+    mainForm.value.metadata.ticket_link = getSwayTicketsUrl()
+  } else {
+    // Si on avait un ancien lien avant l'activation, on le restaure
+    if (previousTicketLink.value !== null) {
+      mainForm.value.metadata.ticket_link = previousTicketLink.value
+      previousTicketLink.value = null
+    }
+  }
+})
+
+function copySwayTicketsUrl() {
+  const url = getSwayTicketsUrl()
+  navigator.clipboard.writeText(url)
+    .then(() => showNotif('success', 'Lien copié dans le presse-papier'))
+    .catch(() => showNotif('error', 'Erreur lors de la copie du lien'))
+}
+
+function copyTicketLink() {
+  const url = mainForm.value.metadata.ticket_link
+  if (url) {
+    navigator.clipboard.writeText(url)
+      .then(() => showNotif('success', 'Lien copié dans le presse-papier'))
+      .catch(() => showNotif('error', 'Erreur lors de la copie du lien'))
+  }
+}
+
+// Onglet Dates : remplacer la checkbox par un bouton croix pour clear la date de fin
+function clearEndDate() {
+  datesForm.value.endDate = ''
+  datesForm.value.endHour = 0
+  datesForm.value.endMinute = 0
+}
 </script>
 
 <style scoped>
 .tabs {
   /* daisyUI tabs already styled, juste spacing */
 }
+
 .modal {
   z-index: 50;
 }
