@@ -15,6 +15,8 @@ export default defineNuxtConfig({
     SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
     public: {
       BASE_URL: process.env.BASE_URL,
+      PROD_BASE_URL: process.env.PROD_BASE_URL, // Ajouté pour Sway Tickets
+      TEST_BASE_URL: process.env.TEST_BASE_URL, // Ajouté pour Sway Tickets
       stripe: {
         key: process.env.NUXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
         options: {},
@@ -22,7 +24,7 @@ export default defineNuxtConfig({
       SUPABASE_URL: process.env.NUXT_PUBLIC_SUPABASE_URL,
       SUPABASE_ANON_KEY: process.env.NUXT_PUBLIC_SUPABASE_ANON_KEY,
     },
-  },  modules: [
+  }, modules: [
     '@nuxt/ui',
     '@nuxt/fonts',
     '@nuxt/icon',

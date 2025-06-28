@@ -219,6 +219,26 @@ const handleBook = async () => {
 const goToLogin = () => {
   router.push('/login')
 }
+
+// --- Gestion metadata event (comme dans settings.vue) ---
+const eventMetadata = computed(() => {
+  const data = eventInfo.value
+  if (!data) return { sway_tickets: false }
+  let loadedMeta = {}
+  if (typeof data.metadata === 'string') {
+    try {
+      loadedMeta = JSON.parse(data.metadata)
+    } catch (e) {
+      loadedMeta = {}
+    }
+  } else if (typeof data.metadata === 'object' && data.metadata !== null) {
+    loadedMeta = data.metadata
+  } else {
+    loadedMeta = {}
+  }
+  // Valeurs par défaut
+  return { timetable: false, ticket_link: '', sway_tickets: false, ...loadedMeta }
+})
 </script>
 
 <template>
@@ -253,7 +273,7 @@ const goToLogin = () => {
 
     <!-- Section Tickets et Order Summary -->
     <section class="ticketSection">
-      <div class="ticketAndSummary">
+      <div v-if="eventMetadata.sway_tickets" class="ticketAndSummary">
         <!-- Liste des tickets -->
         <div class="ticketsList">
           <h2>Tickets</h2>
@@ -303,6 +323,12 @@ type="button" class="counterButton" :disabled="p.max_per_order !== null && p.max
           </div>
 
           <button type="button" class="bookButton" @click="handleBook">BOOK</button>
+        </div>
+      </div>
+      <div v-else class="ticketsList">
+        <h2>Tickets</h2>
+        <div class="alert alert-warning bg-yellow-100 text-yellow-800 p-4 rounded">
+          Cet événement n'utilise pas la billetterie Sway Tickets.
         </div>
       </div>
     </section>

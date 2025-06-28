@@ -44,7 +44,7 @@
 
           <!-- Ticket link & Sway Tickets -->
           <div class="card bg-base-100 shadow p-4 flex flex-col gap-2">
-            <label class="block font-semibold mb-1">Lien de billetterie externe</label>
+            <label class="block font-semibold mb-1">Lien de billetterie</label>
             <div class="relative group">
               <input v-model="mainForm.metadata.ticket_link"
                 class="input input-bordered w-full pr-12 cursor-pointer group-hover:bg-base-200 transition"
@@ -901,10 +901,15 @@ const filteredAllowedPromoters = computed(() => {
 const hoverTicketLink = ref(false)
 const previousTicketLink = ref<string | null>(null)
 
-// Génère dynamiquement le lien Sway Tickets avec BASE_URL ou window.location.origin
+// Génère dynamiquement le lien Sway Tickets avec priorité : PROD_BASE_URL > TEST_BASE_URL > BASE_URL > window.location.origin > https://sway.events
 function getSwayTicketsUrl() {
-  const base = config.public?.baseUrl || (typeof window !== 'undefined' ? window.location.origin : '')
-  return `${base}/event/${eventId}/tickets`
+  const prod = config.public?.PROD_BASE_URL
+  const test = config.public?.TEST_BASE_URL
+  const base = config.public?.BASE_URL
+  let urlBase = prod || test || base
+  if (!urlBase && typeof window !== 'undefined') urlBase = window.location.origin
+  if (!urlBase) urlBase = 'https://sway.events'
+  return `${urlBase.replace(/\/$/, '')}/event/${eventId}`
 }
 
 // Quand Sway Tickets est activé, force le lien dans le champ ticket_link, sinon restaure l'ancien lien
