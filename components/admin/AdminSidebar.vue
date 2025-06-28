@@ -55,7 +55,7 @@
                 </div> <!-- Navigation -->
                 <nav class="p-4 flex-1">
                     <ul class="space-y-2">
-                        <li v-for="item in menuItems" :key="item.path || item.label">
+                        <li v-for="item in localMenuItems" :key="item.path || item.label">
                             <AdminSidebarItem :item="item" :current-path="currentPath" @click="handleItemClick" />
                         </li>
                     </ul>
@@ -76,7 +76,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { Bars3Icon, XMarkIcon } from '@heroicons/vue/24/outline'
-import { useSupabaseClient, navigateTo } from '#imports'
+import { useSupabaseClient, useRoute, navigateTo } from '#imports'
 
 // Props
 const props = defineProps({
@@ -101,6 +101,18 @@ const screenWidth = ref(0)
 
 // Computed
 const isMobile = computed(() => screenWidth.value < 1024)
+const supabase = useSupabaseClient()
+const route = useRoute()
+const eventId = computed(() => {
+  // Cherche un id dans l'URL du type /admin/event/:id
+  const match = route.path.match(/\/admin\/event\/(\d+)/)
+  return match ? match[1] : null
+})
+const eventMetadata = ref(null)
+const loadingMetadata = ref(false)
+
+// Copie réactive du menu pour pouvoir le modifier dynamiquement
+const localMenuItems = ref(props.menuItems ? JSON.parse(JSON.stringify(props.menuItems)) : [])
 
 // Méthodes
 const toggleSidebar = () => {
@@ -135,6 +147,41 @@ const logout = async () => {
     }
 }
 
+async function fetchEventMetadata() {
+  if (!eventId.value) return
+  loadingMetadata.value = true
+  const { data, error } = await supabase
+    .from('events')
+    .select('metadata')
+    .eq('id', eventId.value)
+    .single()
+  if (error) {
+    console.warn('[Sidebar] Erreur chargement metadata:', error)
+    eventMetadata.value = null
+  } else {
+    eventMetadata.value = data?.metadata || null
+    console.log('[Sidebar] Metadata chargée:', eventMetadata.value)
+  }
+  loadingMetadata.value = false
+  updateTicketsMenuItem()
+}
+
+function updateTicketsMenuItem() {
+  // Cherche l'item Tickets et désactive si sway_tickets absent ou false
+  if (!localMenuItems.value) return
+  const meta = eventMetadata.value
+  const found = localMenuItems.value.find(item => item.label && item.label.toLowerCase() === 'tickets')
+  if (found) {
+    if (!meta || meta.sway_tickets !== true) {
+      found.disabled = true
+      console.log('[Sidebar] Tickets désactivé (sway_tickets absent ou false)')
+    } else {
+      found.disabled = false
+      console.log('[Sidebar] Tickets activé (sway_tickets true)')
+    }
+  }
+}
+
 // Lifecycle
 onMounted(() => {
     updateScreenWidth()
@@ -143,6 +190,11 @@ onMounted(() => {
 
     // La sidebar commence toujours fermée pour une expérience cohérente
     isOpen.value = false
+
+    // Si on est sur une page event, charger la metadata pour gérer Tickets
+    if (eventId.value) {
+      fetchEventMetadata()
+    }
 })
 
 onUnmounted(() => {

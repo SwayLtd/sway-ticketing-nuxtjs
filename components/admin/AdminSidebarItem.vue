@@ -16,6 +16,27 @@
         </span>
     </button>
 
+    <!-- Tooltip daisyUI pour Tickets désactivé -->
+    <div v-else-if="item.label && item.label.toLowerCase() === 'tickets'"
+         class="tooltip tooltip-bottom w-full" data-tip="Enable Sway Tickets to use this option.">
+      <span :class="[
+        'flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 w-full',
+        getItemClasses(item)
+      ]"
+        tabindex="0"
+        aria-disabled="true">
+        <!-- Icône -->
+        <component :is="getIconComponent(item.icon)" v-if="item.icon" class="h-5 w-5 mr-3 flex-shrink-0" />
+        <!-- Label -->
+        <span class="truncate">{{ item.label }}</span>
+        <!-- Badge pour les éléments principaux -->
+        <span v-if="item.isMainItem"
+            class="ml-auto px-2 py-1 text-xs font-semibold bg-primary/10 text-primary rounded-full">
+            Main
+        </span>
+      </span>
+    </div>
+    <!-- Sinon, fallback sans tooltip pour les autres items désactivés -->
     <span v-else :class="[
         'flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200',
         getItemClasses(item)
