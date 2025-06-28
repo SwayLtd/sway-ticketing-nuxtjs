@@ -662,7 +662,7 @@ async function fetchEvent() {
           loadedMeta = JSON.parse(data.metadata)
         } catch (e) {
 
-          console.log('[DEBUG] Erreur parsing metadata:', e)
+          // console.log('[DEBUG] Erreur parsing metadata:', e)
           loadedMeta = {}
         }
       } else if (typeof data.metadata === 'object' && data.metadata !== null) {
@@ -676,11 +676,11 @@ async function fetchEvent() {
       }
       mainForm.value.metadata = { ...defaultMeta, ...loadedMeta }
 
-      console.log('[DEBUG] Metadata loaded (final):', mainForm.value.metadata)
+      // console.log('[DEBUG] Metadata loaded (final):', mainForm.value.metadata)
     } catch (err) {
       mainForm.value.metadata = { timetable: false, ticket_link: '', sway_tickets: false }
 
-      console.log('[DEBUG] Metadata load failed, fallback to defaults', err)
+      // console.log('[DEBUG] Metadata load failed, fallback to defaults', err)
     }
   }
   loadingEvent.value = false
@@ -877,7 +877,7 @@ onMounted(async () => {
   await fetchAllPromoters()
 
 
-  console.log('[PAGE] settings.vue mounted, route:', route.path)
+  // console.log('[PAGE] settings.vue mounted, route:', route.path)
 })
 
 // Promoteur actuellement lié (même si non accessible)

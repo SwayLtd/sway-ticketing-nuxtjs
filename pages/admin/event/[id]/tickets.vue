@@ -810,9 +810,10 @@ watch(ticketStats, (newStats) => {
 
 // --- Gestion metadata event (comme dans settings.vue) ---
 const eventInfo = ref(null)
+const eventLoading = ref(true)
 const eventMetadata = computed(() => {
   const data = eventInfo.value
-  if (!data) return { sway_tickets: false }
+  if (!data) return { sway_tickets: undefined }
   let loadedMeta = {}
   if (typeof data?.metadata === 'string') {
     try {
@@ -825,11 +826,9 @@ const eventMetadata = computed(() => {
   } else {
     loadedMeta = {}
   }
-  // Valeurs par défaut
-  return { timetable: false, ticket_link: '', sway_tickets: false, ...loadedMeta }
+  return { timetable: false, ticket_link: '', sway_tickets: undefined, ...loadedMeta }
 })
 
-// Récupération de l'event (si pas déjà fait)
 onMounted(async () => {
   await fetchPermission()
   await fetchTickets()
@@ -842,12 +841,18 @@ onMounted(async () => {
     .eq('id', eventId)
     .single()
   if (!error && data) eventInfo.value = data
+  eventLoading.value = false
 })
 </script>
 
 <template>
   <div class="min-h-screen bg-gray-50">
-    <template v-if="eventMetadata.sway_tickets">
+    <template v-if="eventLoading">
+      <div class="flex items-center justify-center min-h-[300px]">
+        <span class="loading loading-spinner loading-lg text-primary"></span>
+      </div>
+    </template>
+    <template v-else-if="eventMetadata.sway_tickets === true">
       <!-- Header -->
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div class="flex items-center justify-between mb-8">
