@@ -24,134 +24,153 @@
 
       <!-- Onglet Main -->
       <div v-if="activeTab === 'main'">
-        <form class="space-y-6" @submit.prevent="saveMain">
-          <div class="card bg-base-100 shadow p-4">
-            <label class="block font-semibold mb-1" for="eventName">Nom de l'événement</label>
-            <input id="eventName" v-model="mainForm.title" class="input input-bordered w-full"
-              :disabled="isActionDisabled" :aria-disabled="isActionDisabled" required>
-          </div>
+        <form class="" @submit.prevent="saveMain">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Ligne 1 : Nom (gauche) & Description (droite) -->
+            <div class="card bg-base-100 shadow p-4 flex flex-col h-full">
+              <label class="block font-semibold mb-1" for="eventName">Nom de l'événement</label>
+              <input id="eventName" v-model="mainForm.title" class="input input-bordered w-full"
+                :disabled="isActionDisabled" :aria-disabled="isActionDisabled" required>
+            </div>
+            <div class="card bg-base-100 shadow p-4 flex flex-col h-full">
+              <label class="block font-semibold mb-1" for="eventDescription">Description</label>
+              <textarea id="eventDescription" v-model="mainForm.description" rows="4"
+                class="textarea textarea-bordered w-full min-h-[3.5rem]"
+                :disabled="isActionDisabled" :aria-disabled="isActionDisabled"
+                placeholder="Décrivez votre événement..." />
+            </div>
 
-          <!-- Timetable switch -->
-          <div class="card bg-base-100 shadow p-4 flex flex-col gap-2">
-            <label class="font-semibold mb-1">Timetable</label>
-            <div class="flex items-center gap-4">
-              <input v-model="mainForm.metadata.timetable" type="checkbox" class="toggle toggle-primary"
+            <!-- Ligne 2 : Type d'événement (gauche) & Genres (droite) -->
+            <div class="card bg-base-100 shadow p-4">
+              <label class="block font-semibold mb-1" for="eventType">Type d'événement</label>
+              <select id="eventType" v-model="mainForm.type" class="select select-bordered w-full"
                 :disabled="isActionDisabled" :aria-disabled="isActionDisabled">
-              <span class="text-xs text-gray-400">Activer ou désactiver l'affichage du timetable sur la page
-                event</span>
+                <option value="festival">Festival</option>
+                <option value="rave">Rave</option>
+                <option value="party">Party</option>
+                <option value="concert">Concert</option>
+                <option value="other">Other</option>
+              </select>
             </div>
-          </div>
+            <div class="card bg-base-100 shadow p-4">
+              <div class="flex items-center justify-between mb-2">
+                <span class="font-semibold">Genres</span>
+                <button type="button" class="btn btn-sm btn-primary" :disabled="isActionDisabled"
+                  :aria-disabled="isActionDisabled" @click="openGenreModal">Ajouter un genre</button>
+              </div>
+              <div v-if="mainForm.genres.length === 0" class="text-gray-400">Aucun genre sélectionné.</div>
+              <div class="flex flex-wrap gap-2">
+                <span v-for="genre in mainForm.genres" :key="genre.id" class="badge badge-primary gap-1 items-center">
+                  {{ genre.name }}
+                  <button v-if="!isActionDisabled" type="button" class="btn btn-xs btn-circle btn-ghost ml-1"
+                    aria-label="Supprimer le genre" @click="removeGenre(genre.id)">✕</button>
+                </span>
+              </div>
+            </div>
 
-          <!-- Ticket link & Sway Tickets -->
-          <div class="card bg-base-100 shadow p-4 flex flex-col gap-2">
-            <label class="block font-semibold mb-1">Lien de billetterie</label>
-            <div class="relative group">
-              <input v-model="mainForm.metadata.ticket_link"
-                class="input input-bordered w-full pr-12 cursor-pointer group-hover:bg-base-200 transition"
-                :readonly="mainForm.metadata.sway_tickets" :disabled="isActionDisabled"
-                :aria-readonly="mainForm.metadata.sway_tickets" :aria-disabled="isActionDisabled"
-                placeholder="https://..." @click="copyTicketLink" @mouseenter="hoverTicketLink = true"
-                @mouseleave="hoverTicketLink = false">
-              <button type="button"
-                class="absolute right-2 top-1/2 -translate-y-1/2 btn btn-xs btn-ghost opacity-70 group-hover:opacity-100"
-                :title="hoverTicketLink ? 'Copier le lien' : ''" tabindex="-1" @click.prevent="copyTicketLink">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
-                  stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M8 16h8M8 12h8m-8-4h8m-2 8v2a2 2 0 002 2h4a2 2 0 002-2V6a2 2 0 00-2-2h-4a2 2 0 00-2 2v2" />
-                </svg>
-              </button>
-              <span v-if="hoverTicketLink"
-                class="absolute right-12 top-1/2 -translate-y-1/2 text-xs bg-base-200 px-2 py-1 rounded shadow">Copier
-                le lien</span>
-            </div>
-            <div class="flex items-center gap-2 mt-2">
-              <input v-model="mainForm.metadata.sway_tickets" type="checkbox" class="toggle toggle-primary"
-                :disabled="isActionDisabled" :aria-disabled="isActionDisabled">
-              <span class="font-semibold">Utiliser Sway Tickets</span>
-            </div>
-          </div>
-
-          <!-- Organizers (Promoters) -->
-          <div class="card bg-base-100 shadow p-4">
-            <div class="flex items-center justify-between mb-2">
-              <span class="font-semibold">Organisateurs</span>
-              <button :disabled="isActionDisabled" :aria-disabled="isActionDisabled" class="btn btn-sm btn-primary"
-                :class="isActionDisabled ? 'btn-disabled opacity-50 cursor-not-allowed' : ''" type="button"
-                @click="openPromoterModal">
-                Ajouter un organisateur
-              </button>
-            </div>
-            <div v-if="mainForm.promoters.length === 0" class="text-gray-400">Aucun organisateur lié.</div>
-            <ul>
-              <li v-for="prom in mainForm.promoters" :key="prom.id" class="flex items-center justify-between py-1">
-                <span>{{ prom.name }}</span>
-                <div v-if="mainForm.promoters.length === 1" class="tooltip"
-                  data-tip="Il doit rester au moins 1 organisateur assigné.">
-                  <button :disabled="true" aria-disabled="true"
-                    class="btn btn-xs btn-error btn-disabled opacity-50 cursor-not-allowed" type="button">
-                    Retirer
+            <!-- Timetable & Ticket link (côte à côte) -->
+            <div class="flex flex-col gap-6 md:flex-row md:col-span-2">
+              <!-- Timetable -->
+              <div class="card bg-base-100 shadow p-4 flex-1 flex flex-col gap-2">
+                <label class="font-semibold mb-1">Timetable</label>
+                <div class="flex items-center gap-4">
+                  <input v-model="mainForm.metadata.timetable" type="checkbox" class="toggle toggle-primary"
+                    :disabled="isActionDisabled" :aria-disabled="isActionDisabled">
+                  <span class="text-xs text-gray-400">Activer ou désactiver l'affichage du timetable sur la page event</span>
+                </div>
+              </div>
+              <!-- Ticket link & Sway Tickets -->
+              <div class="card bg-base-100 shadow p-4 flex-1 flex flex-col gap-2">
+                <label class="block font-semibold mb-1">Lien de billetterie</label>
+                <div class="relative group">
+                  <input v-model="mainForm.metadata.ticket_link"
+                    class="input input-bordered w-full pr-12 group-hover:bg-base-200 transition"
+                    :readonly="mainForm.metadata.sway_tickets" :disabled="isActionDisabled"
+                    :aria-readonly="mainForm.metadata.sway_tickets" :aria-disabled="isActionDisabled"
+                    placeholder="https://...">
+                  <button type="button"
+                    class="absolute right-2 top-1/2 -translate-y-1/2 btn btn-xs btn-ghost opacity-70 group-hover:opacity-100"
+                    title="Copier dans le presse-papier" tabindex="-1" @click.prevent="copyTicketLink">
+                    <!-- Nouveau pictogramme : icône de clipboard moderne -->
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2M9 2h6a1 1 0 011 1v2a1 1 0 01-1 1H9a1 1 0 01-1-1V3a1 1 0 011-1z" />
+                    </svg>
                   </button>
                 </div>
-                <button v-else :disabled="isActionDisabled" :aria-disabled="isActionDisabled"
-                  class="btn btn-xs btn-error"
-                  :class="isActionDisabled ? 'btn-disabled opacity-50 cursor-not-allowed' : ''" type="button"
-                  @click="removePromoter(prom.id)">
-                  Retirer
-                </button>
-              </li>
-            </ul>
-          </div>
-
-          <!-- Venues -->
-          <div class="card bg-base-100 shadow p-4">
-            <div class="flex items-center justify-between mb-2">
-              <span class="font-semibold">Lieux</span>
-              <button :disabled="isActionDisabled" :aria-disabled="isActionDisabled" class="btn btn-sm btn-primary"
-                :class="isActionDisabled ? 'btn-disabled opacity-50 cursor-not-allowed' : ''" type="button"
-                @click="openVenueModal">
-                Ajouter un lieu
-              </button>
+                <div class="flex items-center gap-2 mt-2">
+                  <input v-model="mainForm.metadata.sway_tickets" type="checkbox" class="toggle toggle-primary"
+                    :disabled="isActionDisabled" :aria-disabled="isActionDisabled">
+                  <span class="font-semibold">Utiliser Sway Tickets</span>
+                </div>
+              </div>
             </div>
-            <div v-if="mainForm.venues.length === 0" class="text-gray-400">Aucun lieu lié.</div>
-            <ul>
-              <li v-for="venue in mainForm.venues" :key="venue.id" class="flex items-center justify-between py-1">
-                <span>{{ venue.name }}</span>
-                <div v-if="mainForm.venues.length === 1" class="tooltip"
-                  data-tip="Il doit rester au moins 1 lieu assigné.">
-                  <button :disabled="true" aria-disabled="true"
-                    class="btn btn-xs btn-error btn-disabled opacity-50 cursor-not-allowed" type="button">
-                    Retirer
+
+            <!-- Organisateurs & Lieux (côte à côte, déplacé au-dessus) -->
+            <div class="flex flex-col gap-6 md:flex-row md:col-span-2">
+              <!-- Organisateurs -->
+              <div class="card bg-base-100 shadow p-4 flex-1">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="font-semibold">Organisateurs</span>
+                  <button :disabled="isActionDisabled" :aria-disabled="isActionDisabled" class="btn btn-sm btn-primary"
+                    :class="isActionDisabled ? 'btn-disabled opacity-50 cursor-not-allowed' : ''" type="button"
+                    @click="openPromoterModal">
+                    Ajouter un organisateur
                   </button>
                 </div>
-                <button v-else :disabled="isActionDisabled" :aria-disabled="isActionDisabled"
-                  class="btn btn-xs btn-error"
-                  :class="isActionDisabled ? 'btn-disabled opacity-50 cursor-not-allowed' : ''" type="button"
-                  @click="removeVenue(venue.id)">
-                  Retirer
-                </button>
-              </li>
-            </ul>
-          </div>
-
-          <!-- Genres (multi-select) -->
-          <div class="card bg-base-100 shadow p-4">
-            <div class="flex items-center justify-between mb-2">
-              <span class="font-semibold">Genres</span>
-              <button type="button" class="btn btn-sm btn-primary" :disabled="isActionDisabled"
-                :aria-disabled="isActionDisabled" @click="openGenreModal">Ajouter un genre</button>
+                <div v-if="mainForm.promoters.length === 0" class="text-gray-400">Aucun organisateur lié.</div>
+                <ul>
+                  <li v-for="prom in mainForm.promoters" :key="prom.id" class="flex items-center justify-between py-1">
+                    <span>{{ prom.name }}</span>
+                    <div v-if="mainForm.promoters.length === 1" class="tooltip"
+                      data-tip="Il doit rester au moins 1 organisateur assigné.">
+                      <button :disabled="true" aria-disabled="true"
+                        class="btn btn-xs btn-error btn-disabled opacity-50 cursor-not-allowed" type="button">
+                        Retirer
+                      </button>
+                    </div>
+                    <button v-else :disabled="isActionDisabled" :aria-disabled="isActionDisabled"
+                      class="btn btn-xs btn-error"
+                      :class="isActionDisabled ? 'btn-disabled opacity-50 cursor-not-allowed' : ''" type="button"
+                      @click="removePromoter(prom.id)">
+                      Retirer
+                    </button>
+                  </li>
+                </ul>
+              </div>
+              <!-- Lieux -->
+              <div class="card bg-base-100 shadow p-4 flex-1">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="font-semibold">Lieux</span>
+                  <button :disabled="isActionDisabled" :aria-disabled="isActionDisabled" class="btn btn-sm btn-primary"
+                    :class="isActionDisabled ? 'btn-disabled opacity-50 cursor-not-allowed' : ''" type="button"
+                    @click="openVenueModal">
+                    Ajouter un lieu
+                  </button>
+                </div>
+                <div v-if="mainForm.venues.length === 0" class="text-gray-400">Aucun lieu lié.</div>
+                <ul>
+                  <li v-for="venue in mainForm.venues" :key="venue.id" class="flex items-center justify-between py-1">
+                    <span>{{ venue.name }}</span>
+                    <div v-if="mainForm.venues.length === 1" class="tooltip"
+                      data-tip="Il doit rester au moins 1 lieu assigné.">
+                      <button :disabled="true" aria-disabled="true"
+                        class="btn btn-xs btn-error btn-disabled opacity-50 cursor-not-allowed" type="button">
+                        Retirer
+                      </button>
+                    </div>
+                    <button v-else :disabled="isActionDisabled" :aria-disabled="isActionDisabled"
+                      class="btn btn-xs btn-error"
+                      :class="isActionDisabled ? 'btn-disabled opacity-50 cursor-not-allowed' : ''" type="button"
+                      @click="removeVenue(venue.id)">
+                      Retirer
+                    </button>
+                  </li>
+                </ul>
+              </div>
             </div>
-            <div v-if="mainForm.genres.length === 0" class="text-gray-400">Aucun genre sélectionné.</div>
-            <div class="flex flex-wrap gap-2">
-              <span v-for="genre in mainForm.genres" :key="genre.id" class="badge badge-primary gap-1 items-center">
-                {{ genre.name }}
-                <button v-if="!isActionDisabled" type="button" class="btn btn-xs btn-circle btn-ghost ml-1"
-                  aria-label="Supprimer le genre" @click="removeGenre(genre.id)">✕</button>
-              </span>
-            </div>
-          </div>
 
-          <div class="flex justify-end">
+          </div>
+          <div class="flex justify-end mt-6">
             <button :disabled="isActionDisabled || mainLoading" :aria-disabled="isActionDisabled || mainLoading"
               class="btn btn-primary"
               :class="isActionDisabled || mainLoading ? 'btn-disabled opacity-50 cursor-not-allowed' : ''"
@@ -408,9 +427,11 @@ type Event = {
   id: number;
   title: string;
   banner_url?: string;
+  image_url?: string;
   promoter_stripe_account_id?: string | null;
   date_time?: string;
   end_date_time?: string;
+  metadata?: Record<string, any>;
 }
 
 type EventPromoterRow = { promoter_id: number; promoters: { name: string } }
@@ -456,6 +477,8 @@ function showNotif(type: 'success' | 'error' | 'info' | 'warning', message: stri
 
 const mainForm = ref({
   title: '',
+  description: '',
+  type: '',
   promoters: [] as Promoter[],
   venues: [] as Venue[],
   genres: [] as { id: number; name: string }[],
@@ -580,7 +603,7 @@ async function saveSelectedGenres() {
       // Ajout côté UI
       mainForm.value.genres.push(genre)
       // Ajout côté DB
-      await supabase.from('event_genre').insert({ event_id: eventId, genre_id: genre.id })
+      await (supabase.from('event_genre') as any).insert({ event_id: eventId, genre_id: genre.id })
     }
   }
   closeGenreModal()
@@ -621,6 +644,8 @@ async function fetchEvent() {
   } else if (data) {
     event.value = data
     mainForm.value.title = (data as any).title
+    mainForm.value.description = (data as any).description || ''
+    mainForm.value.type = (data as any).type || ''
     // Promoters liés à l'event
     const { data: eventProms } = await supabase
       .from('event_promoter')
@@ -761,7 +786,7 @@ async function saveMain() {
 
   console.log('[DEBUG] Metadata to be saved:', JSON.stringify(fullMeta))
   const { error: err1 } = await (supabase.from('events') as any)
-    .update({ title: mainForm.value.title, metadata: fullMeta })
+    .update({ title: mainForm.value.title, description: mainForm.value.description, type: mainForm.value.type, metadata: fullMeta })
     .eq('id', eventId)
   // Update event_promoter
   const { data: currentProms } = await supabase
@@ -822,13 +847,13 @@ async function saveDates() {
     .from('events')
     .update({ date_time: start.toISOString(), end_date_time: end.toISOString() })
     .eq('id', eventId)
-  if (error) {
-    showNotif('error', "Erreur lors de l'enregistrement des dates", error.message)
-  } else {
-    showNotif('success', 'Dates enregistrées')
-    await fetchEvent()
-  }
-  datesLoading.value = false
+    if (error) {
+      showNotif('error', "Erreur lors de l'enregistrement des dates", error.message)
+    } else {
+      showNotif('success', 'Dates enregistrées')
+      await fetchEvent()
+    }
+    datesLoading.value = false
 }
 
 // Promoteurs autorisés pour payouts (droits 1-3)
@@ -895,7 +920,7 @@ const currentLinkedPromoter = computed(() => {
 // Liste filtrée des promoteurs accessibles hors promoteur déjà lié
 const filteredAllowedPromoters = computed(() => {
   if (!event.value || !event.value.promoter_stripe_account_id) return allowedPromoters.value
-  return allowedPromoters.value.filter(p => p.stripe_account_id !== event.value.promoter_stripe_account_id)
+  return allowedPromoters.value.filter(p => p.stripe_account_id !== event.value?.promoter_stripe_account_id)
 })
 
 const hoverTicketLink = ref(false)
