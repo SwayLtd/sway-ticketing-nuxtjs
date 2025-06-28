@@ -156,11 +156,9 @@ async function fetchEventMetadata() {
     .eq('id', eventId.value)
     .single()
   if (error) {
-    console.warn('[Sidebar] Erreur chargement metadata:', error)
     eventMetadata.value = null
   } else {
     eventMetadata.value = data?.metadata || null
-    console.log('[Sidebar] Metadata chargée:', eventMetadata.value)
   }
   loadingMetadata.value = false
   updateTicketsMenuItem()
@@ -174,10 +172,8 @@ function updateTicketsMenuItem() {
   if (found) {
     if (!meta || meta.sway_tickets !== true) {
       found.disabled = true
-      console.log('[Sidebar] Tickets désactivé (sway_tickets absent ou false)')
     } else {
       found.disabled = false
-      console.log('[Sidebar] Tickets activé (sway_tickets true)')
     }
   }
 }
