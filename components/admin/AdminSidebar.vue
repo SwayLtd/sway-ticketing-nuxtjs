@@ -56,7 +56,16 @@
                 <nav class="p-4 flex-1">
                     <ul class="space-y-2">
                         <li v-for="item in localMenuItems" :key="item.path || item.label">
-                            <AdminSidebarItem :item="item" :current-path="currentPath" @click="handleItemClick" />
+                            <template v-if="item.label && item.label.toLowerCase() === 'insights'">
+                              <div class="tooltip tooltip-bottom w-full" data-tip="This feature will be available soon.">
+                                <div>
+                                  <AdminSidebarItem :item="item" :current-path="currentPath" @click="handleItemClick" />
+                                </div>
+                              </div>
+                            </template>
+                            <template v-else>
+                              <AdminSidebarItem :item="item" :current-path="currentPath" @click="handleItemClick" />
+                            </template>
                         </li>
                     </ul>
                 </nav>
