@@ -104,6 +104,26 @@
                     :disabled="isActionDisabled" :aria-disabled="isActionDisabled">
                   <span class="font-semibold">Utiliser Sway Tickets</span>
                 </div>
+                <!-- Info messages sous le toggle Sway Tickets -->
+                <div v-if="mainForm.metadata.sway_tickets" class="mt-2 space-y-2">
+                  <div class="alert alert-info flex items-center gap-2 text-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 stroke-current shrink-0" fill="none"
+                      viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M13 16h-1v-4h-1m1-4h.01M12 20a8 8 0 100-16 8 8 0 000 16z" />
+                    </svg>
+                    <span>Pour recevoir les paiements, il faut lier un compte dans l'onglet <b>Payouts</b>.</span>
+                  </div>
+                  <div class="alert alert-info flex items-center gap-2 text-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 stroke-current shrink-0" fill="none"
+                      viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M13 16h-1v-4h-1m1-4h.01M12 20a8 8 0 100-16 8 8 0 000 16z" />
+                    </svg>
+                    <span>Il faut configurer les tickets dans l'onglet <NuxtLink :to="`/admin/event/${eventId}/tickets`"
+                        class="link link-primary">Tickets</NuxtLink>.</span>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -290,6 +310,58 @@
             <button :disabled="isReadOnly || datesLoading" :aria-disabled="isReadOnly || datesLoading"
               class="btn btn-primary" type="submit">
               {{ datesLoading ? 'Enregistrement…' : 'Save changes' }}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Onglet Stages -->
+      <div v-else-if="activeTab === 'stages'">
+        <form class="space-y-6" @submit.prevent="saveStages">
+          <div class="card bg-base-100 shadow p-4">
+            <div class="flex items-center justify-between mb-2">
+              <span class="font-semibold text-lg">Manage Stages</span>
+              <button type="button" class="btn btn-primary btn-sm" @click="openAddStageModal"
+                :disabled="isActionDisabled">Add Stage</button>
+            </div>
+            <draggable v-model="stages" item-key="name" handle=".drag-handle" class="space-y-2"
+              :disabled="isActionDisabled">
+              <template #item="{ element, index }">
+                <div class="card bg-base-200 p-3 flex flex-col md:flex-row md:items-center gap-2">
+                  <span class="drag-handle cursor-move mr-2 text-gray-400" title="Drag to reorder">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                      stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16" />
+                    </svg>
+                  </span>
+                  <div class="flex-1 flex flex-col md:flex-row md:items-center gap-2">
+                    <span class="font-semibold">{{ element && element.name ? element.name : '—' }}</span>
+                  </div>
+                  <div class="flex gap-2 ml-auto">
+                    <button class="btn btn-xs btn-ghost" :disabled="isActionDisabled" @mousedown.prevent.stop
+                      @click.stop="editStage(index)" type="button">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M15.232 5.232l3.536 3.536M9 11l6 6M3 21h6a2 2 0 002-2v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6z" />
+                      </svg>
+                    </button>
+                    <button class="btn btn-xs btn-error" :disabled="isActionDisabled" @mousedown.prevent
+                      @click="removeStage(index)" type="button">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </template>
+            </draggable>
+            <div v-if="stages.length === 0" class="text-gray-400 mt-2">No stages added yet.</div>
+          </div>
+          <div class="flex justify-end mt-4">
+            <button class="btn btn-primary" :disabled="isActionDisabled || stagesLoading" type="submit">
+              {{ stagesLoading ? 'Enregistrement…' : 'Save changes' }}
             </button>
           </div>
         </form>
@@ -499,8 +571,28 @@
           <button aria-label="Fermer" />
         </form>
       </dialog>
+
+      <!-- Modal Ajout/édition Stage -->
+      <dialog id="stageModal" class="modal" :open="addStageModalOpen">
+        <form class="modal-box max-w-lg" method="dialog" @submit.prevent="saveStage">
+          <h3 class="font-bold text-lg mb-2">{{ editStageIndex !== null ? 'Edit Stage' : 'Add Stage' }}</h3>
+          <div class="mb-2">
+            <label class="block font-semibold mb-1">Stage name</label>
+            <input v-model="stageForm.name" class="input input-bordered w-full" required :disabled="isActionDisabled">
+          </div>
+          <div v-if="stageFormError" class="alert alert-error mb-2">{{ stageFormError }}</div>
+          <div class="modal-action flex gap-2">
+            <button class="btn btn-primary" type="submit" :disabled="isActionDisabled">Save</button>
+            <button class="btn" type="button" @click="addStageModalOpen = false">Cancel</button>
+          </div>
+        </form>
+        <form class="modal-backdrop" method="dialog" @click="addStageModalOpen = false">
+          <button aria-label="Fermer" />
+        </form>
+      </dialog>
     </div>
   </div>
+
 </template>
 
 <script setup lang="ts">
@@ -532,14 +624,23 @@ type EventPromoterRow = { promoter_id: number; promoters: { name: string } }
 type EventVenueRow = { venue_id: number; venues: { name: string } }
 type EventGenreRow = { genre_id: number; genres: { name: string } }
 
-// Tabs dynamiques selon Sway Tickets
-const tabs = computed(() => [
-  { key: 'main', label: 'Main' },
-  { key: 'dates', label: 'Dates' },
-  { key: 'banner', label: 'Banner' },
-  { key: 'url', label: 'URL' },
-  ...(event.value?.metadata?.sway_tickets === true ? [{ key: 'payouts', label: 'Payouts' }] : [])
-])
+// --- TABS ---
+const tabs = computed(() => {
+  const baseTabs = [
+    { key: 'main', label: 'Main' },
+    { key: 'dates', label: 'Dates' },
+  ];
+  // Ajout de l'onglet Stages si Timetable activé et sauvegardé
+  if (event.value?.metadata?.timetable === true) {
+    baseTabs.push({ key: 'stages', label: 'Stages' });
+  }
+  baseTabs.push({ key: 'banner', label: 'Banner' });
+  baseTabs.push({ key: 'url', label: 'URL' });
+  if (event.value?.metadata?.sway_tickets === true) {
+    baseTabs.push({ key: 'payouts', label: 'Payouts' });
+  }
+  return baseTabs;
+})
 const activeTab = ref('main')
 
 const supabase = useSupabaseClient()
@@ -599,6 +700,73 @@ const genreSearch = ref('')
 const genreResults = ref<{ id: number, name: string }[]>([])
 const selectedGenres = ref<{ id: number, name: string }[]>([])
 const showGenreModal = ref(false)
+
+// --- STAGES STATE ---
+function normalizeStages(val: any): Array<{ name: string }> {
+  if (Array.isArray(val)) {
+    return val.map(s => typeof s === 'string' ? { name: s } : s)
+  }
+  return []
+}
+const stages = ref<Array<{ name: string }>>(normalizeStages(mainForm.value.metadata.stages));
+watch(() => mainForm.value.metadata.stages, (val) => {
+  stages.value = normalizeStages(val);
+});
+function openAddStageModal() {
+  stageForm.value = { name: '' };
+  editStageIndex.value = null;
+  addStageModalOpen.value = true;
+  stageFormError.value = '';
+}
+function editStage(idx: number) {
+  stageForm.value = { ...stages.value[idx] };
+  editStageIndex.value = idx;
+  addStageModalOpen.value = true;
+  stageFormError.value = '';
+}
+function removeStage(idx: number) {
+  stages.value.splice(idx, 1);
+  mainForm.value.metadata.stages = [...stages.value];
+}
+const stagesLoading = ref(false)
+function saveStages() {
+  if (isActionDisabled.value) return
+  stagesLoading.value = true
+  supabase.from('events').update({ metadata: { ...mainForm.value.metadata, stages: stages.value } }).eq('id', eventId)
+    .then(({ error }) => {
+      if (error) {
+        notification.value = { show: true, type: 'error', message: 'Erreur lors de la sauvegarde des stages', description: error.message, duration: 4000 }
+      } else {
+        notification.value = { show: true, type: 'success', message: 'Stages enregistrés avec succès', description: '', duration: 4000 }
+        fetchEvent()
+      }
+    })
+    .catch((e) => {
+      notification.value = { show: true, type: 'error', message: 'Erreur inattendue', description: e?.message || '', duration: 4000 }
+    })
+    .finally(() => {
+      stagesLoading.value = false
+    })
+}
+const addStageModalOpen = ref(false);
+const editStageIndex = ref<number | null>(null);
+const stageForm = ref({ name: '' });
+const stageFormError = ref('');
+// --- STAGES STATE ---
+function saveStage() {
+  if (!stageForm.value.name.trim()) {
+    stageFormError.value = 'Stage name is required.';
+    return;
+  }
+  if (editStageIndex.value !== null) {
+    stages.value[editStageIndex.value] = { ...stageForm.value };
+  } else {
+    stages.value.push({ ...stageForm.value });
+  }
+  mainForm.value.metadata.stages = [...stages.value];
+  addStageModalOpen.value = false;
+  stageFormError.value = '';
+}
 
 // Payouts
 const allPromoters = ref<Promoter[]>([])
