@@ -266,18 +266,16 @@
                   </div>
                   <div class="flex gap-2 ml-auto">
                     <button class="btn btn-xs btn-ghost" :disabled="isActionDisabled" @mousedown.prevent.stop
-                      @click.stop="editDay(index)"
-                      type="button"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
-                        viewBox="0 0 24 24" stroke="currentColor">
+                      @click.stop="editDay(index)" type="button">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                           d="M15.232 5.232l3.536 3.536M9 11l6 6M3 21h6a2 2 0 002-2v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6z" />
                       </svg>
                     </button>
                     <button class="btn btn-xs btn-error" :disabled="isActionDisabled" @mousedown.prevent
-                      @click="removeDay(index)" type="button"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
-                        viewBox="0 0 24 24" stroke="currentColor">
+                      @click="removeDay(index)" type="button"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"
+                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                           d="M6 18L18 6M6 6l12 12" />
                       </svg></button>
@@ -1136,8 +1134,12 @@ function saveDay() {
   const eventEnd = new Date(`${datesForm.value.endDate}T${String(datesForm.value.endHour).padStart(2, '0')}:${String(datesForm.value.endMinute).padStart(2, '0')}:00`)
   const dStart = new Date(dayForm.value.start)
   const dEnd = new Date(dayForm.value.end)
-  if (dStart < eventStart || dEnd > eventEnd || dEnd <= dStart) {
-    dayFormError.value = 'Day start/end must be within event bounds and end after start.'
+  if (dStart < eventStart || dEnd > eventEnd) {
+    dayFormError.value = 'Day start/end must be within event bounds.'
+    return
+  }
+  if (dStart >= dEnd) {
+    dayFormError.value = 'La date/heure de début doit être antérieure à la date/heure de fin.'
     return
   }
   if (editDayIndex.value !== null) {
