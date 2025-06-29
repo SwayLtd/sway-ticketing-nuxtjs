@@ -35,9 +35,8 @@
             <div class="card bg-base-100 shadow p-4 flex flex-col h-full">
               <label class="block font-semibold mb-1" for="eventDescription">Description</label>
               <textarea id="eventDescription" v-model="mainForm.description" rows="4"
-                class="textarea textarea-bordered w-full min-h-[3.5rem]"
-                :disabled="isActionDisabled" :aria-disabled="isActionDisabled"
-                placeholder="Décrivez votre événement..." />
+                class="textarea textarea-bordered w-full min-h-[3.5rem]" :disabled="isActionDisabled"
+                :aria-disabled="isActionDisabled" placeholder="Décrivez votre événement..." />
             </div>
 
             <!-- Ligne 2 : Type d'événement (gauche) & Genres (droite) -->
@@ -76,7 +75,8 @@
                 <div class="flex items-center gap-4">
                   <input v-model="mainForm.metadata.timetable" type="checkbox" class="toggle toggle-primary"
                     :disabled="isActionDisabled" :aria-disabled="isActionDisabled">
-                  <span class="text-xs text-gray-400">Activer ou désactiver l'affichage du timetable sur la page event</span>
+                  <span class="text-xs text-gray-400">Activer ou désactiver l'affichage du timetable sur la page
+                    event</span>
                 </div>
               </div>
               <!-- Ticket link & Sway Tickets -->
@@ -92,8 +92,10 @@
                     class="absolute right-2 top-1/2 -translate-y-1/2 btn btn-xs btn-ghost opacity-70 group-hover:opacity-100"
                     title="Copier dans le presse-papier" tabindex="-1" @click.prevent="copyTicketLink">
                     <!-- Nouveau pictogramme : icône de clipboard moderne -->
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2M9 2h6a1 1 0 011 1v2a1 1 0 01-1 1H9a1 1 0 01-1-1V3a1 1 0 011-1z" />
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                      stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2M9 2h6a1 1 0 011 1v2a1 1 0 01-1 1H9a1 1 0 01-1-1V3a1 1 0 011-1z" />
                     </svg>
                   </button>
                 </div>
@@ -184,6 +186,16 @@
       <!-- Onglet Dates (affichage HH:MM, padding 0, boucle, format 2 chiffres, séparateur :) -->
       <div v-else-if="activeTab === 'dates'">
         <form class="space-y-6" @submit.prevent="saveDates">
+          <!-- Timetable switch (affiché aussi dans Main) -->
+          <div class="card bg-base-100 shadow p-4 flex flex-col gap-2">
+            <label class="font-semibold mb-1">Timetable</label>
+            <div class="flex items-center gap-4">
+              <input v-model="mainForm.metadata.timetable" type="checkbox" class="toggle toggle-primary"
+                :disabled="isActionDisabled" :aria-disabled="isActionDisabled">
+              <span class="text-xs text-gray-400">Enable or disable the timetable for this event</span>
+            </div>
+          </div>
+          <!-- Dates -->
           <div class="card bg-base-100 shadow p-4">
             <label class="block font-semibold mb-1">Date et heure de début</label>
             <div class="flex flex-wrap gap-2 items-center">
@@ -204,28 +216,78 @@
           </div>
           <div class="card bg-base-100 shadow p-4">
             <div class="flex items-center gap-2 mb-1">
-              <label class="block font-semibold" for="endDate">Date et heure de fin <span
-                  class="text-xs text-gray-400">(optionnel)</span></label>
-              <button type="button" class="btn btn-xs btn-circle btn-ghost" :disabled="isReadOnly"
-                :aria-disabled="isReadOnly" title="Supprimer la date de fin" @click="clearEndDate"><span
-                  aria-hidden="true">✕</span></button>
+              <label class="block font-semibold" for="endDate">Date et heure de fin
+                <span v-if="!mainForm.metadata.timetable" class="text-xs text-gray-400">(optionnel)</span>
+                <span v-else class="text-xs text-error">(required if timetable enabled)</span>
+              </label>
+              <button v-if="!mainForm.metadata.timetable" type="button" class="btn btn-xs btn-circle btn-ghost"
+                :disabled="isReadOnly" :aria-disabled="isReadOnly" title="Supprimer la date de fin"
+                @click="clearEndDate"><span aria-hidden="true">✕</span></button>
             </div>
             <div class="flex flex-wrap gap-2 items-center">
               <input id="endDate" v-model="datesForm.endDate" class="input input-bordered" type="date"
-                :disabled="isReadOnly" :aria-disabled="isReadOnly">
+                :disabled="isReadOnly" :aria-disabled="isReadOnly" :required="mainForm.metadata.timetable">
               <div class="flex items-center gap-1">
                 <input v-model.number="datesForm.endHour" class="input input-bordered w-16 text-center" type="number"
                   min="0" max="23" :disabled="isReadOnly" :aria-disabled="isReadOnly" @change="onHourChange('endHour')"
-                  @blur="onHourBlur('endHour')">
+                  @blur="onHourBlur('endHour')" :required="mainForm.metadata.timetable">
                 <span class="font-mono">:</span>
                 <input v-model.number="datesForm.endMinute" class="input input-bordered w-16 text-center" type="number"
                   min="0" max="59" :disabled="isReadOnly" :aria-disabled="isReadOnly"
-                  @change="onMinuteChange('endMinute')" @blur="onMinuteBlur('endMinute')">
+                  @change="onMinuteChange('endMinute')" @blur="onMinuteBlur('endMinute')"
+                  :required="mainForm.metadata.timetable">
               </div>
             </div>
             <div class="text-xs text-gray-400 mt-1">Set date and time when your event ends. This information could be
               visible on tickets.</div>
           </div>
+
+          <!-- Manage Days (visible si timetable activé) -->
+          <div v-if="mainForm.metadata.timetable" class="card bg-base-100 shadow p-4">
+            <div class="flex items-center justify-between mb-2">
+              <span class="font-semibold text-lg">Manage Days</span>
+              <button type="button" class="btn btn-primary btn-sm" @click="openAddDayModal"
+                :disabled="isActionDisabled">Add Day</button>
+            </div>
+            <draggable v-model="festivalDays" item-key="name" handle=".drag-handle" class="space-y-2"
+              :disabled="isActionDisabled">
+              <template #item="{ element, index }">
+                <div class="card bg-base-200 p-3 flex flex-col md:flex-row md:items-center gap-2 relative">
+                  <span class="drag-handle cursor-move mr-2 text-gray-400" title="Drag to reorder">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                      stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16" />
+                    </svg>
+                  </span>
+                  <div class="flex-1 flex flex-col md:flex-row md:items-center gap-2">
+                    <span class="font-semibold">{{ element.name }}</span>
+                    <span class="text-xs text-gray-500">{{ formatDayDate(element.start) }} - {{
+                      formatDayDate(element.end) }}</span>
+                  </div>
+                  <div class="flex gap-2 ml-auto">
+                    <button class="btn btn-xs btn-ghost" :disabled="isActionDisabled" @mousedown.prevent.stop
+                      @click.stop="editDay(index)"
+                      type="button"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M15.232 5.232l3.536 3.536M9 11l6 6M3 21h6a2 2 0 002-2v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6z" />
+                      </svg>
+                    </button>
+                    <button class="btn btn-xs btn-error" :disabled="isActionDisabled" @mousedown.prevent
+                      @click="removeDay(index)" type="button"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M6 18L18 6M6 6l12 12" />
+                      </svg></button>
+                  </div>
+                </div>
+              </template>
+            </draggable>
+            <div v-if="festivalDays.length === 0" class="text-gray-400 mt-2">No days added yet.</div>
+          </div>
+
           <div class="flex justify-end">
             <button :disabled="isReadOnly || datesLoading" :aria-disabled="isReadOnly || datesLoading"
               class="btn btn-primary" type="submit">
@@ -406,6 +468,39 @@
           <button aria-label="Fermer" />
         </form>
       </dialog>
+
+      <!-- Modal Ajout/édition Jour (Day) -->
+      <dialog id="dayModal" class="modal" :open="addDayModalOpen">
+        <form class="modal-box max-w-lg" method="dialog" @submit.prevent="saveDay">
+          <h3 class="font-bold text-lg mb-2">{{ editDayIndex !== null ? 'Edit Day' : 'Add Day' }}</h3>
+          <div class="mb-2">
+            <label class="block font-semibold mb-1">Day name</label>
+            <input v-model="dayForm.name" class="input input-bordered w-full" required :disabled="isActionDisabled">
+          </div>
+          <div class="mb-2">
+            <label class="block font-semibold mb-1">Start</label>
+            <input v-model="dayForm.start" class="input input-bordered w-full" type="datetime-local" required
+              :min="datesForm.startDate + 'T' + String(datesForm.startHour).padStart(2, '0') + ':' + String(datesForm.startMinute).padStart(2, '0')"
+              :max="datesForm.endDate + 'T' + String(datesForm.endHour).padStart(2, '0') + ':' + String(datesForm.endMinute).padStart(2, '0')"
+              :disabled="isActionDisabled">
+          </div>
+          <div class="mb-2">
+            <label class="block font-semibold mb-1">End</label>
+            <input v-model="dayForm.end" class="input input-bordered w-full" type="datetime-local" required
+              :min="dayForm.start"
+              :max="datesForm.endDate + 'T' + String(datesForm.endHour).padStart(2, '0') + ':' + String(datesForm.endMinute).padStart(2, '0')"
+              :disabled="isActionDisabled">
+          </div>
+          <div v-if="dayFormError" class="alert alert-error mb-2">{{ dayFormError }}</div>
+          <div class="modal-action flex gap-2">
+            <button class="btn btn-primary" type="submit" :disabled="isActionDisabled">Save</button>
+            <button class="btn" type="button" @click="addDayModalOpen = false">Cancel</button>
+          </div>
+        </form>
+        <form class="modal-backdrop" method="dialog" @click="addDayModalOpen = false">
+          <button aria-label="Fermer" />
+        </form>
+      </dialog>
     </div>
   </div>
 </template>
@@ -416,6 +511,7 @@ import { useRoute, useRuntimeConfig } from 'nuxt/app'
 import { useSupabaseClient, useSupabaseUser } from '#imports'
 import { useEntityPermission } from '~/composables/useEntityPermission'
 import AdminNotification from '~/components/admin/AdminNotification.vue'
+import draggable from 'vuedraggable'
 
 definePageMeta({
   layout: 'admin-event'
@@ -686,8 +782,7 @@ async function fetchEvent() {
         try {
           loadedMeta = JSON.parse(data.metadata)
         } catch (e) {
-
-          // console.log('[DEBUG] Erreur parsing metadata:', e)
+          console.log('[DEBUG] Erreur parsing metadata:', e)
           loadedMeta = {}
         }
       } else if (typeof data.metadata === 'object' && data.metadata !== null) {
@@ -700,12 +795,18 @@ async function fetchEvent() {
         loadedMeta.timetable = Boolean(loadedMeta.timetable)
       }
       mainForm.value.metadata = { ...defaultMeta, ...loadedMeta }
-
-      // console.log('[DEBUG] Metadata loaded (final):', mainForm.value.metadata)
+      // DEBUG LOG: Affiche les metadata chargés (pour debug toggles)
+      console.log('[DEBUG] Metadata loaded (final):', JSON.stringify(mainForm.value.metadata))
     } catch (err) {
       mainForm.value.metadata = { timetable: false, ticket_link: '', sway_tickets: false }
-
-      // console.log('[DEBUG] Metadata load failed, fallback to defaults', err)
+      // DEBUG LOG: Erreur lors du chargement des metadata
+      console.log('[DEBUG] Metadata load failed, fallback to defaults', err)
+    }
+    // DEBUG LOG: Etat des toggles après chargement
+    console.log('[DEBUG] Timetable toggle:', mainForm.value.metadata.timetable, '| Sway Tickets toggle:', mainForm.value.metadata.sway_tickets)
+    // DEBUG LOG: festival_days (onglet Day)
+    if (mainForm.value.metadata.festival_days) {
+      console.log('[DEBUG] festival_days loaded:', JSON.stringify(mainForm.value.metadata.festival_days))
     }
   }
   loadingEvent.value = false
@@ -782,9 +883,14 @@ async function saveMain() {
   // On part du metadata complet chargé dans mainForm (qui contient toutes les clés, même inconnues de l'UI)
   const fullMeta = { ...mainForm.value.metadata }
   // Les champs édités dans l'UI sont déjà à jour dans mainForm.value.metadata
-  // Log le JSON complet qui va être sauvegardé
-
+  // DEBUG LOG: Affiche les metadata à sauvegarder (pour debug toggles)
   console.log('[DEBUG] Metadata to be saved:', JSON.stringify(fullMeta))
+  // DEBUG LOG: Etat des toggles au moment de la sauvegarde
+  console.log('[DEBUG] Timetable toggle (save):', fullMeta.timetable, '| Sway Tickets toggle (save):', fullMeta.sway_tickets)
+  // DEBUG LOG: festival_days (onglet Day) au moment de la sauvegarde
+  if (fullMeta.festival_days) {
+    console.log('[DEBUG] festival_days to be saved:', JSON.stringify(fullMeta.festival_days))
+  }
   const { error: err1 } = await (supabase.from('events') as any)
     .update({ title: mainForm.value.title, description: mainForm.value.description, type: mainForm.value.type, metadata: fullMeta })
     .eq('id', eventId)
@@ -843,17 +949,19 @@ async function saveDates() {
   // Compose ISO strings
   const start = new Date(`${datesForm.value.startDate}T${String(datesForm.value.startHour).padStart(2, '0')}:${String(datesForm.value.startMinute).padStart(2, '0')}:00`)
   const end = new Date(`${datesForm.value.endDate}T${String(datesForm.value.endHour).padStart(2, '0')}:${String(datesForm.value.endMinute).padStart(2, '0')}:00`)
+  // Toujours synchroniser la dernière version de festivalDays dans metadata avant save
+  mainForm.value.metadata.festival_days = [...festivalDays.value]
   const { error } = await supabase
     .from('events')
-    .update({ date_time: start.toISOString(), end_date_time: end.toISOString() })
+    .update({ date_time: start.toISOString(), end_date_time: end.toISOString(), metadata: { ...mainForm.value.metadata } })
     .eq('id', eventId)
-    if (error) {
-      showNotif('error', "Erreur lors de l'enregistrement des dates", error.message)
-    } else {
-      showNotif('success', 'Dates enregistrées')
-      await fetchEvent()
-    }
-    datesLoading.value = false
+  if (error) {
+    showNotif('error', "Erreur lors de l'enregistrement des dates", error.message)
+  } else {
+    showNotif('success', 'Dates enregistrées')
+    await fetchEvent()
+  }
+  datesLoading.value = false
 }
 
 // Promoteurs autorisés pour payouts (droits 1-3)
@@ -972,6 +1080,79 @@ function clearEndDate() {
   datesForm.value.endDate = ''
   datesForm.value.endHour = 0
   datesForm.value.endMinute = 0
+}
+
+// Gestion des jours (CRUD, drag & drop, modale)
+const festivalDays = ref<Array<{ name: string; start: string; end: string }>>(mainForm.value.metadata.festival_days || [])
+// Synchronisation descendante : metadata -> festivalDays
+watch(() => mainForm.value.metadata.festival_days, (val) => {
+  if (Array.isArray(val)) festivalDays.value = [...val]
+})
+
+const addDayModalOpen = ref(false)
+const editDayIndex = ref<number | null>(null)
+const dayForm = ref({ name: '', start: '', end: '' })
+const dayFormError = ref('')
+
+function openAddDayModal() {
+  dayForm.value = { name: '', start: '', end: '' }
+  editDayIndex.value = null
+  addDayModalOpen.value = true
+  dayFormError.value = ''
+}
+function editDay(idx: number) {
+  const d = festivalDays.value[idx]
+  // Convert ISO string to 'YYYY-MM-DDTHH:mm' for datetime-local input
+  function toInputValue(dt: string) {
+    if (!dt) return ''
+    const date = new Date(dt)
+    const pad = (n: number) => n.toString().padStart(2, '0')
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
+  }
+  dayForm.value = {
+    name: d.name,
+    start: toInputValue(d.start),
+    end: toInputValue(d.end)
+  }
+  editDayIndex.value = idx
+  addDayModalOpen.value = true
+  dayFormError.value = ''
+}
+function removeDay(idx: number) {
+  festivalDays.value.splice(idx, 1)
+  mainForm.value.metadata.festival_days = [...festivalDays.value]
+}
+function saveDay() {
+  // Validation
+  if (!dayForm.value.name.trim()) {
+    dayFormError.value = 'Day name is required.'
+    return
+  }
+  if (!dayForm.value.start || !dayForm.value.end) {
+    dayFormError.value = 'Start and end are required.'
+    return
+  }
+  const eventStart = new Date(`${datesForm.value.startDate}T${String(datesForm.value.startHour).padStart(2, '0')}:${String(datesForm.value.startMinute).padStart(2, '0')}:00`)
+  const eventEnd = new Date(`${datesForm.value.endDate}T${String(datesForm.value.endHour).padStart(2, '0')}:${String(datesForm.value.endMinute).padStart(2, '0')}:00`)
+  const dStart = new Date(dayForm.value.start)
+  const dEnd = new Date(dayForm.value.end)
+  if (dStart < eventStart || dEnd > eventEnd || dEnd <= dStart) {
+    dayFormError.value = 'Day start/end must be within event bounds and end after start.'
+    return
+  }
+  if (editDayIndex.value !== null) {
+    festivalDays.value[editDayIndex.value] = { ...dayForm.value }
+  } else {
+    festivalDays.value.push({ ...dayForm.value })
+  }
+  // Synchronise metadata après modification
+  mainForm.value.metadata.festival_days = [...festivalDays.value]
+  addDayModalOpen.value = false
+}
+function formatDayDate(dt: string) {
+  if (!dt) return ''
+  const d = new Date(dt)
+  return d.toLocaleString()
 }
 </script>
 
