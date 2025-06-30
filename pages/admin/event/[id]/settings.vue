@@ -13,9 +13,7 @@
       <div role="tablist" class="tabs tabs-boxed bg-base-200 mb-6">
         <button v-for="tab in tabs" :key="tab.key" role="tab"
           :class="['tab', activeTab === tab.key ? 'tab-active' : '', 'focus:outline-none']"
-          :aria-selected="activeTab === tab.key"
-          @click="onTabClick(tab.key)"
-        >
+          :aria-selected="activeTab === tab.key" @click="onTabClick(tab.key)">
           {{ tab.label }}
         </button>
       </div>
@@ -298,7 +296,8 @@
                     <button class="btn btn-xs btn-error" :disabled="isActionDisabled" @mousedown.prevent
                       @click="removeDay(index)" type="button"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"
                         fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M6 18L18 6M6 6l12 12" />
                       </svg></button>
                   </div>
                 </div>
@@ -323,7 +322,8 @@
             <div class="flex items-center justify-between mb-2">
               <span class="font-semibold text-lg">Manage Stages</span>
               <button type="button" class="btn btn-primary btn-sm" @click="openAddStageModal"
-                :disabled="isActionDisabled">Add Stage</button>
+                :disabled="isActionDisabled">Add
+                Stage</button>
             </div>
             <draggable v-model="stages" item-key="name" handle=".drag-handle" class="space-y-2"
               :disabled="isActionDisabled">
@@ -351,7 +351,8 @@
                       @click="removeStage(index)" type="button">
                       <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M6 18L18 6M6 6l12 12" />
                       </svg>
                     </button>
                   </div>
@@ -625,6 +626,11 @@ type EventPromoterRow = { promoter_id: number; promoters: { name: string } }
 type EventVenueRow = { venue_id: number; venues: { name: string } }
 type EventGenreRow = { genre_id: number; genres: { name: string } }
 
+
+// --- Ensure event is defined before tabs ---
+const event = ref<Event | null>(null)
+const loadingEvent = ref(true)
+
 // --- TABS ---
 const tabs = computed(() => {
   const baseTabs = [
@@ -650,35 +656,77 @@ const config = useRuntimeConfig()
 
 // --- Gestion dynamique du paramètre tab dans l'URL ---
 const activeTab = ref('main')
-function syncTabFromRoute() {
+const requestedTab = ref<string | null>(null)
+
+function syncRequestedTabFromRoute() {
   const tabParam = route.query.tab
-  const tabList = tabs.value.map(t => t.key)
-  if (typeof tabParam === 'string' && tabList.includes(tabParam)) {
-    activeTab.value = tabParam
-  } else {
-    activeTab.value = 'main'
-  }
+  requestedTab.value = typeof tabParam === 'string' ? tabParam : null
 }
-function onTabClick(tabKey) {
+
+function onTabClick(tabKey: string) {
   if (activeTab.value === tabKey) return
   activeTab.value = tabKey
-  router.replace({ query: { ...route.query, tab: tabKey } })
-}
-watch(() => route.query.tab, () => {
-  syncTabFromRoute()
-})
-watch(activeTab, (newTab) => {
-  if (route.query.tab !== newTab) {
-    router.replace({ query: { ...route.query, tab: newTab } })
+  requestedTab.value = tabKey
+  if (tabKey === 'main') {
+    router.replace({ path: route.path, query: Object.fromEntries(Object.entries({ ...route.query }).filter(([k]) => k !== 'tab')) })
+  } else {
+    router.replace({ query: { ...route.query, tab: tabKey } })
   }
-})
+}
+
+// Synchronise le tab actif avec l'URL et la disponibilité des tabs (metadata)
+watch(
+  () => tabs.value,
+  () => {
+    const tabList = tabs.value.map(t => t.key)
+    // Si le tab demandé est disponible, l'activer
+    if (requestedTab.value && tabList.includes(requestedTab.value)) {
+      activeTab.value = requestedTab.value
+    } else if (!tabList.includes(activeTab.value)) {
+      // Si le tab actif n'existe plus (ex: metadata change), fallback sur main
+      activeTab.value = 'main'
+      requestedTab.value = 'main'
+      router.replace({ path: route.path, query: Object.fromEntries(Object.entries({ ...route.query }).filter(([k]) => k !== 'tab')) })
+    }
+  },
+  { immediate: true }
+)
+
+// Sur changement d'URL, mettre à jour le tab demandé
+watch(
+  () => route.query.tab,
+  () => {
+    syncRequestedTabFromRoute()
+    // Si le tab demandé est dispo, l'activer
+    const tabList = tabs.value.map(t => t.key)
+    if (requestedTab.value && tabList.includes(requestedTab.value)) {
+      activeTab.value = requestedTab.value
+    } else if (!tabList.includes(activeTab.value)) {
+      activeTab.value = 'main'
+      requestedTab.value = 'main'
+      router.replace({ path: route.path, query: Object.fromEntries(Object.entries({ ...route.query }).filter(([k]) => k !== 'tab')) })
+    }
+  }
+)
+
+// Sur changement de tab actif, synchroniser l'URL
+watch(
+  () => activeTab.value,
+  (newTab) => {
+    if (newTab === 'main' && 'tab' in route.query) {
+      router.replace({ path: route.path, query: Object.fromEntries(Object.entries({ ...route.query }).filter(([k]) => k !== 'tab')) })
+    } else if (route.query.tab !== newTab && newTab !== 'main') {
+      router.replace({ query: { ...route.query, tab: newTab } })
+    }
+  }
+)
+
 onMounted(() => {
-  syncTabFromRoute()
+  syncRequestedTabFromRoute()
 })
 
 const eventId = Number(route.params.id)
-const event = ref<Event | null>(null)
-const loadingEvent = ref(true)
+
 
 const { currentUserPermission, fetchPermission } = useEntityPermission(eventId, 'event')
 const permissionLoading = ref(true)
