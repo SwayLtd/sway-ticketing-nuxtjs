@@ -162,9 +162,10 @@ useHead({
     color: #333;
     font-family: Arial, sans-serif;
     font-size: 1.15rem;
-    width: 100vw;
-    min-width: 100vw;
+    width: 100%;
+    min-width: 0;
     box-sizing: border-box;
+    overflow-x: hidden;
 }
 
 h1 {
