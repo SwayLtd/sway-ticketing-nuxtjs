@@ -13,7 +13,9 @@
       <div role="tablist" class="tabs tabs-boxed bg-base-200 mb-6">
         <button v-for="tab in tabs" :key="tab.key" role="tab"
           :class="['tab', activeTab === tab.key ? 'tab-active' : '', 'focus:outline-none']"
-          :aria-selected="activeTab === tab.key" @click="activeTab = tab.key">
+          :aria-selected="activeTab === tab.key"
+          @click="onTabClick(tab.key)"
+        >
           {{ tab.label }}
         </button>
       </div>
@@ -296,8 +298,7 @@
                     <button class="btn btn-xs btn-error" :disabled="isActionDisabled" @mousedown.prevent
                       @click="removeDay(index)" type="button"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"
                         fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M6 18L18 6M6 6l12 12" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                       </svg></button>
                   </div>
                 </div>
@@ -597,7 +598,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
-import { useRoute, useRuntimeConfig } from 'nuxt/app'
+import { useRoute, useRouter, useRuntimeConfig } from 'nuxt/app'
 import { useSupabaseClient, useSupabaseUser } from '#imports'
 import { useEntityPermission } from '~/composables/useEntityPermission'
 import AdminNotification from '~/components/admin/AdminNotification.vue'
@@ -630,7 +631,6 @@ const tabs = computed(() => {
     { key: 'main', label: 'Main' },
     { key: 'dates', label: 'Dates' },
   ];
-  // Ajout de l'onglet Stages si Timetable activé et sauvegardé
   if (event.value?.metadata?.timetable === true) {
     baseTabs.push({ key: 'stages', label: 'Stages' });
   }
@@ -641,12 +641,40 @@ const tabs = computed(() => {
   }
   return baseTabs;
 })
-const activeTab = ref('main')
 
 const supabase = useSupabaseClient()
 const user = useSupabaseUser()
 const route = useRoute()
+const router = useRouter()
 const config = useRuntimeConfig()
+
+// --- Gestion dynamique du paramètre tab dans l'URL ---
+const activeTab = ref('main')
+function syncTabFromRoute() {
+  const tabParam = route.query.tab
+  const tabList = tabs.value.map(t => t.key)
+  if (typeof tabParam === 'string' && tabList.includes(tabParam)) {
+    activeTab.value = tabParam
+  } else {
+    activeTab.value = 'main'
+  }
+}
+function onTabClick(tabKey) {
+  if (activeTab.value === tabKey) return
+  activeTab.value = tabKey
+  router.replace({ query: { ...route.query, tab: tabKey } })
+}
+watch(() => route.query.tab, () => {
+  syncTabFromRoute()
+})
+watch(activeTab, (newTab) => {
+  if (route.query.tab !== newTab) {
+    router.replace({ query: { ...route.query, tab: newTab } })
+  }
+})
+onMounted(() => {
+  syncTabFromRoute()
+})
 
 const eventId = Number(route.params.id)
 const event = ref<Event | null>(null)
