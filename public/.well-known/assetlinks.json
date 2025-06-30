@@ -1,0 +1,15 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls",
+      "delegate_permission/common.get_login_creds"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "app.sway.main",
+      "sha256_cert_fingerprints": [
+        "C3:66:F7:8C:6E:1E:56:CB:F5:FE:AA:6C:D6:84:F0:86:95:19:D2:B0:3D:7C:BC:D6:A9:56:5A:A9:EE:10:92:F0"
+      ]
+    }
+  }
+]
