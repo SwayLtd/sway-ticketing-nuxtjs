@@ -1,4 +1,3 @@
-
 <script setup lang="ts">
 import { useSeoMeta, useHead } from '#imports'
 
@@ -40,6 +39,12 @@ useHead({
         description: 'Sway is a mobile event management application that helps users discover, organize, and manage raves and festivals effortlessly.'
       })
     }
+  ],
+  link: [
+    { rel: 'preload', as: 'image', href: '/images/sway-app.png' },
+    { rel: 'preload', as: 'image', href: '/images/phone-composition.png' },
+    { rel: 'preload', as: 'image', href: '/images/play-store.png' },
+    { rel: 'preload', as: 'image', href: '/images/app-store.png' }
   ]
 })
 
@@ -133,7 +138,7 @@ onUnmounted(() => {
     <!-- Header (mobile & desktop) -->
     <header class="mobile-header">
       <div class="mobile-header-content">
-        <img src="/images/sway-app.png" alt="Sway Logo" class="mobile-logo" />
+        <img src="/images/sway-app.png" alt="Sway Logo" class="mobile-logo" loading="eager" />
         <span class="mobile-app-name">Sway</span>
       </div>
       <button class="get-app-btn" @click="openPlayStore">Get the app</button>
@@ -142,15 +147,15 @@ onUnmounted(() => {
     <div id="scroll-container" ref="scrollContainer">
       <div class="left-panel">
         <div class="left-panel-content">
-          <img src="/images/sway-app.png" alt="Sway Logo" class="sway-logo" />
+          <img src="/images/sway-app.png" alt="Sway Logo" class="sway-logo" loading="eager" />
           <div class="app-title">Sway</div>
           <div class="subtitle">Find raves and festivals</div>
           <div class="description">
             The ultimate raver companion. Lineups, set times, event discovery, and more – all offline, all in one app.
           </div>
           <div class="store-buttons">
-            <img src="/images/play-store.png" alt="Play Store" class="store-btn" @click="openPlayStore" />
-            <img src="/images/app-store.png" alt="App Store" class="store-btn" @click="openAppStore" />
+            <img src="/images/play-store.png" alt="Play Store" class="store-btn" @click="openPlayStore" loading="eager" />
+            <img src="/images/app-store.png" alt="App Store" class="store-btn" @click="openAppStore" loading="eager" />
           </div>
         </div>
         <div class="left-panel-footer">
@@ -160,31 +165,31 @@ onUnmounted(() => {
       <div id="horizontal-section" ref="horizontalSection">
         <div class="slide first-slide">
           <div class="first-slide-content">
-            <img src="/images/phone-composition.png" alt="Phone composition" class="phone-image" />
+            <img src="/images/phone-composition.png" alt="Phone composition" class="phone-image" loading="eager" />
             <span class="scroll-text">Scroll to discover</span>
           </div>
         </div>
         <div class="slide feature-slide">
           <div class="feature-slide-content">
-            <img src="/images/discover.png" alt="Discover feature" class="mockup-image" />
+            <img src="/images/discover.png" alt="Discover feature" class="mockup-image" loading="lazy" />
             <div class="feature-title">Discover the best music events 🎵</div>
           </div>
         </div>
         <div class="slide feature-slide">
           <div class="feature-slide-content">
-            <img src="/images/timeline.png" alt="Roadmap" class="mockup-image" />
+            <img src="/images/timeline.png" alt="Roadmap" class="mockup-image" loading="lazy" />
             <div class="feature-title">Roadmap 🎉</div>
           </div>
         </div>
         <div class="slide feature-slide">
           <div class="feature-slide-content">
-            <img src="/images/phone-mockup.png" alt="Notifications" class="mockup-image" />
+            <img src="/images/phone-mockup.png" alt="Notifications" class="mockup-image" loading="lazy" />
             <div class="feature-title">Stay ahead with smart notifications 🔔</div>
           </div>
         </div>
         <div class="slide feature-slide">
           <div class="feature-slide-content">
-            <img src="/images/phone-mockup.png" alt="Community" class="mockup-image" />
+            <img src="/images/phone-mockup.png" alt="Community" class="mockup-image" loading="lazy" />
             <div class="feature-title">Connect and share with the raving community 💬</div>
           </div>
         </div>
